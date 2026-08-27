@@ -33,11 +33,61 @@ export function Memories({ data, admin, add, update, remove }) {
   const [linkDate, setLinkDate] = useState(today())
   const [isSavingLink, setIsSavingLink] = useState(false)
 
+  // Nimajjanam / Immersion Carousel State
+  const [carouselIndex, setCarouselIndex] = useState(0)
+
   // Filtered and grouped items
   const filteredItems = useMemo(() => {
     if (activeFilter === 'all') return galleryItems
+    if (activeFilter === 'immersion') {
+      return galleryItems.filter((item) => {
+        const cap = String(item.caption || '').toLowerCase()
+        return (
+          item.type === 'video' ||
+          cap.includes('nimajjanam') ||
+          cap.includes('immersion') ||
+          cap.includes('visarjan') ||
+          cap.includes('shobha')
+        )
+      })
+    }
     return galleryItems.filter((item) => item.type === activeFilter)
   }, [galleryItems, activeFilter])
+
+  // Dedicated Immersion & Shobha Yatra video highlights
+  const immersionItems = useMemo(() => {
+    const matched = galleryItems.filter((i) => {
+      const cap = String(i.caption || '').toLowerCase()
+      return (
+        i.type === 'video' ||
+        cap.includes('nimajjanam') ||
+        cap.includes('immersion') ||
+        cap.includes('visarjan') ||
+        cap.includes('shobha')
+      )
+    })
+    if (matched.length > 0) return matched
+
+    // Default festival demo video slides
+    return [
+      {
+        id: 'immersion-demo-1',
+        type: 'video',
+        url: 'https://www.youtube.com/watch?v=17X21hE2G90',
+        caption: '🎆 Grand Shobha Yatra Procession & Fireworks Spectacle',
+        date: today()
+      },
+      {
+        id: 'immersion-demo-2',
+        type: 'video',
+        url: 'https://www.youtube.com/watch?v=17X21hE2G90',
+        caption: '🥁 Dappu Dance & Holy Visarjan at Lake Ghat',
+        date: today()
+      }
+    ]
+  }, [galleryItems])
+
+  const currentImmersionItem = immersionItems[carouselIndex] || immersionItems[0]
 
   const groupsByYear = useMemo(() => {
     const groups = filteredItems.reduce((acc, item) => {
@@ -57,6 +107,7 @@ export function Memories({ data, admin, add, update, remove }) {
     () => galleryItems.filter((i) => i.type === 'video').length,
     [galleryItems]
   )
+  const immersionCount = useMemo(() => immersionItems.length, [immersionItems])
 
   // Estimated storage (Supabase Free Tier is 1GB = 1024MB)
   const estimatedStorageMB = useMemo(() => {
@@ -183,6 +234,90 @@ export function Memories({ data, admin, add, update, remove }) {
 
   return (
     <>
+      {/* Grand Nimajjanam & Visarjan Video Highlights Carousel */}
+      <Card
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1.3rem' }}>🎆</span>
+              <span>Grand Nimajjanam & Visarjan Video Highlights</span>
+            </div>
+            <span style={{ fontSize: '0.76rem', background: '#fef3c7', color: '#92400e', padding: '3px 8px', borderRadius: '999px', fontWeight: '800', border: '1px solid #fde68a' }}>
+              🥁 Shobha Yatra Special
+            </span>
+          </div>
+        }
+      >
+        <p className="muted" style={{ marginTop: '-4px' }}>
+          Live video streams, fireworks spectacles, and devotional highlights of Lord Ganesha&apos;s holy Visarjan and grand street procession.
+        </p>
+
+        {currentImmersionItem && (
+          <div className="immersion-carousel-wrap" style={{ background: '#190504', borderRadius: '12px', padding: '12px', overflow: 'hidden', border: '2px solid #d7952f', marginTop: '12px' }}>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: '8px', overflow: 'hidden' }}>
+              {currentImmersionItem.type === 'video' && currentImmersionItem.url?.includes('youtu') ? (
+                <iframe
+                  style={{ width: '100%', height: '100%', border: 0 }}
+                  title={currentImmersionItem.caption || 'Nimajjanam Video'}
+                  src={`https://www.youtube-nocookie.com/embed/${
+                    (currentImmersionItem.url.match(/(?:youtu\.be\/|v=|embed\/)([^?&/]+)/) || [])[1] || ''
+                  }?rel=0`}
+                  allowFullScreen
+                />
+              ) : currentImmersionItem.type === 'photo' ? (
+                <img
+                  src={currentImmersionItem.url}
+                  alt={currentImmersionItem.caption || 'Nimajjanam Highlight'}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#ffe0a0', padding: '20px', textAlign: 'center' }}>
+                  <span style={{ fontSize: '2.5rem' }}>🎬</span>
+                  <p style={{ margin: '8px 0 14px', fontWeight: '600' }}>{currentImmersionItem.caption}</p>
+                  <a href={currentImmersionItem.url} target="_blank" rel="noreferrer" className="button primary">
+                    Watch Video / Album ↗
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', flexWrap: 'wrap', gap: '8px', color: '#fff' }}>
+              <div>
+                <h4 style={{ margin: 0, color: '#ffe0a0', fontSize: '1rem' }}>
+                  {currentImmersionItem.caption || 'Shobha Yatra & Immersion Highlight'}
+                </h4>
+                <small style={{ color: '#fed7aa' }}>📅 {fmtDate(currentImmersionItem.date || today())}</small>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.8rem', color: '#fed7aa' }}>
+                  {carouselIndex + 1} of {immersionItems.length}
+                </span>
+                <Button
+                  type="button"
+                  size="small"
+                  kind="secondary"
+                  disabled={carouselIndex === 0}
+                  onClick={() => setCarouselIndex((prev) => Math.max(0, prev - 1))}
+                >
+                  ◀ Prev
+                </Button>
+                <Button
+                  type="button"
+                  size="small"
+                  kind="secondary"
+                  disabled={carouselIndex >= immersionItems.length - 1}
+                  onClick={() => setCarouselIndex((prev) => Math.min(immersionItems.length - 1, prev + 1))}
+                >
+                  Next ▶
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+
       <Card title="Memories & Gallery">
         <p className="muted">
           Moments, celebrations, aarti videos, and procession photos from over the years.
@@ -196,6 +331,13 @@ export function Memories({ data, admin, add, update, remove }) {
             onClick={() => setActiveFilter('all')}
           >
             All <small>({galleryItems.length})</small>
+          </button>
+          <button
+            type="button"
+            className={activeFilter === 'immersion' ? 'active' : ''}
+            onClick={() => setActiveFilter('immersion')}
+          >
+            🎆 Nimajjanam Special <small>({immersionCount})</small>
           </button>
           <button
             type="button"

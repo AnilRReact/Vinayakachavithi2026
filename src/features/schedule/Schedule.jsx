@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Card, Form, Button } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
+import { ProcessionTracker } from './ProcessionTracker'
 import { fmtDate, escapeIcs, activityClass, today } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
 
@@ -88,6 +89,13 @@ export function Schedule({ data, admin, add, update, remove }) {
 
   return (
     <>
+      {/* Shobha Yatra & Nimajjanam Route Tracker */}
+      <ProcessionTracker
+        settings={settings}
+        admin={admin}
+        onUpdateSettings={(v) => settings.id && update('settings', settings.id, v)}
+      />
+
       <Card title="Pandal Schedule & Daily Timings">
         {settings.daily_schedule_note ? (
           <div className="schedule-pandal-note">
