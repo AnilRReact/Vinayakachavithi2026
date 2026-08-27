@@ -1,0 +1,690 @@
+import { useMemo, useState } from 'react'
+import { Card, Empty, Button, Stat, Modal, ConfirmModal } from '../../components/ui'
+import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
+import { currency, fmtDate, tier, today } from '../../lib/formatters'
+import { useCountdown } from '../../hooks/useCountdown'
+import { useToast } from '../../context/ToastContext'
+
+export function Overview({ data, admin, add, update, remove, onNavigate }) {
+  const { toast } = useToast()
+  const [noticeToDelete, setNoticeToDelete] = useState(null)
+  const [selectedMedia, setSelectedMedia] = useState(null)
+  const [dateModalOpen, setDateModalOpen] = useState(false)
+  const [selectedReceiptDonation, setSelectedReceiptDonation] = useState(null)
+
+  const settings = data.settings?.[0] || {}
+  const donations = data.donations || []
+  const expenses = data.expenses || []
+  const committeeMembers = data.committee_members || []
+  const activities = data.activities || []
+  const galleryItems = data.gallery_items || []
+  const noticesList = data.notices || []
+
+  // Live countdown hook
+  const countdown = useCountdown(settings.festival_date)
+
+  // Date editing state
+  const [festivalDateVal, setFestivalDateVal] = useState(settings.festival_date || today())
+  const [villageNameVal, setVillageNameVal] = useState(settings.village_name || 'Vinayaka Vedika')
+  const [taglineVal, setTaglineVal] = useState(settings.tagline || 'Our village celebration, in one place.')
+  const [isSavingDate, setIsSavingDate] = useState(false)
+
+  // Memoized stats
+  const raised = useMemo(
+    () => donations.reduce((sum, item) => sum + Number(item.amount || 0), 0),
+    [donations]
+  )
+  const spent = useMemo(
+    () => expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0),
+    [expenses]
+  )
+  const balance = useMemo(() => raised - spent, [raised, spent])
+
+  const isFirstTimeSetup = !settings.festival_date && !settings.village_name && donations.length === 0
+
+  const pinnedDonations = useMemo(
+    () => donations.filter((d) => Boolean(d.pinned)),
+    [donations]
+  )
+
+  const topDonations = useMemo(() => {
+    return [...donations]
+      .sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0))
+      .slice(0, 3)
+  }, [donations])
+
+  const upcoming = useMemo(() => {
+    const todayStr = today()
+    return activities
+      .filter((item) => item.date >= todayStr)
+      .sort((a, b) => a.date.localeCompare(b.date))[0]
+  }, [activities])
+
+  const sortedNotices = useMemo(() => {
+    return [...noticesList].sort(
+      (a, b) =>
+        Number(b.pinned) - Number(a.pinned) ||
+        String(b.date).localeCompare(String(a.date))
+    )
+  }, [noticesList])
+
+  const copyUpdate = async () => {
+    const text = `${settings.village_name || 'Vinayaka Vedika'} 🪔\n${settings.tagline || ''}\n\nCollected: ${currency.format(raised)}\nSpent: ${currency.format(spent)}\nBalance: ${currency.format(balance)}${
+      upcoming
+        ? `\n\nNext: ${upcoming.title} — ${fmtDate(upcoming.date)}${
+            upcoming.start_time ? `, ${upcoming.start_time}` : ''
+          }`
+        : ''
+    }`
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('Shareable festival update copied to clipboard!')
+    } catch {
+      toast.error('Could not copy to clipboard. Please copy manually.')
+    }
+  }
+
+  const handleOpenDateModal = () => {
+    setFestivalDateVal(settings.festival_date || today())
+    setVillageNameVal(settings.village_name || 'Vinayaka Vedika')
+    setTaglineVal(settings.tagline || 'Our village celebration, in one place.')
+    setDateModalOpen(true)
+  }
+
+  const handleSaveFestivalDate = async (e) => {
+    e.preventDefault()
+    if (!festivalDateVal) {
+      toast.error('Please choose a festival date.')
+      return
+    }
+
+    setIsSavingDate(true)
+    try {
+      const payload = {
+        ...settings,
+        festival_date: festivalDateVal,
+        village_name: villageNameVal.trim() || 'Vinayaka Vedika',
+        tagline: taglineVal.trim() || 'Our village celebration, in one place.'
+      }
+
+      const err = settings.id
+        ? await update('settings', settings.id, payload)
+        : await add('settings', payload)
+
+      if (err) {
+        toast.error(err.message || 'Failed to save festival date.')
+      } else {
+        toast.success(`Festival date set to ${fmtDate(festivalDateVal)}! Countdown is running.`)
+        setDateModalOpen(false)
+      }
+    } catch (err) {
+      toast.error(err.message || 'Could not save festival date.')
+    } finally {
+      setIsSavingDate(false)
+    }
+  }
+
+  const handleTogglePin = async (d) => {
+    const nextPinned = !d.pinned
+    const err = await update('donations', d.id, {
+      ...d,
+      amount: Number(d.amount),
+      pinned: nextPinned
+    })
+    if (err) {
+      toast.error(err.message || 'Could not update pin status.')
+    } else {
+      toast.success(
+        nextPinned
+          ? `📌 ${d.donor_name} is now pinned to the Overview showcase!`
+          : `Unpinned ${d.donor_name} from Overview.`
+      )
+      if (selectedReceiptDonation?.id === d.id) {
+        setSelectedReceiptDonation({ ...d, pinned: nextPinned })
+      }
+    }
+  }
+
+  const handleTogglePinNotice = async (notice) => {
+    const nextPinned = !notice.pinned
+    const err = await update('notices', notice.id, {
+      ...notice,
+      pinned: nextPinned
+    })
+    if (err) {
+      toast.error(err.message || 'Could not update notice pin status.')
+    } else {
+      toast.success(
+        nextPinned
+          ? '📌 Notice pinned to the top of Overview!'
+          : 'Notice unpinned from top.'
+      )
+    }
+  }
+
+  const handleDeleteNotice = async () => {
+    if (!noticeToDelete) return
+    const err = await remove('notices', noticeToDelete.id)
+    if (err) {
+      toast.error(err.message || 'Failed to remove notice.')
+    } else {
+      toast.success('Notice removed.')
+    }
+    setNoticeToDelete(null)
+  }
+
+  return (
+    <>
+      {/* First time setup banner */}
+      {isFirstTimeSetup && (
+        <div className="first-time-setup-banner">
+          <div className="setup-banner-content">
+            <span className="setup-icon" aria-hidden="true">🪔</span>
+            <div>
+              <h3>Welcome to your Vinayaka Vedika Portal!</h3>
+              <p>Set your festival date, village name, and committee passcode in Settings to get started.</p>
+            </div>
+          </div>
+          <Button onClick={() => onNavigate ? onNavigate('Settings') : handleOpenDateModal()}>
+            ⚙️ Setup Festival
+          </Button>
+        </div>
+      )}
+
+      <section className="hero">
+        <p className="eyebrow">🪔 Vinayaka Chavithi</p>
+        <h1>{settings.village_name || 'Vinayaka Vedika'}</h1>
+        <p>{settings.tagline || 'Our village celebration, in one place.'}</p>
+
+        {/* Live Countdown Display */}
+        <div className="hero-countdown-wrapper">
+          {countdown.isSet && !countdown.isPast && !countdown.isToday ? (
+            <div className="live-countdown-card">
+              <div className="countdown-timer">
+                <div className="timer-unit">
+                  <b>{String(countdown.days).padStart(2, '0')}</b>
+                  <span>Days</span>
+                </div>
+                <span className="timer-separator">:</span>
+                <div className="timer-unit">
+                  <b>{String(countdown.hours).padStart(2, '0')}</b>
+                  <span>Hours</span>
+                </div>
+                <span className="timer-separator">:</span>
+                <div className="timer-unit">
+                  <b>{String(countdown.minutes).padStart(2, '0')}</b>
+                  <span>Mins</span>
+                </div>
+                <span className="timer-separator">:</span>
+                <div className="timer-unit seconds">
+                  <b>{String(countdown.seconds).padStart(2, '0')}</b>
+                  <span>Secs</span>
+                </div>
+              </div>
+              <div className="countdown-date-info">
+                <small>📅 Festival Date: <b>{fmtDate(settings.festival_date)}</b></small>
+                {(admin || !settings.festival_date) && (
+                  <button
+                    type="button"
+                    className="hero-edit-date-btn"
+                    onClick={handleOpenDateModal}
+                    title="Change festival date"
+                  >
+                    ✏️ Change Date
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : countdown.isToday ? (
+            <div className="live-countdown-card today">
+              <strong>🎉 Today is the Festival Day! 🙏 Ganapathi Bappa Morya!</strong>
+              {(admin || !settings.festival_date) && (
+                <button
+                  type="button"
+                  className="hero-edit-date-btn"
+                  onClick={handleOpenDateModal}
+                >
+                  ✏️ Edit Date
+                </button>
+              )}
+            </div>
+          ) : countdown.isPast ? (
+            <div className="live-countdown-card past">
+              <strong>The celebration has concluded for {fmtDate(settings.festival_date)}</strong>
+              {(admin || !settings.festival_date) && (
+                <button
+                  type="button"
+                  className="hero-edit-date-btn"
+                  onClick={handleOpenDateModal}
+                >
+                  ✏️ Set New Date
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="live-countdown-card unset">
+              <button
+                type="button"
+                className="hero-set-date-btn"
+                onClick={handleOpenDateModal}
+              >
+                📅 Set Festival Date & Start Countdown
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <div className="stats">
+        <Stat label="Raised" value={currency.format(raised)} />
+        <Stat label="Contributors" value={donations.length} />
+        <Stat label="Committee" value={committeeMembers.length} />
+        <Stat
+          label="Upcoming"
+          value={activities.filter((item) => item.date >= today()).length}
+        />
+        <Stat label="Memories" value={galleryItems.length} />
+      </div>
+
+      {/* Featured / Pinned Contributors Showcase */}
+      <Card title="🌟 Featured Contributors & Pandal Patrons">
+        <p className="muted">
+          Special acknowledgment for our generous patrons and dedicated contributors.
+        </p>
+
+        {pinnedDonations.length > 0 ? (
+          <div className="pinned-donors-grid">
+            {pinnedDonations.map((d) => (
+              <article className="pinned-donor-card" key={d.id}>
+                <div className="pinned-donor-head">
+                  <div className="pinned-donor-info">
+                    <span className="pinned-star-icon">★</span>
+                    <div>
+                      <b>{d.donor_name}</b>
+                      <span className={`badge ${tier(d.amount).toLowerCase()}`}>
+                        {tier(d.amount)}
+                      </span>
+                    </div>
+                  </div>
+                  <strong className="pinned-donor-amount">
+                    {currency.format(d.amount)}
+                  </strong>
+                </div>
+
+                {d.note && (
+                  <p className="pinned-donor-note">📝 “{d.note}”</p>
+                )}
+
+                <div className="pinned-donor-footer">
+                  <small>📅 {fmtDate(d.date)}</small>
+                  <div className="pinned-donor-actions">
+                    <Button
+                      type="button"
+                      kind="receipt-action"
+                      size="small"
+                      onClick={() => setSelectedReceiptDonation(d)}
+                      title="View, download image, or print festive card"
+                    >
+                      <span className="action-icon">📜</span>
+                      <span>Card / Receipt</span>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      kind="pinned-action"
+                      size="small"
+                      onClick={() => handleTogglePin(d)}
+                      title="Unpin from Overview showcase"
+                    >
+                      <span>📌 Unpin</span>
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="pinned-empty-box">
+            <p style={{ margin: '0 0 12px', color: '#65584a' }}>
+              Pin contributors from the <b>Money</b> tab to feature their appreciation card here.
+            </p>
+            {topDonations.length > 0 && (
+              <div className="pinned-donors-grid">
+                {topDonations.map((d) => (
+                  <article className="pinned-donor-card" key={d.id}>
+                    <div className="pinned-donor-head">
+                      <div className="pinned-donor-info">
+                        <span className="pinned-star-icon">★</span>
+                        <div>
+                          <b>{d.donor_name}</b>
+                          <span className={`badge ${tier(d.amount).toLowerCase()}`}>
+                            {tier(d.amount)}
+                          </span>
+                        </div>
+                      </div>
+                      <strong className="pinned-donor-amount">
+                        {currency.format(d.amount)}
+                      </strong>
+                    </div>
+                    <div className="pinned-donor-footer">
+                      <small>📅 {fmtDate(d.date)}</small>
+                      <div className="pinned-donor-actions">
+                        <Button
+                          type="button"
+                          kind="receipt-action"
+                          size="small"
+                          onClick={() => setSelectedReceiptDonation(d)}
+                          title="View, download image, or share on WhatsApp"
+                        >
+                          <span className="action-icon">📜</span>
+                          <span>Receipt</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          kind="pinned-toggle-btn"
+                          size="small"
+                          onClick={() => handleTogglePin(d)}
+                          title="Pin this contributor to Overview"
+                        >
+                          <span>📍 Pin</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* Notices with Pin / Unpin on Overview */}
+      {sortedNotices.length > 0 && (
+        <Card title="📍 Notices & Announcements">
+          <div className="notices-list">
+            {sortedNotices.map((notice) => (
+              <div className={`notice ${notice.pinned ? 'pinned' : ''}`} key={notice.id}>
+                <div className="notice-content">
+                  {notice.pinned && <span className="pin-badge">📌 Pinned to Top</span>}
+                  <p>{notice.message}</p>
+                  <small>{fmtDate(notice.date)}</small>
+                </div>
+                <div className="notice-admin-actions">
+                  <Button
+                    type="button"
+                    kind={notice.pinned ? 'pinned-action' : 'pinned-toggle-btn'}
+                    size="small"
+                    onClick={() => handleTogglePinNotice(notice)}
+                    title={notice.pinned ? 'Unpin this notice from top' : 'Pin this notice to top of Overview'}
+                  >
+                    <span>{notice.pinned ? '📌 Unpin' : '📍 Pin'}</span>
+                  </Button>
+
+                  {admin && (
+                    <Button
+                      type="button"
+                      kind="delete-action"
+                      size="small"
+                      onClick={() => setNoticeToDelete(notice)}
+                      aria-label="Remove notice"
+                    >
+                      <span className="action-icon" aria-hidden="true">🗑</span>
+                      <span className="action-label">Remove</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {(settings.morning_aarti_time ||
+        settings.evening_aarti_time ||
+        settings.daily_schedule_note) && (
+        <Card title="Today at the pandal">
+          <p className="pandal-timings">
+            {settings.morning_aarti_time && (
+              <>
+                Morning aarti: <b>{settings.morning_aarti_time}</b> ·{' '}
+              </>
+            )}
+            {settings.evening_aarti_time && (
+              <>
+                Evening aarti: <b>{settings.evening_aarti_time}</b>
+              </>
+            )}
+            {settings.daily_schedule_note && (
+              <>
+                <br />
+                {settings.daily_schedule_note}
+              </>
+            )}
+          </p>
+        </Card>
+      )}
+
+      <div className="two">
+        <Card title="This season">
+          <div className="balance">
+            <span>
+              Collected <b>{currency.format(raised)}</b>
+            </span>
+            <span>
+              Balance <b>{currency.format(balance)}</b>
+            </span>
+          </div>
+          {upcoming ? (
+            <div className="next-event">
+              <p>
+                Next up: <b>{upcoming.title}</b>
+                <br />
+                <small>
+                  {fmtDate(upcoming.date)}{' '}
+                  {upcoming.start_time ? `at ${upcoming.start_time}` : ''}
+                </small>
+              </p>
+            </div>
+          ) : (
+            <Empty>Add an activity to show the next event here.</Empty>
+          )}
+        </Card>
+
+        <Card title="Share with the village">
+          <p>Copy a formatted festival update for WhatsApp or SMS.</p>
+          <Button onClick={copyUpdate}>Copy shareable update</Button>
+        </Card>
+      </div>
+
+      {/* Have a Question / AI Guidance Box */}
+      <Card title="🤖 Have a Question? (AI Guidance)">
+        <p className="muted">
+          Ask questions about {settings.village_name || 'Vinayaka Vedika'} aarti timings, prasad schedule, donation totals, or festival traditions.
+        </p>
+        <div style={{ marginTop: '12px' }}>
+          <Button kind="secondary" onClick={() => onNavigate ? onNavigate('Help') : null}>
+            💬 Ask the Festival Assistant
+          </Button>
+        </div>
+      </Card>
+
+      {/* Emergency Contacts - Only rendered when real phone numbers exist */}
+      {(settings.em_doctor_phone ||
+        settings.em_police_phone ||
+        settings.em_coord_phone) && (
+        <Card title="Emergency contacts">
+          <div className="contacts">
+            {settings.em_doctor_phone && (
+              <a href={`tel:${settings.em_doctor_phone}`} className="contact-card">
+                👨‍⚕️ {settings.em_doctor_name || 'Doctor'}
+                <b>{settings.em_doctor_phone}</b>
+              </a>
+            )}
+            {settings.em_police_phone && (
+              <a href={`tel:${settings.em_police_phone}`} className="contact-card">
+                🚓 Police
+                <b>{settings.em_police_phone}</b>
+              </a>
+            )}
+            {settings.em_coord_phone && (
+              <a href={`tel:${settings.em_coord_phone}`} className="contact-card">
+                🙏 {settings.em_coord_name || 'Coordinator'}
+                <b>{settings.em_coord_phone}</b>
+              </a>
+            )}
+          </div>
+        </Card>
+      )}
+
+      <Card title="Recent memories">
+        {galleryItems.length > 0 ? (
+          <div className="gallery compact">
+            {galleryItems.slice(0, 4).map((item) => (
+              <button
+                type="button"
+                className="gallery-item"
+                key={item.id}
+                onClick={() => setSelectedMedia(item)}
+              >
+                {item.type === 'photo' ? (
+                  <img
+                    src={item.url}
+                    alt={item.caption || 'Festival memory'}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="video-thumb">
+                    ▶<small>{item.caption || 'Video / album'}</small>
+                  </div>
+                )}
+                <span>{item.caption || 'Memory'}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <Empty>Photos and memories from the celebration will appear here.</Empty>
+        )}
+      </Card>
+
+      {/* Lightbox for recent memories preview */}
+      {selectedMedia && (
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelectedMedia(null)}
+        >
+          <button
+            className="lightbox-close"
+            onClick={() => setSelectedMedia(null)}
+            aria-label="Close media preview"
+          >
+            ✕
+          </button>
+          <div className="lightbox-body" onClick={(e) => e.stopPropagation()}>
+            {selectedMedia.type === 'photo' ? (
+              <img
+                src={selectedMedia.url}
+                alt={selectedMedia.caption || 'Festival memory'}
+              />
+            ) : (
+              <iframe
+                title="Video preview"
+                src={`https://www.youtube-nocookie.com/embed/${
+                  selectedMedia.url.match(/(?:youtu\.be\/|v=|embed\/)([^?&/]+)/)?.[1] || ''
+                }`}
+                allowFullScreen
+              />
+            )}
+            {selectedMedia.caption && (
+              <p className="lightbox-caption">{selectedMedia.caption}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Set/Edit Festival Date Modal */}
+      <Modal
+        isOpen={dateModalOpen}
+        onClose={() => !isSavingDate && setDateModalOpen(false)}
+        title="Set Festival Date & Details"
+        maxWidth="480px"
+      >
+        <p className="modal-description">
+          Set the date of Vinayaka Chavithi to start the live countdown on the Overview page.
+        </p>
+
+        <form className="form" onSubmit={handleSaveFestivalDate}>
+          <label style={{ gridColumn: 'span 2' }}>
+            <span>Festival Date (Vinayaka Chavithi) <span className="req-star">*</span></span>
+            <input
+              type="date"
+              required
+              value={festivalDateVal}
+              disabled={isSavingDate}
+              onChange={(e) => setFestivalDateVal(e.target.value)}
+            />
+          </label>
+
+          <label style={{ gridColumn: 'span 2' }}>
+            <span>Village / Colony Name</span>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Vinayaka Vedika, Rampur"
+              value={villageNameVal}
+              disabled={isSavingDate}
+              onChange={(e) => setVillageNameVal(e.target.value)}
+            />
+          </label>
+
+          <label style={{ gridColumn: 'span 2' }}>
+            <span>Tagline</span>
+            <input
+              type="text"
+              placeholder="e.g. Our village celebration, in one place."
+              value={taglineVal}
+              disabled={isSavingDate}
+              onChange={(e) => setTaglineVal(e.target.value)}
+            />
+          </label>
+
+          <div className="modal-actions">
+            <Button
+              type="button"
+              kind="secondary"
+              disabled={isSavingDate}
+              onClick={() => setDateModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSavingDate || !festivalDateVal}>
+              {isSavingDate ? 'Saving…' : 'Save & Start Countdown'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Festive Receipt & Appreciation Template Modal */}
+      {selectedReceiptDonation && (
+        <ReceiptTemplateModal
+          isOpen={Boolean(selectedReceiptDonation)}
+          onClose={() => setSelectedReceiptDonation(null)}
+          donation={selectedReceiptDonation}
+          settings={settings}
+          admin={admin}
+          onTogglePin={() => handleTogglePin(selectedReceiptDonation)}
+        />
+      )}
+
+      <ConfirmModal
+        isOpen={Boolean(noticeToDelete)}
+        onClose={() => setNoticeToDelete(null)}
+        onConfirm={handleDeleteNotice}
+        title="Remove Notice"
+        message="Are you sure you want to remove this notice? It will no longer be visible to villagers."
+        confirmText="Remove"
+      />
+    </>
+  )
+}
