@@ -274,3 +274,49 @@ export async function downloadIdCard(member, settings = {}) {
   }
 }
 
+/**
+ * Shares the actual ID Badge image directly via Web Share API or downloads with WhatsApp fallback
+ */
+export async function shareIdCardImage(member = {}, settings = {}) {
+  try {
+    const canvas = await generateIdCardCanvas(member, settings)
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+    if (!blob) throw new Error('Canvas blob generation failed')
+
+    const rawName = member.name || 'Member'
+    const fileName = `ID_Badge_${rawName.replace(/[^a-z0-9]/gi, '_')}_2026.png`
+    const file = new File([blob], fileName, { type: 'image/png' })
+    const villageName = settings.village_name || 'Vinayaka Vedika'
+    const shareText = `🪔 *Official Committee ID Badge — ${member.name}* (${member.role || 'Member'})\n*${villageName} 2026*`
+
+    if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: `Official Committee ID Badge - ${member.name}`,
+        text: shareText
+      })
+      return { sharedDirectly: true }
+    } else {
+      // Desktop / fallback: download the image and open WhatsApp
+      const link = document.createElement('a')
+      link.download = fileName
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+
+      const encoded = encodeURIComponent(
+        `🪔 *Official Committee ID Badge — ${member.name}* (${member.role})\n*${villageName} 2026*\n\n(The official ID badge image has been downloaded to your device.)`
+      )
+      const digits = String(member.phone || '').replace(/\D/g, '')
+      const phoneParam = digits ? (digits.length === 10 ? `91${digits}` : digits) : ''
+      const url = phoneParam
+        ? `https://api.whatsapp.com/send?phone=${phoneParam}&text=${encoded}`
+        : `https://api.whatsapp.com/send?text=${encoded}`
+      window.open(url, '_blank', 'noopener,noreferrer')
+      return { sharedDirectly: false, downloaded: true }
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') return { cancelled: true }
+    return { error: err.message }
+  }
+}
+

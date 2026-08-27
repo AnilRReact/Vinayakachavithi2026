@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Modal, Button } from './ui'
 import { currency, fmtDate, tier } from '../lib/formatters'
-import { downloadFestivalCard } from '../lib/receiptCanvas'
+import { downloadFestivalCard, shareFestivalCardImage } from '../lib/receiptCanvas'
 import { openWhatsAppMessage } from '../lib/notifications'
 import { useToast } from '../context/ToastContext'
 import ganeshaBg from '../assets/ganesha-template-bg.jpg'
@@ -154,19 +154,22 @@ export function ReceiptTemplateModal({
     }
   }
 
-  const handleShareWhatsApp = () => {
-    const portalUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    const message = `🙏 *${cardTitle} — ${villageName} 2026*\n\n${promptText}\n👤 *${personName}*\n✨ *${subLabel}:* ${mainHighlight}\n📅 *Date:* ${dateStr}\n#️⃣ *${refLabel}*${
-      noteText ? `\n📝 *Details:* ${noteText}` : ''
-    }\n\n${blessingQuote}\n\n🌐 *Portal:* ${portalUrl}`
+  const [isSharing, setIsSharing] = useState(false)
 
-    const targetPhone = record.phone || record.contact || ''
-    openWhatsAppMessage(targetPhone, message)
-    toast.success('WhatsApp opened with formatted template card!')
-  }
-
-  const handlePrint = () => {
-    window.print()
+  const handleShareWhatsApp = async () => {
+    setIsSharing(true)
+    try {
+      const res = await shareFestivalCardImage(record, settings, resolvedType)
+      if (res.error) {
+        toast.error(`Could not share image: ${res.error}`)
+      } else if (res.sharedDirectly) {
+        toast.success('Festive image shared successfully to WhatsApp!')
+      } else if (res.downloaded) {
+        toast.success('Image downloaded! WhatsApp opened to send the image.')
+      }
+    } finally {
+      setIsSharing(false)
+    }
   }
 
   return (
@@ -231,7 +234,7 @@ export function ReceiptTemplateModal({
         </div>
       </div>
 
-      {/* Action Toolbar */}
+      {/* Action Toolbar: Only WhatsApp and Download Image */}
       <div className="receipt-actions-toolbar">
         <div className="receipt-left-actions">
           {admin && onTogglePin && resolvedType === 'donation' && (
@@ -251,19 +254,11 @@ export function ReceiptTemplateModal({
           <Button
             type="button"
             kind="whatsapp-action"
+            disabled={isSharing}
             onClick={handleShareWhatsApp}
-            title="Share card via WhatsApp"
+            title="Share image card directly via WhatsApp"
           >
-            <span>💬 WhatsApp</span>
-          </Button>
-
-          <Button
-            type="button"
-            kind="secondary"
-            onClick={handlePrint}
-            title="Print template card"
-          >
-            <span>🖨️ Print</span>
+            <span>{isSharing ? 'Preparing Image…' : '💬 WhatsApp Image'}</span>
           </Button>
 
           <Button

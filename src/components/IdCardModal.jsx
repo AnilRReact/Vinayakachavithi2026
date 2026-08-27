@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Modal, Button } from './ui'
-import { downloadIdCard } from '../lib/idCardCanvas'
-import { openWhatsAppMessage } from '../lib/notifications'
+import { downloadIdCard, shareIdCardImage } from '../lib/idCardCanvas'
 import { useToast } from '../context/ToastContext'
 
 export function IdCardModal({ isOpen, onClose, member, settings = {} }) {
   const { toast } = useToast()
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
 
   if (!member) return null
 
@@ -27,15 +27,20 @@ export function IdCardModal({ isOpen, onClose, member, settings = {} }) {
     }
   }
 
-  const handleShareWhatsApp = () => {
-    const portalUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    const msg = `🪔 *OFFICIAL COMMITTEE ID BADGE — 2026*\n*${villageName}*\n\n👤 *Name:* ${member.name}\n🎖️ *Designation:* ${member.role}\n🆔 *Member ID:* #${idNumber}\n📞 *Phone:* ${member.phone || 'N/A'}\n\n✓ *Authorized for Stage, Pooja & Festival Coordination.*\n\n🌐 *Portal:* ${portalUrl}`
-    openWhatsAppMessage(member.phone || '', msg)
-    toast.success(`WhatsApp opened for ${member.name}'s ID Badge!`)
-  }
-
-  const handlePrint = () => {
-    window.print()
+  const handleShareWhatsApp = async () => {
+    setIsSharing(true)
+    try {
+      const res = await shareIdCardImage(member, settings)
+      if (res.error) {
+        toast.error(`Could not share ID badge: ${res.error}`)
+      } else if (res.sharedDirectly) {
+        toast.success(`ID badge image for ${member.name} shared to WhatsApp!`)
+      } else if (res.downloaded) {
+        toast.success('ID badge image downloaded! WhatsApp opened to send the badge.')
+      }
+    } finally {
+      setIsSharing(false)
+    }
   }
 
   return (
@@ -105,24 +110,16 @@ export function IdCardModal({ isOpen, onClose, member, settings = {} }) {
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons: Only WhatsApp Image and Download */}
       <div className="modal-actions" style={{ marginTop: '16px' }}>
         <Button
           type="button"
           kind="whatsapp-action"
+          disabled={isSharing}
           onClick={handleShareWhatsApp}
-          title="Share ID badge via WhatsApp"
+          title="Share ID badge image directly via WhatsApp"
         >
-          <span>💬 WhatsApp</span>
-        </Button>
-
-        <Button
-          type="button"
-          kind="secondary"
-          onClick={handlePrint}
-          title="Print ID badge"
-        >
-          <span>🖨️ Print</span>
+          <span>{isSharing ? 'Preparing Badge…' : '💬 WhatsApp Image'}</span>
         </Button>
 
         <Button
@@ -137,4 +134,3 @@ export function IdCardModal({ isOpen, onClose, member, settings = {} }) {
     </Modal>
   )
 }
-

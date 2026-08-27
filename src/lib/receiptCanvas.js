@@ -307,8 +307,73 @@ export async function downloadFestivalCard(record, settings = {}, type = 'donati
 }
 
 /**
+ * Shares the actual Card/Receipt image directly via Web Share API or downloads with WhatsApp fallback
+ */
+export async function shareFestivalCardImage(record = {}, settings = {}, type = 'donation') {
+  try {
+    const canvas = await generateFestivalCard(record, settings, type)
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+    if (!blob) throw new Error('Canvas blob generation failed')
+
+    const rawName =
+      record.donor_name ||
+      record.sponsor_name ||
+      record.recipient ||
+      record.title ||
+      record.name ||
+      'Festival_Card'
+    const fileName = `${type.toUpperCase()}_${rawName.slice(0, 24).replace(/[^a-z0-9]/gi, '_')}_2026.png`
+    const file = new File([blob], fileName, { type: 'image/png' })
+    const villageName = settings.village_name || 'Vinayaka Vedika'
+
+    let shareTitle = `${villageName} 2026`
+    if (type === 'donation') shareTitle = `Donation Receipt - ${rawName}`
+    else if (type === 'sponsor') shareTitle = `Prasad Sponsor Card - ${rawName}`
+    else if (type === 'volunteer') shareTitle = `Seva Duty Pass - ${rawName}`
+    else if (type === 'notice') shareTitle = `Official Announcement - ${villageName}`
+    else if (type === 'activity' || type === 'event') shareTitle = `Pooja Invitation - ${rawName}`
+    else if (type === 'award') shareTitle = `Seva Puraskar Award - ${rawName}`
+    else if (type === 'nominee') shareTitle = `Best Pandal Nominee - ${rawName}`
+    else if (type === 'auction') shareTitle = `Auction Winner - ${rawName}`
+
+    const shareText = `🪔 *${villageName} — 2026* 🙏\nGanapathi Bappa Morya!`
+
+    if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: shareTitle,
+        text: shareText
+      })
+      return { sharedDirectly: true }
+    } else {
+      // Desktop / fallback: download the image and open WhatsApp
+      const link = document.createElement('a')
+      link.download = fileName
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+
+      const targetPhone = record.phone || record.contact || ''
+      const digits = String(targetPhone).replace(/\D/g, '')
+      const phoneParam = digits ? (digits.length === 10 ? `91${digits}` : digits) : ''
+      const encoded = encodeURIComponent(
+        `🪔 *${shareTitle}*\n*${villageName} 2026*\n\n(The festive card image has been downloaded to your device.)`
+      )
+      const url = phoneParam
+        ? `https://api.whatsapp.com/send?phone=${phoneParam}&text=${encoded}`
+        : `https://api.whatsapp.com/send?text=${encoded}`
+      window.open(url, '_blank', 'noopener,noreferrer')
+      return { sharedDirectly: false, downloaded: true }
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') return { cancelled: true }
+    return { error: err.message }
+  }
+}
+
+/**
  * Backward compatibility alias for donations.
  */
 export async function downloadReceiptImage(donation, settings) {
   return downloadFestivalCard(donation, settings, 'donation')
 }
+
