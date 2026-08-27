@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, Button, Modal } from '../../components/ui'
 import { openWhatsAppMessage } from '../../lib/notifications'
 import { useToast } from '../../context/ToastContext'
@@ -78,10 +78,13 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
     }
   })
 
-  // Edit Modal State
+  // Manage Route Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [customLiveNote, setCustomLiveNote] = useState('')
-  const [editingStop, setEditingStop] = useState(null)
+  const [draftStops, setDraftStops] = useState([])
+  const [newTitle, setNewTitle] = useState('')
+  const [newLandmark, setNewLandmark] = useState('')
+  const [newTime, setNewTime] = useState('')
+  const [newNote, setNewNote] = useState('')
 
   // Save changes helper
   const saveProcessionState = async (newStops, newLiveMode) => {
@@ -103,7 +106,7 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
 
   // Active / Current stop
   const currentStop = useMemo(() => {
-    return stops.find((s) => s.status === 'current') || stops[0]
+    return stops.find((s) => s.status === 'current') || stops[0] || DEFAULT_STOPS[0]
   }, [stops])
 
   const nextStop = useMemo(() => {
@@ -115,6 +118,7 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
   }, [stops])
 
   const progressPercent = useMemo(() => {
+    if (!stops.length) return 0
     const completedCount = stops.filter((s) => s.status === 'completed').length
     const currentBonus = stops.some((s) => s.status === 'current') ? 0.5 : 0
     return Math.min(100, Math.round(((completedCount + currentBonus) / stops.length) * 100))
@@ -139,9 +143,85 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
     toast.success(next ? '🚛 Live Shobha Yatra Tracking Activated!' : 'Procession tracking paused.')
   }
 
+  const handleOpenEditModal = () => {
+    setDraftStops(JSON.parse(JSON.stringify(stops)))
+    setNewTitle('')
+    setNewLandmark('')
+    setNewTime('')
+    setNewNote('')
+    setIsEditModalOpen(true)
+  }
+
+  const handleAddNewStop = (e) => {
+    e.preventDefault()
+    if (!newTitle.trim()) {
+      toast.error('Please enter a stop or location name.')
+      return
+    }
+    const newStop = {
+      id: String(Date.now()),
+      title: newTitle.trim(),
+      landmark: newLandmark.trim() || 'Village Landmark',
+      time: newTime.trim() || 'TBD',
+      note: newNote.trim() || '',
+      status: 'upcoming'
+    }
+    setDraftStops([...draftStops, newStop])
+    setNewTitle('')
+    setNewLandmark('')
+    setNewTime('')
+    setNewNote('')
+    toast.success(`Added "${newStop.title}" to route list.`)
+  }
+
+  const handleDraftChange = (id, field, val) => {
+    setDraftStops((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, [field]: val } : s))
+    )
+  }
+
+  const handleMoveStop = (idx, direction) => {
+    const targetIdx = idx + direction
+    if (targetIdx < 0 || targetIdx >= draftStops.length) return
+    const copy = [...draftStops]
+    const temp = copy[idx]
+    copy[idx] = copy[targetIdx]
+    copy[targetIdx] = temp
+    setDraftStops(copy)
+  }
+
+  const handleDeleteStop = (id) => {
+    if (draftStops.length <= 1) {
+      toast.error('Route must have at least 1 stop.')
+      return
+    }
+    setDraftStops((prev) => prev.filter((s) => s.id !== id))
+    toast.success('Stop removed.')
+  }
+
+  const handleResetDefault = () => {
+    setDraftStops(JSON.parse(JSON.stringify(DEFAULT_STOPS)))
+    toast.success('Reset to default village route.')
+  }
+
+  const handleSaveModalStops = () => {
+    if (!draftStops.length) {
+      toast.error('Please add at least one location.')
+      return
+    }
+    // ensure at least one current stop if none set
+    let updated = [...draftStops]
+    if (!updated.some((s) => s.status === 'current')) {
+      updated[0].status = 'current'
+    }
+    saveProcessionState(updated, isLiveMode)
+    setIsEditModalOpen(false)
+    toast.success('Village procession route locations updated successfully!')
+  }
+
   const handleShareWhatsApp = () => {
     const portalUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    const msg = `🚛 *SHOBHA YATRA & NIMAJJANAM LIVE UPDATE* 🪔\n*${villageName} 2026*\n\n📍 *Current Location:* ${currentStop.title}\n📌 *Landmark:* ${currentStop.landmark}\n🕒 *Time:* ${currentStop.time}\n✨ *Status:* ${currentStop.note}${
+    const msg = `🚛 *SHOBHA YATRA & NIMAJJANAM LIVE UPDATE* 🪔\n*${villageName} 2026*\n\n📍 *Current Location:* ${currentStop.title}\n📌 *Landmark:* ${currentStop.landmark}\n🕒 *Time:* ${currentStop.time}\n✨ *Status:* ${currentStop.note || 'Procession in progress'}${
       nextStop ? `\n\n⏳ *Next Destination:* ${nextStop.title} (${nextStop.landmark} · ETA: ${nextStop.time})` : ''
     }\n📊 *Route Progress:* ${progressPercent}% Completed\n\n🌐 *Track live route on portal:* ${portalUrl}\nGanapathi Bappa Morya! 🙏`
 
@@ -157,7 +237,7 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
             <span style={{ fontSize: '1.25rem' }}>🚛</span>
             <span>Shobha Yatra & Nimajjanam Route Tracker</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             {isLiveMode ? (
               <span className="live-pulsing-badge" style={{ background: '#dc2626', color: '#fff', fontSize: '0.74rem', padding: '3px 8px', borderRadius: '999px', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', display: 'inline-block', animation: 'pulse 1.2s infinite' }} />
@@ -169,21 +249,32 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
               </span>
             )}
             {admin && (
-              <Button
-                type="button"
-                size="small"
-                kind={isLiveMode ? 'secondary' : 'primary'}
-                onClick={handleToggleLive}
-              >
-                {isLiveMode ? 'Pause Live Mode' : 'Go Live 🔴'}
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  size="small"
+                  kind="secondary"
+                  onClick={handleOpenEditModal}
+                  title="Edit village stops, streets & landmarks"
+                >
+                  ✏️ Edit Route Locations
+                </Button>
+                <Button
+                  type="button"
+                  size="small"
+                  kind={isLiveMode ? 'secondary' : 'primary'}
+                  onClick={handleToggleLive}
+                >
+                  {isLiveMode ? 'Pause Live' : 'Go Live 🔴'}
+                </Button>
+              </>
             )}
           </div>
         </div>
       }
     >
       <p className="muted" style={{ marginTop: '-4px' }}>
-        Track the live route, landmarks, and immersion timings of Lord Ganesha&apos;s grand chariot procession.
+        Track the live route, landmarks, and immersion timings of Lord Ganesha&apos;s grand chariot procession across {villageName}.
       </p>
 
       {/* Progress Bar */}
@@ -326,7 +417,196 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
           )
         })}
       </div>
+
+      {/* Edit Village Route Locations Modal */}
+      {isEditModalOpen && (
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title="✏️ Manage Village Route & Landmarks"
+          maxWidth="640px"
+        >
+          <p className="modal-description">
+            Customize the stops, street names, landmarks, and timings for your village&apos;s Shobha Yatra and Nimajjanam procession.
+          </p>
+
+          {/* Add New Stop Form */}
+          <form
+            onSubmit={handleAddNewStop}
+            style={{
+              background: '#fdf8f0',
+              border: '1px solid #e2d2ba',
+              padding: '14px',
+              borderRadius: '10px',
+              marginBottom: '18px'
+            }}
+          >
+            <h4 style={{ margin: '0 0 10px', color: '#7c2414', fontSize: '0.95rem' }}>
+              ➕ Add New Village Stop / Landmark
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <label>
+                <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>Stop Name *</span>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Main Temple Street, Post Office Cross"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                />
+              </label>
+              <label>
+                <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>Landmark / Area</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Opp. Rama Temple, North Gate"
+                  value={newLandmark}
+                  onChange={(e) => setNewLandmark(e.target.value)}
+                />
+              </label>
+              <label>
+                <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>Expected Time</span>
+                <input
+                  type="text"
+                  placeholder="e.g. 06:30 PM"
+                  value={newTime}
+                  onChange={(e) => setNewTime(e.target.value)}
+                />
+              </label>
+              <label>
+                <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>Special Activity / Note</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Prasadam point, Aarti & Dappu"
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                />
+              </label>
+            </div>
+            <div style={{ marginTop: '10px', textAlign: 'right' }}>
+              <Button type="submit" size="small">
+                ➕ Add to Route
+              </Button>
+            </div>
+          </form>
+
+          {/* Existing Stops List with Inline Editing & Reordering */}
+          <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#443328' }}>
+              Current Route Stops ({draftStops.length}):
+            </h4>
+            {draftStops.map((stop, idx) => (
+              <div
+                key={stop.id}
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e0d5c4',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontWeight: '800', color: '#7c2414', fontSize: '0.85rem' }}>
+                      #{idx + 1}
+                    </span>
+                    <input
+                      type="text"
+                      value={stop.title}
+                      style={{ fontWeight: '700', fontSize: '0.9rem', padding: '4px 8px' }}
+                      placeholder="Stop Title"
+                      onChange={(e) => handleDraftChange(stop.id, 'title', e.target.value)}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <button
+                      type="button"
+                      disabled={idx === 0}
+                      onClick={() => handleMoveStop(idx, -1)}
+                      style={{ padding: '2px 6px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}
+                      title="Move Up"
+                    >
+                      ⬆️
+                    </button>
+                    <button
+                      type="button"
+                      disabled={idx === draftStops.length - 1}
+                      onClick={() => handleMoveStop(idx, 1)}
+                      style={{ padding: '2px 6px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}
+                      title="Move Down"
+                    >
+                      ⬇️
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteStop(stop.id)}
+                      style={{ padding: '2px 6px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #f87171', background: '#fef2f2', color: '#dc2626' }}
+                      title="Delete Stop"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '6px' }}>
+                  <input
+                    type="text"
+                    value={stop.landmark}
+                    placeholder="Landmark"
+                    style={{ fontSize: '0.82rem', padding: '3px 8px' }}
+                    onChange={(e) => handleDraftChange(stop.id, 'landmark', e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    value={stop.time}
+                    placeholder="Time / ETA"
+                    style={{ fontSize: '0.82rem', padding: '3px 8px' }}
+                    onChange={(e) => handleDraftChange(stop.id, 'time', e.target.value)}
+                  />
+                </div>
+
+                <input
+                  type="text"
+                  value={stop.note}
+                  placeholder="Notes / Activity (optional)"
+                  style={{ fontSize: '0.8rem', padding: '3px 8px' }}
+                  onChange={(e) => handleDraftChange(stop.id, 'note', e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="modal-actions" style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+            <Button
+              type="button"
+              kind="secondary"
+              onClick={handleResetDefault}
+              title="Reset stops to default layout"
+            >
+              ↺ Reset Default Route
+            </Button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Button
+                type="button"
+                kind="secondary"
+                onClick={() => setIsEditModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSaveModalStops}
+              >
+                💾 Save Route Locations
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </Card>
   )
 }
-
