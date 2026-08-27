@@ -127,11 +127,11 @@ function AppContent() {
         return isAdmin ? (
           <Settings data={data} add={add} update={update} />
         ) : (
-          <Overview data={data} admin={isAdmin} add={add} update={update} remove={remove} />
+          <Overview data={data} admin={isAdmin} add={add} update={update} remove={remove} onNavigate={setTab} />
         )
       case 'Overview':
       default:
-        return <Overview data={data} admin={isAdmin} add={add} update={update} remove={remove} />
+        return <Overview data={data} admin={isAdmin} add={add} update={update} remove={remove} onNavigate={setTab} />
     }
   }
 

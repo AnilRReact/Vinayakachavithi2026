@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { Card, Empty, Button, Stat, Modal, ConfirmModal } from '../../components/ui'
 import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { currency, fmtDate, tier, today } from '../../lib/formatters'
+import { openWhatsAppMessage } from '../../lib/notifications'
+import { askGeminiDirectly } from '../../lib/gemini'
 import { useCountdown } from '../../hooks/useCountdown'
 import { useToast } from '../../context/ToastContext'
 
@@ -12,6 +14,11 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
   const [dateModalOpen, setDateModalOpen] = useState(false)
   const [selectedReceiptDonation, setSelectedReceiptDonation] = useState(null)
   const [selectedNoticeForCard, setSelectedNoticeForCard] = useState(null)
+
+  // Overview embedded AI Guide state
+  const [aiInput, setAiInput] = useState('')
+  const [aiAnswer, setAiAnswer] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
 
   const settings = data.settings?.[0] || {}
   const donations = data.donations || []
@@ -69,19 +76,75 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
     )
   }, [noticesList])
 
-  const copyUpdate = async () => {
-    const text = `${settings.village_name || 'Vinayaka Vedika'} 🪔\n${settings.tagline || ''}\n\nCollected: ${currency.format(raised)}\nSpent: ${currency.format(spent)}\nBalance: ${currency.format(balance)}${
+  const getShareableText = () => {
+    const villageName = settings.village_name || 'Vinayaka Vedika'
+    const portalUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    return `🪔 *VINAYAKA CHAVITHI 2026 — ${villageName}* 🪔\n${settings.tagline ? `_${settings.tagline}_\n` : ''}\n💰 *Total Collected:* ${currency.format(raised)}\n💸 *Total Expenses:* ${currency.format(spent)}\n💵 *Balance in Hand:* ${currency.format(balance)}\n\n⏰ *Daily Aarti:* Morning ${settings.morning_aarti_time || '6:30 AM'} · Evening ${settings.evening_aarti_time || '7:30 PM'}${
       upcoming
-        ? `\n\nNext: ${upcoming.title} — ${fmtDate(upcoming.date)}${
-            upcoming.start_time ? `, ${upcoming.start_time}` : ''
-          }`
+        ? `\n\n📅 *Next Event:* ${upcoming.title} (${fmtDate(upcoming.date)}${
+            upcoming.start_time ? ` at ${upcoming.start_time}` : ''
+          })`
         : ''
-    }`
+    }\n\n🌐 *Portal:* ${portalUrl}`
+  }
+
+  const shareViaWhatsApp = () => {
+    const text = getShareableText()
+    openWhatsAppMessage('', text)
+    toast.success('WhatsApp opened with shareable festival update!')
+  }
+
+  const copyUpdate = async () => {
+    const text = getShareableText()
     try {
       await navigator.clipboard.writeText(text)
       toast.success('Shareable festival update copied to clipboard!')
     } catch {
       toast.error('Could not copy to clipboard. Please copy manually.')
+    }
+  }
+
+  const handleAskOverviewAi = async (e, customQuery) => {
+    if (e) e.preventDefault()
+    const query = (customQuery || aiInput).trim()
+    if (!query) return
+
+    setAiLoading(true)
+    setAiAnswer('')
+    if (!customQuery) setAiInput('')
+
+    try {
+      let answerText = ''
+      try {
+        const response = await fetch(import.meta.env.VITE_AI_ENDPOINT || '/api/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: query,
+            context: { settings, activities, raised, spent }
+          })
+        })
+        if (response.ok) {
+          const body = await response.json()
+          answerText = body.answer
+        }
+      } catch {
+        // Fallback to client Gemini
+      }
+
+      if (!answerText) {
+        const res = await askGeminiDirectly({
+          question: query,
+          context: { settings, activities, raised, spent }
+        })
+        answerText = res.answer
+      }
+
+      setAiAnswer(answerText)
+    } catch {
+      setAiAnswer('🙏 You can check the Schedule tab for event timings, or the Money tab for donations & receipts!')
+    } finally {
+      setAiLoading(false)
     }
   }
 
@@ -502,21 +565,121 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
           )}
         </Card>
 
-        <Card title="Share with the village">
-          <p>Copy a formatted festival update for WhatsApp or SMS.</p>
-          <Button onClick={copyUpdate}>Copy shareable update</Button>
+        <Card title="📢 Share with the village">
+          <p className="muted">
+            Share or copy the live festival update (collections, aarti timings & next events) directly to WhatsApp or SMS.
+          </p>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
+            <Button
+              type="button"
+              kind="whatsapp-action"
+              onClick={shareViaWhatsApp}
+              title="Share formatted festival update directly on WhatsApp"
+            >
+              <span>💬 WhatsApp Update</span>
+            </Button>
+            <Button
+              type="button"
+              kind="secondary"
+              onClick={copyUpdate}
+              title="Copy formatted update to clipboard"
+            >
+              <span>📋 Copy Text</span>
+            </Button>
+          </div>
         </Card>
       </div>
 
       {/* Have a Question / AI Guidance Box */}
-      <Card title="🤖 Have a Question? (AI Guidance)">
+      <Card
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap', gap: '8px' }}>
+            <span>🤖 Have a Question? (AI Guide)</span>
+            <span style={{ fontSize: '0.74rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '6px', fontWeight: '700', border: '1px solid #bae6fd' }}>
+              ✨ Google AI (Gemini)
+            </span>
+          </div>
+        }
+      >
         <p className="muted">
-          Ask questions about {settings.village_name || 'Vinayaka Vedika'} aarti timings, prasad schedule, donation totals, or festival traditions.
+          Ask about {settings.village_name || 'Vinayaka Vedika'} aarti timings, prasad schedule, donation totals, or pooja programs:
         </p>
-        <div style={{ marginTop: '12px' }}>
-          <Button kind="secondary" onClick={() => onNavigate ? onNavigate('Help') : null}>
-            💬 Ask the Festival Assistant
-          </Button>
+
+        <form className="ask-form" onSubmit={handleAskOverviewAi} style={{ marginTop: '10px' }}>
+          <div className="ask-input-row" style={{ display: 'flex', gap: '8px' }}>
+            <input
+              value={aiInput}
+              disabled={aiLoading}
+              placeholder="e.g. What time is evening aarti?"
+              onChange={(e) => setAiInput(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <Button type="submit" disabled={aiLoading || !aiInput.trim()}>
+              {aiLoading ? 'Thinking…' : 'Ask'}
+            </Button>
+          </div>
+        </form>
+
+        {/* Quick chips */}
+        <div className="sample-pills" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+          <button
+            type="button"
+            className="sample-pill-btn"
+            disabled={aiLoading}
+            onClick={() => handleAskOverviewAi(null, 'What time is morning and evening aarti?')}
+          >
+            ⏰ Aarti Timings
+          </button>
+          <button
+            type="button"
+            className="sample-pill-btn"
+            disabled={aiLoading}
+            onClick={() => handleAskOverviewAi(null, 'What activities and poojas are scheduled today?')}
+          >
+            📅 Today's Poojas
+          </button>
+          <button
+            type="button"
+            className="sample-pill-btn"
+            disabled={aiLoading}
+            onClick={() => handleAskOverviewAi(null, 'How much money has been collected and what is the balance?')}
+          >
+            💰 Total Raised
+          </button>
+          <button
+            type="button"
+            className="sample-pill-btn"
+            disabled={aiLoading}
+            onClick={() => handleAskOverviewAi(null, 'Who are the emergency doctor and police contacts?')}
+          >
+            🚨 Emergency Contacts
+          </button>
+        </div>
+
+        {aiLoading && (
+          <div style={{ marginTop: '10px', color: '#854d0e', fontSize: '0.86rem' }}>
+            <span className="loading-spinner">🪔</span> Consulting Google Gemini & festival records…
+          </div>
+        )}
+
+        {aiAnswer && (
+          <div className="overview-ai-bubble" style={{ marginTop: '12px', background: '#fdf8f0', border: '1.5px solid #d7952f', borderRadius: '10px', padding: '12px 14px' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: '700', color: '#7c2414', marginBottom: '4px' }}>
+              🪔 Vedika Assistant (Google AI):
+            </div>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#25211d', lineHeight: '1.45' }}>{aiAnswer}</p>
+          </div>
+        )}
+
+        <div style={{ marginTop: '12px', textAlign: 'right' }}>
+          <button
+            type="button"
+            className="link-btn"
+            onClick={() => onNavigate ? onNavigate('Help') : null}
+            style={{ fontSize: '0.82rem', fontWeight: '600', color: '#7c2414', cursor: 'pointer', background: 'none', border: 'none', textDecoration: 'underline' }}
+          >
+            Open Full AI Guide Chat →
+          </button>
         </div>
       </Card>
 
