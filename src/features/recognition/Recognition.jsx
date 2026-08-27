@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react'
 import { Card, Empty, Form, Button, Modal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
+import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { requireSupabase } from '../../lib/supabase'
 import { uploadImageToStorage } from '../../lib/storage'
 import { useToast } from '../../context/ToastContext'
 
 export function Recognition({ data, admin, add, update, remove, refresh }) {
   const { toast } = useToast()
+  const [selectedTemplateItem, setSelectedTemplateItem] = useState(null)
   const [hasVoted, setHasVoted] = useState(() => {
     try {
       return sessionStorage.getItem('vv-voted') === 'yes'
@@ -178,21 +180,34 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
                 {award.note && <small className="award-note">📝 {award.note}</small>}
               </div>
 
-              {admin && (
-                <RecordActions
-                  record={award}
-                  fields={awardFields}
-                  onSave={(values) =>
-                    update('awards', award.id, {
-                      ...values,
-                      year: Number(values.year)
-                    })
-                  }
-                  onDelete={() => remove('awards', award.id)}
-                  deleteTitle="Remove Award"
-                  deleteMessage={`Remove award "${award.title}" for ${award.recipient}?`}
-                />
-              )}
+              <div className="award-actions-cell">
+                <Button
+                  type="button"
+                  kind="receipt-action"
+                  size="small"
+                  onClick={() => setSelectedTemplateItem({ record: award, type: 'award' })}
+                  title="View, download image, or share official Seva Puraskar Certificate on Ganesha template"
+                >
+                  <span className="action-icon">📜</span>
+                  <span className="action-label">Certificate</span>
+                </Button>
+
+                {admin && (
+                  <RecordActions
+                    record={award}
+                    fields={awardFields}
+                    onSave={(values) =>
+                      update('awards', award.id, {
+                        ...values,
+                        year: Number(values.year)
+                      })
+                    }
+                    onDelete={() => remove('awards', award.id)}
+                    deleteTitle="Remove Award"
+                    deleteMessage={`Remove award "${award.title}" for ${award.recipient}?`}
+                  />
+                )}
+              </div>
             </article>
           ))}
         </div>
@@ -251,18 +266,32 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
                     </small>
                   </div>
 
-                  <Button
-                    type="button"
-                    disabled={hasVoted || isVoting}
-                    onClick={() => handleVote(nominee)}
-                    className="vote-btn"
-                  >
-                    {isVoting
-                      ? 'Voting…'
-                      : hasVoted
-                      ? '✓ Vote Recorded'
-                      : 'Vote for this Pandal'}
-                  </Button>
+                  <div className="nominee-button-row" style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                    <Button
+                      type="button"
+                      disabled={hasVoted || isVoting}
+                      onClick={() => handleVote(nominee)}
+                      className="vote-btn"
+                      style={{ flex: '1' }}
+                    >
+                      {isVoting
+                        ? 'Voting…'
+                        : hasVoted
+                        ? '✓ Voted'
+                        : 'Vote for this Pandal'}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      kind="receipt-action"
+                      size="small"
+                      onClick={() => setSelectedTemplateItem({ record: nominee, type: 'nominee' })}
+                      title="View, download image, or share Pandal Nominee Card on Ganesha template"
+                    >
+                      <span className="action-icon">📜</span>
+                      <span className="action-label">Nominee Card</span>
+                    </Button>
+                  </div>
                 </div>
 
                 {admin && (
@@ -426,6 +455,18 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
             </div>
           </form>
         </Modal>
+      )}
+
+      {/* Universal Template Modal for Awards & Nominees */}
+      {selectedTemplateItem && (
+        <ReceiptTemplateModal
+          isOpen={Boolean(selectedTemplateItem)}
+          onClose={() => setSelectedTemplateItem(null)}
+          record={selectedTemplateItem.record}
+          type={selectedTemplateItem.type}
+          settings={data.settings?.[0] || {}}
+          admin={admin}
+        />
       )}
     </>
   )

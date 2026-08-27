@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Card, Empty, Form, Button, ConfirmModal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
+import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { currency } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
 
@@ -11,6 +12,7 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
   const [bids, setBids] = useState({})
   const [busyBidId, setBusyBidId] = useState(null)
   const [itemToClose, setItemToClose] = useState(null)
+  const [selectedAuctionForCard, setSelectedAuctionForCard] = useState(null)
 
   const bidItemFields = [
     { name: 'item_name', label: 'Item Name / Description', required: true, placeholder: 'e.g. Laddu Prasadam, Silver Coin' },
@@ -142,6 +144,21 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
                 )}
               </div>
 
+              {item.current_bidder && (
+                <div style={{ marginTop: '8px' }}>
+                  <Button
+                    type="button"
+                    kind="receipt-action"
+                    size="small"
+                    onClick={() => setSelectedAuctionForCard(item)}
+                    title="View, download image, or share official Day 3 Auction Winner Certificate on Ganesha template"
+                  >
+                    <span className="action-icon">📜</span>
+                    <span className="action-label">{isOpen ? 'Auction Card' : 'Winner Certificate'}</span>
+                  </Button>
+                </div>
+              )}
+
               {history.length > 0 && (
                 <div className="bid-history-container">
                   <small className="history-label">Bid progression ({history.length}):</small>
@@ -242,6 +259,18 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
         confirmText="Finalize & Close"
         isDestructive={false}
       />
+
+      {/* Universal Auction Winner Certificate Modal */}
+      {selectedAuctionForCard && (
+        <ReceiptTemplateModal
+          isOpen={Boolean(selectedAuctionForCard)}
+          onClose={() => setSelectedAuctionForCard(null)}
+          record={selectedAuctionForCard}
+          type="auction"
+          settings={data.settings?.[0] || {}}
+          admin={admin}
+        />
+      )}
     </Card>
   )
 }

@@ -11,6 +11,7 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
   const [selectedMedia, setSelectedMedia] = useState(null)
   const [dateModalOpen, setDateModalOpen] = useState(false)
   const [selectedReceiptDonation, setSelectedReceiptDonation] = useState(null)
+  const [selectedNoticeForCard, setSelectedNoticeForCard] = useState(null)
 
   const settings = data.settings?.[0] || {}
   const donations = data.donations || []
@@ -412,6 +413,17 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
                 <div className="notice-admin-actions">
                   <Button
                     type="button"
+                    kind="receipt-action"
+                    size="small"
+                    onClick={() => setSelectedNoticeForCard(notice)}
+                    title="View, download image, or share announcement on Ganesha template"
+                  >
+                    <span className="action-icon">📜</span>
+                    <span className="action-label">Notice Card</span>
+                  </Button>
+
+                  <Button
+                    type="button"
                     kind={notice.pinned ? 'pinned-action' : 'pinned-toggle-btn'}
                     size="small"
                     onClick={() => handleTogglePinNotice(notice)}
@@ -674,6 +686,18 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
           settings={settings}
           admin={admin}
           onTogglePin={() => handleTogglePin(selectedReceiptDonation)}
+        />
+      )}
+
+      {/* Festive Notice Announcement Template Modal */}
+      {selectedNoticeForCard && (
+        <ReceiptTemplateModal
+          isOpen={Boolean(selectedNoticeForCard)}
+          onClose={() => setSelectedNoticeForCard(null)}
+          notice={selectedNoticeForCard}
+          type="notice"
+          settings={settings}
+          admin={admin}
         />
       )}
 

@@ -1,11 +1,13 @@
-import { useMemo } from 'react'
-import { Card, Form } from '../../components/ui'
+import { useMemo, useState } from 'react'
+import { Card, Form, Button } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
+import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { fmtDate, escapeIcs, activityClass, today } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
 
 export function Schedule({ data, admin, add, update, remove }) {
   const { toast } = useToast()
+  const [selectedActivityForCard, setSelectedActivityForCard] = useState(null)
   const settings = data.settings?.[0] || {}
   const activities = data.activities || []
 
@@ -131,6 +133,17 @@ export function Schedule({ data, admin, add, update, remove }) {
 
                     <div className="activity-footer">
                       <div className="calendar-actions">
+                        <Button
+                          type="button"
+                          kind="receipt-action"
+                          size="small"
+                          onClick={() => setSelectedActivityForCard(activity)}
+                          title="View, download, or share Pooja/Event Invitation Card on Ganesha template"
+                        >
+                          <span className="action-icon">📜</span>
+                          <span className="action-label">Invitation Card</span>
+                        </Button>
+
                         <a
                           href={googleLink(activity)}
                           target="_blank"
@@ -138,7 +151,7 @@ export function Schedule({ data, admin, add, update, remove }) {
                           className="calendar-btn google"
                           title="Add to Google Calendar"
                         >
-                          📅 Add to Google Calendar
+                          📅 Google Calendar
                         </a>
                         <button
                           type="button"
@@ -146,7 +159,7 @@ export function Schedule({ data, admin, add, update, remove }) {
                           onClick={() => downloadIcs(activity)}
                           title="Download .ics with 30-min alarm for Apple / Outlook"
                         >
-                          📥 Download .ics (30m reminder)
+                          📥 .ics (30m alarm)
                         </button>
                       </div>
 
@@ -181,6 +194,18 @@ export function Schedule({ data, admin, add, update, remove }) {
             fields={activityFields}
           />
         </Card>
+      )}
+
+      {/* Universal Pooja & Event Invitation Card Modal */}
+      {selectedActivityForCard && (
+        <ReceiptTemplateModal
+          isOpen={Boolean(selectedActivityForCard)}
+          onClose={() => setSelectedActivityForCard(null)}
+          activity={selectedActivityForCard}
+          type="activity"
+          settings={settings}
+          admin={admin}
+        />
       )}
     </>
   )

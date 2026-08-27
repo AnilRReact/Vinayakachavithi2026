@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Card, Empty, Form, Button, Modal, ConfirmModal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { IdCardModal } from '../../components/IdCardModal'
+import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { uploadImageToStorage } from '../../lib/storage'
 import { fmtDate, today } from '../../lib/formatters'
 import {
@@ -21,8 +22,11 @@ export function Community({ data, admin, add, update, remove }) {
   const volunteers = data.volunteers || []
   const notices = data.notices || []
 
-  // Add Member State & Modal
-  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
+  // Universal Template Modal State
+  const [selectedTemplateItem, setSelectedTemplateItem] = useState(null)
+
+  // ID Card Modal State
+  const [selectedMemberForId, setSelectedMemberForId] = useState(null)
   const [name, setName] = useState('')
   const [role, setRole] = useState('')
   const [phone, setPhone] = useState('')
@@ -31,8 +35,8 @@ export function Community({ data, admin, add, update, remove }) {
   const [notifyViaWhatsApp, setNotifyViaWhatsApp] = useState(true)
   const [isAddingMember, setIsAddingMember] = useState(false)
 
-  // View ID Badge Modal State
-  const [selectedMemberForId, setSelectedMemberForId] = useState(null)
+  // Add Member State & Modal
+  const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false)
 
   // Edit Member State & Modal
   const [editingMember, setEditingMember] = useState(null)
@@ -420,6 +424,17 @@ export function Community({ data, admin, add, update, remove }) {
               </div>
 
               <div className="record-actions-group">
+                <Button
+                  type="button"
+                  kind="receipt-action"
+                  size="small"
+                  onClick={() => setSelectedTemplateItem({ record: v, type: 'volunteer' })}
+                  title="View, download image, or share official Seva Duty Pass"
+                >
+                  <span className="action-icon">📜</span>
+                  <span className="action-label">Seva Pass</span>
+                </Button>
+
                 {v.contact && (
                   <Button
                     type="button"
@@ -561,6 +576,17 @@ export function Community({ data, admin, add, update, remove }) {
                   <small>{fmtDate(n.date)}</small>
                 </div>
                 <div className="record-actions-group">
+                  <Button
+                    type="button"
+                    kind="receipt-action"
+                    size="small"
+                    onClick={() => setSelectedTemplateItem({ record: n, type: 'notice' })}
+                    title="View, download image, or share announcement on Ganesha template"
+                  >
+                    <span className="action-icon">📜</span>
+                    <span className="action-label">Notice Card</span>
+                  </Button>
+
                   <Button
                     type="button"
                     kind={n.pinned ? 'pinned-action' : 'pinned-toggle-btn'}
@@ -854,6 +880,18 @@ export function Community({ data, admin, add, update, remove }) {
             </div>
           </form>
         </Modal>
+      )}
+
+      {/* Universal Template Modal for Volunteer Pass & Notices */}
+      {selectedTemplateItem && (
+        <ReceiptTemplateModal
+          isOpen={Boolean(selectedTemplateItem)}
+          onClose={() => setSelectedTemplateItem(null)}
+          record={selectedTemplateItem.record}
+          type={selectedTemplateItem.type}
+          settings={settings}
+          admin={admin}
+        />
       )}
 
       {/* Official Committee Member ID Card Modal */}
