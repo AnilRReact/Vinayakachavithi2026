@@ -26,17 +26,31 @@ export function getCommitteeInviteText(member, villageName = 'Vinayaka Vedika') 
 export function getVolunteerDutyText(volunteer, villageName = 'Vinayaka Vedika') {
   const portalUrl = typeof window !== 'undefined' ? window.location.origin : ''
   const dateStr = fmtDate(volunteer.date)
-  return `🙏 *Namaste ${volunteer.name} garu!*\n\nYou have been assigned to volunteer duty for *${villageName} 2026*:\n\n📋 *Duty:* ${volunteer.duty}\n📅 *Date:* ${dateStr}\n\nThank you for your dedicated service to the community! 🪔\n\n🌐 *Festival Portal:* ${portalUrl}`
+  return `🙏 *Namaste ${volunteer.name} garu!*\n\nYou have been assigned to volunteer seva duty for *${villageName} 2026*:\n\n📋 *Duty:* ${volunteer.duty}\n📅 *Date:* ${dateStr}\n\nThank you for your dedicated seva to the celebration! 🪔\n\n🌐 *Festival Portal:* ${portalUrl}`
 }
 
 /**
  * Opens WhatsApp Web or WhatsApp App with the prefilled message.
+ * Supports sharing to specific phone number OR sharing to any contact/group/status.
  */
-export function openWhatsAppMessage(phone, message) {
+export function openWhatsAppMessage(phone = '', message = '') {
   const formattedNumber = formatPhoneNumber(phone)
-  if (!formattedNumber) return false
-  const url = `https://wa.me/${formattedNumber}?text=${encodeURIComponent(message)}`
-  window.open(url, '_blank')
+  const encodedText = encodeURIComponent(message || '')
+
+  let url = ''
+  if (formattedNumber) {
+    url = `https://api.whatsapp.com/send?phone=${formattedNumber}&text=${encodedText}`
+  } else {
+    url = `https://api.whatsapp.com/send?text=${encodedText}`
+  }
+
+  if (typeof window !== 'undefined') {
+    const win = window.open(url, '_blank', 'noopener,noreferrer')
+    // Fallback if popup blocked
+    if (!win) {
+      window.location.href = url
+    }
+  }
   return true
 }
 
@@ -70,4 +84,3 @@ export async function sendServerNotification({ phone, name, role, duty, date, ty
     return { success: false, fallbackToWhatsApp: true }
   }
 }
-

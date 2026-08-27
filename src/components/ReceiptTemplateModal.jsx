@@ -4,6 +4,7 @@ import { currency, fmtDate, tier } from '../lib/formatters'
 import { downloadFestivalCard } from '../lib/receiptCanvas'
 import { openWhatsAppMessage } from '../lib/notifications'
 import { useToast } from '../context/ToastContext'
+import ganeshaBg from '../assets/ganesha-template-bg.jpg'
 
 export function ReceiptTemplateModal({
   isOpen,
@@ -155,11 +156,12 @@ export function ReceiptTemplateModal({
 
   const handleShareWhatsApp = () => {
     const portalUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    let message = `🙏 *${cardTitle} — ${villageName} 2026*\n\n${promptText}\n👤 *${personName}*\n✨ *${subLabel}:* ${mainHighlight}\n📅 *Date:* ${dateStr}\n#️⃣ *${refLabel}*${
+    const message = `🙏 *${cardTitle} — ${villageName} 2026*\n\n${promptText}\n👤 *${personName}*\n✨ *${subLabel}:* ${mainHighlight}\n📅 *Date:* ${dateStr}\n#️⃣ *${refLabel}*${
       noteText ? `\n📝 *Details:* ${noteText}` : ''
     }\n\n${blessingQuote}\n\n🌐 *Portal:* ${portalUrl}`
 
-    openWhatsAppMessage('', message)
+    const targetPhone = record.phone || record.contact || ''
+    openWhatsAppMessage(targetPhone, message)
     toast.success('WhatsApp opened with formatted template card!')
   }
 
@@ -176,7 +178,13 @@ export function ReceiptTemplateModal({
     >
       {/* Visual Festive Template using User's Ganesha Backdrop */}
       <div className="ganesha-template-outer" id="printable-receipt">
-        <div className="ganesha-template-card">
+        <div
+          className="ganesha-template-card"
+          style={{
+            backgroundImage: `url("${ganeshaBg}")`,
+            backgroundColor: '#380604'
+          }}
+        >
           <div className="ganesha-template-overlay">
             {/* Left side is reserved for Lord Ganesha idol */}
             <div className="ganesha-left-spacer" aria-hidden="true" />

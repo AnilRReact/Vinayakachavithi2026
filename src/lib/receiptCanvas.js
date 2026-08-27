@@ -1,39 +1,21 @@
 import { currency, fmtDate, tier } from './formatters'
+import ganeshaBg from '../assets/ganesha-template-bg.jpg'
 
 /**
- * Loads an image from URL and returns a Promise resolving to HTMLImageElement.
+ * Loads an image from URL and returns a Promise resolving to HTMLImageElement or null.
  */
 function loadImage(src) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
+    if (!src) {
+      resolve(null)
+      return
+    }
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error('Failed to load image: ' + src))
+    img.onerror = () => resolve(null)
     img.src = src
   })
-}
-
-/**
- * Helper to wrap text into multiple lines if it exceeds maximum width.
- */
-function wrapText(ctx, text, maxWidth) {
-  if (!text) return []
-  const words = String(text).split(' ')
-  const lines = []
-  let currentLine = words[0] || ''
-
-  for (let i = 1; i < words.length; i++) {
-    const word = words[i]
-    const width = ctx.measureText(currentLine + ' ' + word).width
-    if (width < maxWidth) {
-      currentLine += ' ' + word
-    } else {
-      lines.push(currentLine)
-      currentLine = word
-    }
-  }
-  if (currentLine) lines.push(currentLine)
-  return lines
 }
 
 /**
@@ -57,7 +39,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
 
   let personName = 'Devotee / Contributor'
   let cardTitle = 'DONATION APPRECIATION RECEIPT'
-  let refLabel = `Ref No: #VV-2026-${recordId}`
+  let refLabel = `Receipt No: #VV-2026-${recordId}`
   let subHighlight = '★ PATRON ★'
   let mainHighlight = ''
   let promptText = 'Received with heartfelt devotion and gratitude from:'
@@ -143,17 +125,24 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     promptText = 'Received with heartfelt devotion and gratitude from:'
   }
 
-  // 1. Draw Background Image
-  try {
-    const bgImg = await loadImage('/assets/ganesha-template-bg.jpg')
+  // 1. Draw Background Image or Fallback Gradient
+  const bgImg = await loadImage(ganeshaBg)
+  if (bgImg) {
     ctx.drawImage(bgImg, 0, 0, width, height)
-  } catch {
+  } else {
+    // Rich fallback gradient
     const bgGrad = ctx.createLinearGradient(0, 0, width, height)
-    bgGrad.addColorStop(0, '#5a0e08')
-    bgGrad.addColorStop(0.5, '#7c1c10')
-    bgGrad.addColorStop(1, '#9b2612')
+    bgGrad.addColorStop(0, '#380604')
+    bgGrad.addColorStop(0.4, '#6a160d')
+    bgGrad.addColorStop(0.8, '#8b2014')
+    bgGrad.addColorStop(1, '#a82c1a')
     ctx.fillStyle = bgGrad
     ctx.fillRect(0, 0, width, height)
+
+    // Gold outer frame
+    ctx.strokeStyle = '#D7952F'
+    ctx.lineWidth = 10
+    ctx.strokeRect(20, 20, width - 40, height - 40)
   }
 
   // 2. Right Side Card Panel
@@ -165,10 +154,10 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
 
   // Frosted dark-crimson card backdrop
   ctx.save()
-  ctx.fillStyle = 'rgba(28, 6, 5, 0.82)'
+  ctx.fillStyle = 'rgba(28, 6, 5, 0.88)'
   ctx.strokeStyle = '#D7952F'
   ctx.lineWidth = 3
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)'
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.75)'
   ctx.shadowBlur = 24
   ctx.beginPath()
   ctx.roundRect(panelX, panelY, panelW, panelH, 18)
@@ -177,7 +166,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   ctx.restore()
 
   // Inner gold decorative border
-  ctx.strokeStyle = 'rgba(245, 180, 50, 0.45)'
+  ctx.strokeStyle = 'rgba(245, 180, 50, 0.55)'
   ctx.lineWidth = 1.5
   ctx.beginPath()
   ctx.roundRect(panelX + 10, panelY + 10, panelW - 20, panelH - 20, 14)
@@ -242,7 +231,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   const boxX = panelCenterX - boxW / 2
   const boxY = panelY + 352
 
-  ctx.fillStyle = 'rgba(255, 248, 230, 0.12)'
+  ctx.fillStyle = 'rgba(255, 248, 230, 0.14)'
   ctx.strokeStyle = '#FFCA28'
   ctx.lineWidth = 2.5
   ctx.beginPath()
