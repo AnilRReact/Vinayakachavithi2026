@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Card, Empty, Button, Modal, ConfirmModal } from '../../components/ui'
+import { Card, Empty, Form, Button, Modal, ConfirmModal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { IdCardModal } from '../../components/IdCardModal'
 import { uploadImageToStorage } from '../../lib/storage'
