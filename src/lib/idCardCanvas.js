@@ -1,3 +1,5 @@
+import ganeshIdol2026 from '../assets/ganesh-idol-2026.jpg'
+
 /**
  * Helper to load an image from URL with CORS
  */
@@ -133,19 +135,16 @@ export async function generateIdCardCanvas(member = {}, settings = {}) {
   ctx.arc(photoCenterX, photoCenterY, photoRadius, 0, Math.PI * 2)
   ctx.clip()
 
-  if (member.photo_url) {
-    try {
-      const img = await loadImage(member.photo_url)
-      // Draw centered object-fit cover
-      const scale = Math.max((photoRadius * 2) / img.width, (photoRadius * 2) / img.height)
-      const x = photoCenterX - (img.width / 2) * scale
-      const y = photoCenterY - (img.height / 2) * scale
-      ctx.drawImage(img, x, y, img.width * scale, img.height * scale)
-    } catch {
-      // Fallback initial
-      drawAvatarFallback(ctx, memberName, photoCenterX, photoCenterY, photoRadius)
-    }
-  } else {
+  const photoSrc = member.photo_url || ganeshIdol2026
+  try {
+    const img = await loadImage(photoSrc)
+    // Draw centered object-fit cover
+    const scale = Math.max((photoRadius * 2) / img.width, (photoRadius * 2) / img.height)
+    const x = photoCenterX - (img.width / 2) * scale
+    const y = photoCenterY - (img.height / 2) * scale
+    ctx.drawImage(img, x, y, img.width * scale, img.height * scale)
+  } catch {
+    // Fallback initial
     drawAvatarFallback(ctx, memberName, photoCenterX, photoCenterY, photoRadius)
   }
   ctx.restore()

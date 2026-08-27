@@ -6,6 +6,8 @@ import { openWhatsAppMessage } from '../../lib/notifications'
 import { askGeminiDirectly } from '../../lib/gemini'
 import { useCountdown } from '../../hooks/useCountdown'
 import { useToast } from '../../context/ToastContext'
+import ganeshIdol2026 from '../../assets/ganesh-idol-2026.jpg'
+import ganeshaBg from '../../assets/ganesha-template-bg.jpg'
 
 export function Overview({ data, admin, add, update, remove, onNavigate }) {
   const { toast } = useToast()
@@ -14,6 +16,7 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
   const [dateModalOpen, setDateModalOpen] = useState(false)
   const [selectedReceiptDonation, setSelectedReceiptDonation] = useState(null)
   const [selectedNoticeForCard, setSelectedNoticeForCard] = useState(null)
+  const [isDarshanModalOpen, setIsDarshanModalOpen] = useState(false)
 
   // Overview embedded AI Guide state
   const [aiInput, setAiInput] = useState('')
@@ -255,87 +258,111 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
         </div>
       )}
 
-      <section className="hero">
-        <p className="eyebrow">🪔 Vinayaka Chavithi</p>
-        <h1>{settings.village_name || 'Vinayaka Vedika'}</h1>
-        <p>{settings.tagline || 'Our village celebration, in one place.'}</p>
-
-        {/* Live Countdown Display */}
-        <div className="hero-countdown-wrapper">
-          {countdown.isSet && !countdown.isPast && !countdown.isToday ? (
-            <div className="live-countdown-card">
-              <div className="countdown-timer">
-                <div className="timer-unit">
-                  <b>{String(countdown.days).padStart(2, '0')}</b>
-                  <span>Days</span>
-                </div>
-                <span className="timer-separator">:</span>
-                <div className="timer-unit">
-                  <b>{String(countdown.hours).padStart(2, '0')}</b>
-                  <span>Hours</span>
-                </div>
-                <span className="timer-separator">:</span>
-                <div className="timer-unit">
-                  <b>{String(countdown.minutes).padStart(2, '0')}</b>
-                  <span>Mins</span>
-                </div>
-                <span className="timer-separator">:</span>
-                <div className="timer-unit seconds">
-                  <b>{String(countdown.seconds).padStart(2, '0')}</b>
-                  <span>Secs</span>
-                </div>
+      <section className="hero-2026-showcase">
+        <div className="hero-2026-container">
+          {/* 2026 Lord Ganesha Idol Portrait */}
+          <div className="hero-idol-col">
+            <button
+              type="button"
+              className="hero-idol-card-btn"
+              onClick={() => setIsDarshanModalOpen(true)}
+              title="Click for full sacred Darshan of 2026 Sri Vinayaka Idol"
+            >
+              <div className="hero-idol-frame">
+                <img
+                  src={ganeshIdol2026}
+                  alt={`${settings.village_name || 'Vinayaka Vedika'} 2026 Ganesh Idol`}
+                  className="hero-idol-img"
+                />
+                <span className="hero-idol-badge">🪔 2026 OFFICIAL IDOL · CLICK FOR DARSHAN 🔍</span>
               </div>
-              <div className="countdown-date-info">
-                <small>📅 Festival Date: <b>{fmtDate(settings.festival_date)}</b></small>
-                {(admin || !settings.festival_date) && (
+            </button>
+          </div>
+
+          {/* Hero Content & Live Countdown */}
+          <div className="hero-content-col">
+            <p className="eyebrow">🌿 ॐ శ్రీ గణేశాయ నమః 🌿</p>
+            <h1 className="hero-title">{settings.village_name || 'Vinayaka Vedika'}</h1>
+            <p className="hero-subtitle">{settings.tagline || 'Our village celebration, in one place.'}</p>
+
+            {/* Live Countdown Display */}
+            <div className="hero-countdown-wrapper">
+              {countdown.isSet && !countdown.isPast && !countdown.isToday ? (
+                <div className="live-countdown-card">
+                  <div className="countdown-timer">
+                    <div className="timer-unit">
+                      <b>{String(countdown.days).padStart(2, '0')}</b>
+                      <span>Days</span>
+                    </div>
+                    <span className="timer-separator">:</span>
+                    <div className="timer-unit">
+                      <b>{String(countdown.hours).padStart(2, '0')}</b>
+                      <span>Hours</span>
+                    </div>
+                    <span className="timer-separator">:</span>
+                    <div className="timer-unit">
+                      <b>{String(countdown.minutes).padStart(2, '0')}</b>
+                      <span>Mins</span>
+                    </div>
+                    <span className="timer-separator">:</span>
+                    <div className="timer-unit seconds">
+                      <b>{String(countdown.seconds).padStart(2, '0')}</b>
+                      <span>Secs</span>
+                    </div>
+                  </div>
+                  <div className="countdown-date-info">
+                    <small>📅 Festival Date: <b>{fmtDate(settings.festival_date)}</b></small>
+                    {(admin || !settings.festival_date) && (
+                      <button
+                        type="button"
+                        className="hero-edit-date-btn"
+                        onClick={handleOpenDateModal}
+                        title="Change festival date"
+                      >
+                        ✏️ Change Date
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : countdown.isToday ? (
+                <div className="live-countdown-card today">
+                  <strong>🎉 Today is the Festival Day! 🙏 Ganapathi Bappa Morya!</strong>
+                  {(admin || !settings.festival_date) && (
+                    <button
+                      type="button"
+                      className="hero-edit-date-btn"
+                      onClick={handleOpenDateModal}
+                    >
+                      ✏️ Edit Date
+                    </button>
+                  )}
+                </div>
+              ) : countdown.isPast ? (
+                <div className="live-countdown-card past">
+                  <strong>The celebration has concluded for {fmtDate(settings.festival_date)}</strong>
+                  {(admin || !settings.festival_date) && (
+                    <button
+                      type="button"
+                      className="hero-edit-date-btn"
+                      onClick={handleOpenDateModal}
+                    >
+                      ✏️ Set New Date
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="live-countdown-card unset">
                   <button
                     type="button"
-                    className="hero-edit-date-btn"
+                    className="hero-set-date-btn"
                     onClick={handleOpenDateModal}
-                    title="Change festival date"
                   >
-                    ✏️ Change Date
+                    📅 Set Festival Date & Start Countdown
                   </button>
-                )}
-              </div>
-            </div>
-          ) : countdown.isToday ? (
-            <div className="live-countdown-card today">
-              <strong>🎉 Today is the Festival Day! 🙏 Ganapathi Bappa Morya!</strong>
-              {(admin || !settings.festival_date) && (
-                <button
-                  type="button"
-                  className="hero-edit-date-btn"
-                  onClick={handleOpenDateModal}
-                >
-                  ✏️ Edit Date
-                </button>
+                </div>
               )}
             </div>
-          ) : countdown.isPast ? (
-            <div className="live-countdown-card past">
-              <strong>The celebration has concluded for {fmtDate(settings.festival_date)}</strong>
-              {(admin || !settings.festival_date) && (
-                <button
-                  type="button"
-                  className="hero-edit-date-btn"
-                  onClick={handleOpenDateModal}
-                >
-                  ✏️ Set New Date
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className="live-countdown-card unset">
-              <button
-                type="button"
-                className="hero-set-date-btn"
-                onClick={handleOpenDateModal}
-              >
-                📅 Set Festival Date & Start Countdown
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </section>
 
@@ -862,6 +889,32 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
           settings={settings}
           admin={admin}
         />
+      )}
+
+      {/* Sacred 2026 Ganesh Idol Full-Screen Darshan Modal */}
+      {isDarshanModalOpen && (
+        <Modal
+          isOpen={isDarshanModalOpen}
+          onClose={() => setIsDarshanModalOpen(false)}
+          title={`🪔 ${settings.village_name || 'Vinayaka Vedika'} — 2026 Sri Vinayaka Idol`}
+          maxWidth="560px"
+        >
+          <div style={{ textAlign: 'center', background: '#190504', padding: '16px', borderRadius: '12px', border: '2px solid #d7952f' }}>
+            <img
+              src={ganeshIdol2026}
+              alt="2026 Ganesh Idol"
+              style={{ width: '100%', maxHeight: '520px', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 8px 30px rgba(0,0,0,0.6)' }}
+            />
+            <div style={{ marginTop: '14px', color: '#ffe0a0' }}>
+              <h3 style={{ margin: '0 0 4px', fontSize: '1.25rem', color: '#fff' }}>
+                🌿 ॐ గం గణపతయే నమః 🌿
+              </h3>
+              <p style={{ margin: 0, fontSize: '0.92rem', color: '#fed7aa' }}>
+                Official Lord Ganesha Idol for Vinayaka Chavithi 2026 · Ganapathi Bappa Morya! 🙏
+              </p>
+            </div>
+          </div>
+        </Modal>
       )}
 
       <ConfirmModal

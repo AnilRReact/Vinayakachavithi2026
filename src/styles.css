@@ -199,6 +199,119 @@ main {
   width: 100%;
 }
 
+/* 2026 Lord Ganesha Showcase Hero */
+.hero-2026-showcase {
+  position: relative;
+  overflow: hidden;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, #240504 0%, #3a0806 45%, #520f0c 100%);
+  border: 2px solid #d7952f;
+  border-radius: 16px;
+  box-shadow: 0 12px 36px rgba(40, 5, 4, 0.35);
+  color: #fff;
+  margin-bottom: 22px;
+}
+
+.hero-2026-container {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 28px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .hero-2026-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 18px;
+  }
+}
+
+.hero-idol-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-idol-card-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.hero-idol-card-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.hero-idol-frame {
+  position: relative;
+  width: 200px;
+  height: 290px;
+  background: #140302;
+  border: 3px solid #d7952f;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(215, 149, 47, 0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hero-idol-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.hero-idol-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(28, 4, 3, 0.94);
+  color: #ffe0a0;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 6px 4px;
+  text-align: center;
+  letter-spacing: 0.04em;
+  border-top: 1px solid #d7952f;
+}
+
+.hero-content-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hero-content-col .eyebrow {
+  margin: 0;
+  color: #ffe0a0;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.hero-title {
+  font-family: 'Yatra One', Georgia, serif;
+  margin: 4px 0 2px;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.12;
+  color: #fffdf8;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.hero-subtitle {
+  margin: 0 0 14px;
+  color: #fed7aa;
+  font-size: 1.02rem;
+}
+
 /* Hero Section */
 .hero {
   position: relative;

@@ -329,3 +329,4 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
     </Card>
   )
 }
+
