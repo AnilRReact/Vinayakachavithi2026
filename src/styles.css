@@ -1312,6 +1312,47 @@ textarea {
   gap: 6px;
 }
 
+/* High-Fidelity Canvas Modal Preview */
+.card-modal-preview-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #190504;
+  padding: 10px;
+  border-radius: 12px;
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.5);
+  margin-bottom: 14px;
+  min-height: 240px;
+  overflow: hidden;
+}
+
+.card-modal-preview-img {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  display: block;
+  object-fit: contain;
+}
+
+.card-modal-preview-img.landscape {
+  max-width: 100%;
+  border-radius: 10px;
+}
+
+.card-modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffe0a0;
+  padding: 40px 20px;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 /* Festive Template Card with Lord Ganesha Backdrop */
 .ganesha-template-outer {
   padding: 6px;
