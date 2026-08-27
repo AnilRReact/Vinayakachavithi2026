@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Card, Button } from '../../components/ui'
+import { askGeminiDirectly } from '../../lib/gemini'
 
 export function Help({ data }) {
   const [question, setQuestion] = useState('')
@@ -37,34 +38,51 @@ export function Help({ data }) {
     setQuestion('')
 
     try {
-      const response = await fetch(
-        import.meta.env.VITE_AI_ENDPOINT || '/api/ask',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            question: queryToAsk,
-            context: {
-              settings,
-              activities,
-              raised,
-              spent
-            }
-          })
-        }
-      )
+      let answerText = ''
+      let providerName = 'google-gemini'
 
-      const body = await response.json()
-      if (!response.ok) {
-        throw new Error(body.error || 'Could not get an answer right now.')
+      try {
+        const response = await fetch(
+          import.meta.env.VITE_AI_ENDPOINT || '/api/ask',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              question: queryToAsk,
+              context: {
+                settings,
+                activities,
+                raised,
+                spent
+              }
+            })
+          }
+        )
+
+        if (response.ok) {
+          const body = await response.json()
+          answerText = body.answer
+          providerName = body.provider || 'google-gemini'
+        }
+      } catch {
+        // Fall through to direct client Gemini
+      }
+
+      if (!answerText) {
+        const res = await askGeminiDirectly({
+          question: queryToAsk,
+          context: { settings, activities, raised, spent }
+        })
+        answerText = res.answer
+        providerName = res.provider
       }
 
       setMessages([
         ...newThread,
         {
           role: 'assistant',
-          text: body.answer,
-          provider: body.provider
+          text: answerText,
+          provider: providerName
         }
       ])
     } catch (error) {
