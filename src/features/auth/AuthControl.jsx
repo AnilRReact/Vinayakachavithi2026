@@ -28,19 +28,29 @@ export function AuthControl({ auth }) {
       return
     }
 
-    const err = isSetupMode ? await setPasscode(passcode) : await signIn(passcode)
-    if (err) {
-      setErrorMsg(err.message || 'Authentication failed. Please check your passcode.')
-    } else {
-      toast?.success?.(isSetupMode ? 'Admin passcode saved and unlocked.' : 'Committee admin access enabled.')
-      setModalOpen(false)
-      setPasscodeVal('')
+    try {
+      const err = isSetupMode ? await setPasscode(passcode) : await signIn(passcode)
+      if (err) {
+        setErrorMsg(err.message || 'Authentication failed. Please check your passcode.')
+      } else {
+        if (toast && typeof toast.success === 'function') {
+          toast.success(isSetupMode ? 'Admin passcode saved and unlocked.' : 'Committee admin access enabled.')
+        }
+        setModalOpen(false)
+        setPasscodeVal('')
+      }
+    } catch (err) {
+      setErrorMsg(err?.message || 'Authentication failed. Please check your passcode.')
     }
   }
 
   const handleSignOut = () => {
-    signOut()
-    toast?.info?.('Signed out of admin mode.')
+    try {
+      signOut()
+      if (toast && typeof toast.info === 'function') {
+        toast.info('Signed out of admin mode.')
+      }
+    } catch {}
   }
 
   if (admin) {
