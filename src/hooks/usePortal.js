@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react'
-import { requireSupabase, supabase } from '../lib/supabase'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { supabase } from '../lib/supabase'
 
 export const TABLES = [
   'settings',
@@ -19,198 +19,282 @@ export const TABLES = [
   'music_playlist'
 ]
 
-const getLocalPinnedDonations = () => {
-  try {
-    return JSON.parse(localStorage.getItem('vv_pinned_donations') || '[]')
-  } catch {
-    return []
+// Default seed data for initial offline / fresh load
+const DEFAULT_SETTINGS = [
+  {
+    id: 'default-settings',
+    village_name: 'Vinayaka Vedika',
+    tagline: 'Our village celebration, in one place.',
+    festival_date: '2026-09-14',
+    morning_aarti_time: '06:30 AM',
+    evening_aarti_time: '07:30 PM',
+    daily_schedule_note: 'Daily Pooja & Maha Harathi every morning & evening.'
   }
+]
+
+const getLocalTable = (table) => {
+  try {
+    const raw = localStorage.getItem(`vv_data_${table}`)
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  if (table === 'settings') return DEFAULT_SETTINGS
+  return []
 }
 
-const setLocalPinnedDonation = (id, isPinned) => {
+const setLocalTable = (table, items) => {
   try {
-    const current = getLocalPinnedDonations()
-    const updated = isPinned
-      ? Array.from(new Set([...current, id]))
-      : current.filter((x) => x !== id)
-    localStorage.setItem('vv_pinned_donations', JSON.stringify(updated))
+    localStorage.setItem(`vv_data_${table}`, JSON.stringify(items))
   } catch {}
 }
 
-const createEmptyData = () => Object.fromEntries(TABLES.map((table) => [table, []]))
+const getInitialData = () => {
+  const initial = {}
+  TABLES.forEach((table) => {
+    initial[table] = getLocalTable(table)
+  })
+  return initial
+}
 
-/** Loads public portal data and exposes RLS-respecting mutations with local-state fallback. */
+/**
+ * Promise timeout helper to prevent hanging queries
+ */
+function withTimeout(promise, ms = 2500) {
+  let timeoutId
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error('Fetch timed out')), ms)
+  })
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId))
+}
+
+/**
+ * Offline-first, resilient portal data hook.
+ * Never blocks the UI or gets stuck on loading.
+ */
 export function usePortal() {
-  const [data, setData] = useState(createEmptyData)
+  const [data, setData] = useState(getInitialData)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const isFirstLoad = useRef(true)
 
   const refresh = useCallback(async () => {
+    // If Supabase client is not available or unconfigured, end loading immediately
     if (!supabase) {
       setLoading(false)
       return
     }
-    setLoading(true)
+
     try {
-      const results = {}
-      await Promise.all(
-        TABLES.map(async (table) => {
-          try {
-            // First try with ordered query
-            let res = await supabase
-              .from(table)
-              .select('*')
-              .order(table === 'notices' ? 'date' : 'created_at', { ascending: false })
+      // Query all tables with a strict 3-second timeout so we NEVER get stuck on "Preparing the vedika..."
+      await withTimeout(
+        Promise.all(
+          TABLES.map(async (table) => {
+            try {
+              let res = await supabase
+                .from(table)
+                .select('*')
+                .order(table === 'notices' ? 'date' : 'created_at', { ascending: false })
 
-            // If order fails (e.g. created_at column missing), retry without order
-            if (res.error) {
-              const retry = await supabase.from(table).select('*')
-              if (!retry.error) {
-                res = retry
+              if (res.error) {
+                const retry = await supabase.from(table).select('*')
+                if (!retry.error) res = retry
               }
+
+              if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
+                setLocalTable(table, res.data)
+                setData((prev) => ({ ...prev, [table]: res.data }))
+              }
+            } catch {
+              // Gracefully ignore individual table failures and use local data
             }
-
-            results[table] = res.data || []
-          } catch {
-            results[table] = []
-          }
-        })
+          })
+        ),
+        3000
       )
-
-      // Merge local pinned state for donations
-      const localPinned = getLocalPinnedDonations()
-      if (results.donations) {
-        results.donations = results.donations.map((d) => ({
-          ...d,
-          pinned: Boolean(d.pinned || localPinned.includes(d.id))
-        }))
-      }
-
-      // Ensure every table in TABLES is always present as an array
-      const completeData = {
-        ...createEmptyData(),
-        ...results
-      }
-
-      setData(completeData)
-      setError('')
-    } catch (err) {
-      console.warn('Portal data fetch warning:', err)
-      setError(err.message || '')
+    } catch {
+      // Timeout or network error - continue using local storage data smoothly
     } finally {
       setLoading(false)
+      isFirstLoad.current = false
     }
   }, [])
 
   useEffect(() => {
-    refresh()
+    // Immediate unlock after 1.5s as an absolute safety barrier
+    const safetyTimer = setTimeout(() => {
+      setLoading(false)
+    }, 1500)
+
+    refresh().finally(() => {
+      clearTimeout(safetyTimer)
+      setLoading(false)
+    })
+
+    return () => clearTimeout(safetyTimer)
   }, [refresh])
 
   const add = async (table, values) => {
-    try {
-      const { error: insertError } = await requireSupabase().from(table).insert(values)
-      if (insertError) {
-        setError(insertError.message)
-        return insertError
-      }
-      await refresh()
-      return null
-    } catch (err) {
-      setError(err.message)
-      return err
+    const newItem = {
+      id: values.id || `local_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      created_at: new Date().toISOString(),
+      ...values
     }
+
+    // 1. Immediately update local state & storage (Instant UI feedback!)
+    setData((prev) => {
+      const currentList = prev[table] || []
+      const updatedList = [newItem, ...currentList]
+      setLocalTable(table, updatedList)
+      return { ...prev, [table]: updatedList }
+    })
+
+    // 2. Sync to Supabase in the background if available
+    if (supabase) {
+      try {
+        const { error: insertError } = await supabase.from(table).insert(values)
+        if (!insertError) {
+          // background refresh
+          refresh()
+        }
+      } catch {
+        // Fallback already active
+      }
+    }
+
+    return null
   }
 
   const update = async (table, id, values) => {
-    try {
-      if (table === 'donations' && 'pinned' in values) {
-        setLocalPinnedDonation(id, Boolean(values.pinned))
+    // 1. Immediately update local state & storage
+    setData((prev) => {
+      const currentList = prev[table] || []
+      const updatedList = currentList.map((item) =>
+        item.id === id ? { ...item, ...values } : item
+      )
+      setLocalTable(table, updatedList)
+      return { ...prev, [table]: updatedList }
+    })
+
+    // 2. Sync to Supabase in background
+    if (supabase) {
+      try {
+        await supabase.from(table).update(values).eq('id', id)
+      } catch {
+        // Local state already updated
       }
-
-      let { error: updateError } = await requireSupabase().from(table).update(values).eq('id', id)
-
-      // Gracefully handle missing 'pinned' column in Supabase schema by retrying without it
-      if (updateError && updateError.message && updateError.message.includes('pinned')) {
-        const { pinned, ...restValues } = values
-        const retry = await requireSupabase().from(table).update(restValues).eq('id', id)
-        updateError = retry.error
-      }
-
-      if (updateError) {
-        setError(updateError.message)
-        return updateError
-      }
-
-      await refresh()
-      return null
-    } catch (err) {
-      setError(err.message)
-      return err
     }
+
+    return null
+  }
+
+  const remove = async (table, id) => {
+    // 1. Immediately remove from local state & storage
+    setData((prev) => {
+      const currentList = prev[table] || []
+      const updatedList = currentList.filter((item) => item.id !== id)
+      setLocalTable(table, updatedList)
+      return { ...prev, [table]: updatedList }
+    })
+
+    // 2. Sync deletion to Supabase in background
+    if (supabase) {
+      try {
+        await supabase.from(table).delete().eq('id', id)
+      } catch {
+        // Local state already updated
+      }
+    }
+
+    return null
   }
 
   const recordBid = async (itemId, bidder, amount) => {
-    try {
-      const { error: rpcError } = await requireSupabase().rpc('record_bid', {
-        item_id: itemId,
-        bidder_name: bidder,
-        bid_amount: amount
-      })
-      if (rpcError) {
-        setError(rpcError.message)
-        return rpcError
-      }
-      await refresh()
-      return null
-    } catch (err) {
-      setError(err.message)
-      return err
+    // Update local bid state immediately
+    const bidEntry = {
+      id: `bid_${Date.now()}`,
+      item_id: itemId,
+      bidder_name: bidder,
+      bid_amount: amount,
+      created_at: new Date().toISOString()
     }
+
+    setData((prev) => {
+      const prevBids = prev.bid_history || []
+      const updatedBids = [bidEntry, ...prevBids]
+      setLocalTable('bid_history', updatedBids)
+
+      const prevItems = prev.bid_items || []
+      const updatedItems = prevItems.map((item) =>
+        item.id === itemId
+          ? { ...item, current_bid: amount, current_bidder: bidder }
+          : item
+      )
+      setLocalTable('bid_items', updatedItems)
+
+      return {
+        ...prev,
+        bid_history: updatedBids,
+        bid_items: updatedItems
+      }
+    })
+
+    if (supabase) {
+      try {
+        await supabase.rpc('record_bid', {
+          item_id: itemId,
+          bidder_name: bidder,
+          bid_amount: amount
+        })
+      } catch {
+        // Local state already updated
+      }
+    }
+
+    return null
   }
 
   const closeBid = async (itemId, currentBidder, currentBid, itemName) => {
-    try {
-      const client = requireSupabase()
-      const { error: closeError } = await client
-        .from('bid_items')
-        .update({ status: 'closed' })
-        .eq('id', itemId)
+    setData((prev) => {
+      const prevItems = prev.bid_items || []
+      const updatedItems = prevItems.map((item) =>
+        item.id === itemId ? { ...item, status: 'closed' } : item
+      )
+      setLocalTable('bid_items', updatedItems)
 
-      if (closeError) {
-        setError(closeError.message)
-        return closeError
-      }
-
+      let updatedDonations = prev.donations || []
       if (currentBidder && currentBid) {
-        await client.from('donations').insert({
+        const donationEntry = {
+          id: `donation_auction_${Date.now()}`,
           donor_name: currentBidder,
           amount: currentBid,
           date: new Date().toISOString().split('T')[0],
           note: `Winning bid: ${itemName || 'Auction item'}`
-        })
+        }
+        updatedDonations = [donationEntry, ...updatedDonations]
+        setLocalTable('donations', updatedDonations)
       }
 
-      await refresh()
-      return null
-    } catch (err) {
-      setError(err.message)
-      return err
-    }
-  }
-
-  const remove = async (table, id) => {
-    try {
-      const { error: deleteError } = await requireSupabase().from(table).delete().eq('id', id)
-      if (deleteError) {
-        setError(deleteError.message)
-        return deleteError
+      return {
+        ...prev,
+        bid_items: updatedItems,
+        donations: updatedDonations
       }
-      await refresh()
-      return null
-    } catch (err) {
-      setError(err.message)
-      return err
+    })
+
+    if (supabase) {
+      try {
+        await supabase.from('bid_items').update({ status: 'closed' }).eq('id', itemId)
+        if (currentBidder && currentBid) {
+          await supabase.from('donations').insert({
+            donor_name: currentBidder,
+            amount: currentBid,
+            date: new Date().toISOString().split('T')[0],
+            note: `Winning bid: ${itemName || 'Auction item'}`
+          })
+        }
+      } catch {}
     }
+
+    return null
   }
 
   return {
