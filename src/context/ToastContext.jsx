@@ -43,14 +43,22 @@ export function ToastProvider({ children }) {
 
 export function useToast() {
   const context = useContext(ToastContext)
-  if (!context) {
-    return {
-      toast: {
-        success: () => {},
-        error: () => {},
-        info: () => {},
-      }
-    }
+  const defaultToast = {
+    success: () => {},
+    error: () => {},
+    info: () => {},
   }
-  return context.toast
+
+  const toastObj = context?.toast || defaultToast
+
+  // Support both `const { toast } = useToast()` and `const toast = useToast()`
+  return {
+    ...toastObj,
+    toast: toastObj,
+    success: toastObj.success,
+    error: toastObj.error,
+    info: toastObj.info,
+    toasts: context?.toasts || [],
+    removeToast: context?.removeToast || (() => {})
+  }
 }

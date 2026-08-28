@@ -32,7 +32,7 @@ export function AuthControl({ auth }) {
     if (err) {
       setErrorMsg(err.message || 'Authentication failed. Please check your passcode.')
     } else {
-      toast.success(isSetupMode ? 'Admin passcode saved and unlocked.' : 'Committee admin access enabled.')
+      toast?.success?.(isSetupMode ? 'Admin passcode saved and unlocked.' : 'Committee admin access enabled.')
       setModalOpen(false)
       setPasscodeVal('')
     }
@@ -40,7 +40,7 @@ export function AuthControl({ auth }) {
 
   const handleSignOut = () => {
     signOut()
-    toast.info('Signed out of admin mode.')
+    toast?.info?.('Signed out of admin mode.')
   }
 
   if (admin) {
