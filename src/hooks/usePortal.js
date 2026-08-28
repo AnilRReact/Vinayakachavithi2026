@@ -52,36 +52,51 @@ export function usePortal() {
     }
     setLoading(true)
     try {
-      const responses = await Promise.all(
-        TABLES.map((table) =>
-          supabase
-            .from(table)
-            .select('*')
-            .order(table === 'notices' ? 'date' : 'created_at', { ascending: false })
-        )
+      const results = {}
+      await Promise.all(
+        TABLES.map(async (table) => {
+          try {
+            // First try with ordered query
+            let res = await supabase
+              .from(table)
+              .select('*')
+              .order(table === 'notices' ? 'date' : 'created_at', { ascending: false })
+
+            // If order fails (e.g. created_at column missing), retry without order
+            if (res.error) {
+              const retry = await supabase.from(table).select('*')
+              if (!retry.error) {
+                res = retry
+              }
+            }
+
+            results[table] = res.data || []
+          } catch {
+            results[table] = []
+          }
+        })
       )
-      const failure = responses.find((response) => response.error)
-      if (failure) {
-        setError(failure.error.message)
-      } else {
-        const rawData = Object.fromEntries(
-          TABLES.map((table, index) => [table, responses[index].data || []])
-        )
 
-        // Merge local pinned state for donations
-        const localPinned = getLocalPinnedDonations()
-        if (rawData.donations) {
-          rawData.donations = rawData.donations.map((d) => ({
-            ...d,
-            pinned: Boolean(d.pinned || localPinned.includes(d.id))
-          }))
-        }
-
-        setData(rawData)
-        setError('')
+      // Merge local pinned state for donations
+      const localPinned = getLocalPinnedDonations()
+      if (results.donations) {
+        results.donations = results.donations.map((d) => ({
+          ...d,
+          pinned: Boolean(d.pinned || localPinned.includes(d.id))
+        }))
       }
+
+      // Ensure every table in TABLES is always present as an array
+      const completeData = {
+        ...createEmptyData(),
+        ...results
+      }
+
+      setData(completeData)
+      setError('')
     } catch (err) {
-      setError(err.message || 'Failed to load portal data.')
+      console.warn('Portal data fetch warning:', err)
+      setError(err.message || '')
     } finally {
       setLoading(false)
     }
