@@ -14,6 +14,7 @@ export const TEMPLATE_THEMES = {
     orientation: 'portrait',
     width: 2160,
     height: 3040,
+    idolImg: ganeshIdol2026,
     primaryColor: '#5C1410',
     accentColor: '#B45309',
     goldColor: '#D97706'
@@ -26,6 +27,7 @@ export const TEMPLATE_THEMES = {
     orientation: 'portrait',
     width: 2160,
     height: 3040,
+    idolImg: ganeshIdolYellow || ganeshIdol2026,
     primaryColor: '#78170D',
     accentColor: '#C2410C',
     goldColor: '#F59E0B'
@@ -38,6 +40,7 @@ export const TEMPLATE_THEMES = {
     orientation: 'portrait',
     width: 2160,
     height: 3040,
+    idolImg: ganeshIdol2026,
     primaryColor: '#4A0E0A',
     accentColor: '#9A3412',
     goldColor: '#D97706'
@@ -128,7 +131,7 @@ function loadImage(src) {
 }
 
 // ===========================================================================
-// VECTOR ART HELPERS (RAZOR-SHARP AT 4K RESOLUTION)
+// VECTOR ART & ORNAMENT HELPERS (RAZOR-SHARP AT 4K RESOLUTION)
 // ===========================================================================
 
 /**
@@ -152,7 +155,6 @@ function drawOrnateFrame(ctx, x, y, w, h, goldColor = '#D97706', innerPadding = 
   ctx.stroke()
 
   // Corner floral ornaments
-  const cornerSize = 48
   const corners = [
     [x + innerPadding, y + innerPadding],
     [x + w - innerPadding, y + innerPadding],
@@ -177,65 +179,169 @@ function drawOrnateFrame(ctx, x, y, w, h, goldColor = '#D97706', innerPadding = 
 }
 
 /**
- * Draws a glowing sacred Om Ganesha insignia with radiant sunburst
+ * Draws prominent, sacred Lord Ganesha Medallion with glowing sunburst halo and beaded gold frame
  */
-function drawOmGaneshaEmblem(ctx, cx, cy, radius = 130) {
+function drawGaneshaMedallion(ctx, idol, cx, cy, radius = 210) {
   ctx.save()
 
-  // Sunburst aura rays
-  const rays = 32
+  // 1. Radiant sunburst aura rays around Ganesha
+  const rays = 36
   for (let i = 0; i < rays; i++) {
     const angle = (i * Math.PI * 2) / rays
-    const x1 = cx + Math.cos(angle) * (radius * 0.9)
-    const y1 = cy + Math.sin(angle) * (radius * 0.9)
-    const x2 = cx + Math.cos(angle) * (radius * 1.35)
-    const y2 = cy + Math.sin(angle) * (radius * 1.35)
+    const x1 = cx + Math.cos(angle) * (radius * 0.92)
+    const y1 = cy + Math.sin(angle) * (radius * 0.92)
+    const x2 = cx + Math.cos(angle) * (radius * 1.38)
+    const y2 = cy + Math.sin(angle) * (radius * 1.38)
 
-    ctx.strokeStyle = i % 2 === 0 ? 'rgba(245, 158, 11, 0.35)' : 'rgba(217, 119, 6, 0.2)'
-    ctx.lineWidth = i % 2 === 0 ? 3.5 : 2
+    ctx.strokeStyle = i % 2 === 0 ? 'rgba(245, 158, 11, 0.45)' : 'rgba(217, 119, 6, 0.25)'
+    ctx.lineWidth = i % 2 === 0 ? 4 : 2.5
     ctx.beginPath()
     ctx.moveTo(x1, y1)
     ctx.lineTo(x2, y2)
     ctx.stroke()
   }
 
-  // Golden circular halo medallion
+  // 2. Glowing golden background circle behind Ganesha
   const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, radius)
-  grad.addColorStop(0, '#FEF3C7')
-  grad.addColorStop(0.6, '#FDE68A')
-  grad.addColorStop(0.9, '#F59E0B')
+  grad.addColorStop(0, '#FEF9C3')
+  grad.addColorStop(0.5, '#FDE68A')
+  grad.addColorStop(0.85, '#F59E0B')
   grad.addColorStop(1, '#B45309')
 
   ctx.fillStyle = grad
-  ctx.shadowColor = 'rgba(245, 158, 11, 0.5)'
-  ctx.shadowBlur = 30
+  ctx.shadowColor = 'rgba(245, 158, 11, 0.6)'
+  ctx.shadowBlur = 35
   ctx.beginPath()
   ctx.arc(cx, cy, radius, 0, Math.PI * 2)
   ctx.fill()
   ctx.shadowBlur = 0
 
-  // Outer beaded gold ring
-  ctx.strokeStyle = '#78350F'
-  ctx.lineWidth = 4
+  // 3. Draw Lord Ganesha Idol (Clipped to Circle)
+  if (idol) {
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(cx, cy, radius - 8, 0, Math.PI * 2)
+    ctx.clip()
+
+    // Focus on Lord Ganesha's upper body / face / crown
+    const cropW = idol.width
+    const cropH = Math.round(idol.height * 0.72)
+    ctx.drawImage(idol, 0, 0, cropW, cropH, cx - radius + 8, cy - radius + 8, (radius - 8) * 2, (radius - 8) * 2)
+    ctx.restore()
+  } else {
+    // Fallback sacred ॐ
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillStyle = '#7C2414'
+    ctx.font = 'bold 120px "Yatra One", Georgia, serif'
+    ctx.fillText('ॐ', cx, cy + 6)
+  }
+
+  // 4. Heavy Polished Gold Rim
+  ctx.strokeStyle = '#D97706'
+  ctx.lineWidth = 8
+  ctx.beginPath()
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2)
   ctx.stroke()
 
-  const beads = 28
+  ctx.strokeStyle = '#FEF08A'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.arc(cx, cy, radius - 4, 0, Math.PI * 2)
+  ctx.stroke()
+
+  // 5. Beaded gold ring
+  const beads = 32
   for (let i = 0; i < beads; i++) {
     const angle = (i * Math.PI * 2) / beads
-    const bx = cx + Math.cos(angle) * (radius - 12)
-    const by = cy + Math.sin(angle) * (radius - 12)
-    ctx.fillStyle = '#78350F'
+    const bx = cx + Math.cos(angle) * (radius + 14)
+    const by = cy + Math.sin(angle) * (radius + 14)
+    ctx.fillStyle = '#D97706'
     ctx.beginPath()
-    ctx.arc(bx, by, 3.5, 0, Math.PI * 2)
+    ctx.arc(bx, by, 4.5, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.fillStyle = '#FEF08A'
+    ctx.beginPath()
+    ctx.arc(bx, by, 2, 0, Math.PI * 2)
     ctx.fill()
   }
 
-  // Sacred Om symbol
-  ctx.textAlign = 'center'
+  ctx.restore()
+}
+
+/**
+ * Draws decorated, luxury gold-embossed Name Banner with generous padding, 3D border, and ornamental side flourishes
+ */
+function drawDecoratedNameBanner(ctx, personName, cx, bannerY, bannerW = 1600, bannerH = 190, accentColor = '#7C2414', goldColor = '#D97706') {
+  ctx.save()
+  const bx = cx - bannerW / 2
+  const by = bannerY
+
+  // 1. 3D Shadow
+  ctx.shadowColor = 'rgba(124, 36, 20, 0.15)'
+  ctx.shadowBlur = 24
+  ctx.shadowOffsetY = 8
+
+  // 2. Banner Gradient Fill (Rich Ivory / Cream with Gold Glow)
+  const bgGrad = ctx.createLinearGradient(bx, by, bx + bannerW, by + bannerH)
+  bgGrad.addColorStop(0, '#FFFDF8')
+  bgGrad.addColorStop(0.5, '#FEF9EB')
+  bgGrad.addColorStop(1, '#FFFDF8')
+
+  ctx.fillStyle = bgGrad
+  ctx.beginPath()
+  ctx.roundRect(bx, by, bannerW, bannerH, 22)
+  ctx.fill()
+  ctx.shadowBlur = 0
+  ctx.shadowOffsetY = 0
+
+  // 3. Heavy Gold Embossed Border
+  ctx.strokeStyle = goldColor
+  ctx.lineWidth = 5.5
+  ctx.beginPath()
+  ctx.roundRect(bx, by, bannerW, bannerH, 22)
+  ctx.stroke()
+
+  // 4. Thin Inner Border
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.45)'
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.roundRect(bx + 12, by + 12, bannerW - 24, bannerH - 24, 16)
+  ctx.stroke()
+
+  // 5. Decorative Corner Flourishes
+  const cornerDots = [
+    [bx + 24, by + 24],
+    [bx + bannerW - 24, by + 24],
+    [bx + 24, by + bannerH - 24],
+    [bx + bannerW - 24, by + bannerH - 24]
+  ]
+  cornerDots.forEach(([x, y]) => {
+    ctx.fillStyle = goldColor
+    ctx.beginPath()
+    ctx.arc(x, y, 6, 0, Math.PI * 2)
+    ctx.fill()
+  })
+
+  // Side Ornamental Ribbon Flourishes
+  ctx.fillStyle = goldColor
+  ctx.font = 'bold 36px sans-serif'
+  ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
-  ctx.fillStyle = '#7C2414'
-  ctx.font = 'bold 110px "Yatra One", "Noto Serif Telugu", Georgia, serif'
-  ctx.fillText('ॐ', cx, cy + 6)
+  ctx.fillText('❖ ✦', bx + 44, by + bannerH / 2)
+  ctx.textAlign = 'right'
+  ctx.fillText('✦ ❖', bx + bannerW - 44, by + bannerH / 2)
+
+  // 6. Bold Name with Rich Drop Shadow & Classical Typography
+  ctx.textAlign = 'center'
+  ctx.fillStyle = accentColor
+  const fontSize = personName.length > 25 ? (personName.length > 35 ? 64 : 76) : 92
+  ctx.font = `bold ${fontSize}px Georgia, "Yatra One", serif`
+  ctx.shadowColor = 'rgba(124, 36, 20, 0.25)'
+  ctx.shadowBlur = 10
+  ctx.fillText(`༺ ${personName} ༻`, cx, by + bannerH / 2 + 4)
+  ctx.shadowBlur = 0
 
   ctx.restore()
 }
@@ -338,18 +444,18 @@ function drawHangingToran(ctx, width, height) {
  */
 function drawKalashAndDiyas(ctx, width, height) {
   ctx.save()
-  const cy = height - 190
+  const cy = height - 200
   const cx = width / 2
 
   // Center glowing oil diya
-  const diyaGrad = ctx.createRadialGradient(cx, cy - 30, 5, cx, cy - 30, 80)
+  const diyaGrad = ctx.createRadialGradient(cx, cy - 30, 5, cx, cy - 30, 90)
   diyaGrad.addColorStop(0, 'rgba(254, 240, 138, 0.95)')
   diyaGrad.addColorStop(0.5, 'rgba(245, 158, 11, 0.6)')
   diyaGrad.addColorStop(1, 'rgba(245, 158, 11, 0)')
 
   ctx.fillStyle = diyaGrad
   ctx.beginPath()
-  ctx.arc(cx, cy - 30, 80, 0, Math.PI * 2)
+  ctx.arc(cx, cy - 30, 90, 0, Math.PI * 2)
   ctx.fill()
 
   // Diya lamp body
@@ -370,7 +476,7 @@ function drawKalashAndDiyas(ctx, width, height) {
   ctx.fill()
 
   // Left and Right Kalash pots
-  const kalashPositions = [cx - 480, cx + 480]
+  const kalashPositions = [cx - 520, cx + 520]
   kalashPositions.forEach((kx) => {
     // Copper pot
     ctx.fillStyle = '#C2410C'
@@ -478,7 +584,6 @@ function drawPinkLotus(ctx, cx, cy, scale = 1.0) {
   ctx.translate(cx, cy)
   ctx.scale(scale, scale)
 
-  // Glowing pink lotus petals
   const petals = [
     { x: 0, y: -60, angle: 0 },
     { x: -35, y: -45, angle: -0.3 },
@@ -623,6 +728,9 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     promptText = 'Received with heartfelt devotion and gratitude from:'
   }
 
+  // Preload Lord Ganesha Idol image
+  const idol = await loadImage(theme.idolImg || ganeshIdol2026)
+
   // =========================================================================
   // 1. PORTRAIT 4K RENDERING (Ivory Toran, Marigold Arch, Lotus Blossom)
   // =========================================================================
@@ -635,7 +743,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     if (activeThemeKey === 'ivory') {
       // 1. Pristine Silk Ivory Background
       const bgGrad = ctx.createLinearGradient(0, 0, 0, H)
-      bgGrad.addColorStop(0, '#FFFDF7')
+      bgGrad.addColorStop(0, '#FFFDF8')
       bgGrad.addColorStop(0.5, '#FFFBF0')
       bgGrad.addColorStop(1, '#FFF5DF')
       ctx.fillStyle = bgGrad
@@ -647,94 +755,89 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
       // 3. Hanging Mango Leaf Toran & Bells
       drawHangingToran(ctx, W, H)
 
-      // 4. Centerpiece Glowing Om Ganesha Insignia
-      drawOmGaneshaEmblem(ctx, cx, 580, 160)
+      // 4. LORD GANESHA SACRED MEDALLION
+      drawGaneshaMedallion(ctx, idol, cx, 470, 200)
 
-      // 5. Card Header
+      // 5. Sacred Invocation Tag
       ctx.textAlign = 'center'
       ctx.fillStyle = '#78350F'
-      ctx.font = 'bold 40px Mukta, sans-serif'
-      ctx.fillText('🌿 YOU ARE CORDIALLY INVITED TO CELEBRATE 🌿', cx, 830)
+      ctx.font = 'bold 38px Mukta, sans-serif'
+      ctx.fillText('🌿 YOU ARE CORDIALLY INVITED TO CELEBRATE 🌿', cx, 730)
 
       // 6. Main Card Title
       ctx.fillStyle = '#5C1410'
-      ctx.font = 'bold 96px Georgia, "Yatra One", serif'
-      ctx.shadowColor = 'rgba(92, 20, 16, 0.2)'
+      ctx.font = 'bold 92px Georgia, "Yatra One", serif'
+      ctx.shadowColor = 'rgba(92, 20, 16, 0.25)'
       ctx.shadowBlur = 10
-      ctx.fillText(cardTitle, cx, 950)
+      ctx.fillText(cardTitle, cx, 845)
       ctx.shadowBlur = 0
 
       // 7. Village / Pandal Name
       ctx.fillStyle = '#B45309'
-      ctx.font = 'bold 56px Mukta, sans-serif'
-      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 1040)
+      ctx.font = 'bold 54px Mukta, sans-serif'
+      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 930)
 
-      // Decorative divider
+      // Gold divider
       ctx.strokeStyle = '#D97706'
       ctx.lineWidth = 3
       ctx.beginPath()
-      ctx.moveTo(cx - 360, 1080)
-      ctx.lineTo(cx + 360, 1080)
+      ctx.moveTo(cx - 380, 970)
+      ctx.lineTo(cx + 380, 970)
       ctx.stroke()
 
       // 8. Prompt Text
       ctx.fillStyle = '#44403C'
-      ctx.font = '42px Mukta, sans-serif'
-      ctx.fillText(promptText, cx, 1160)
+      ctx.font = '40px Mukta, sans-serif'
+      ctx.fillText(promptText, cx, 1040)
 
-      // 9. Person / Entity Name
-      ctx.fillStyle = '#7C2414'
-      ctx.font = personName.length > 25 ? 'bold 70px Georgia, serif' : 'bold 88px Georgia, "Yatra One", serif'
-      ctx.shadowColor = 'rgba(124, 36, 20, 0.25)'
-      ctx.shadowBlur = 8
-      ctx.fillText(personName, cx, 1270)
-      ctx.shadowBlur = 0
+      // 9. DECORATED, BOLD NAME HIGHLIGHT BANNER
+      drawDecoratedNameBanner(ctx, personName, cx, 1080, 1600, 190, '#7C2414', '#D97706')
 
       // 10. Sub Highlight Badge
       ctx.fillStyle = '#B45309'
       ctx.font = 'bold 38px Mukta, sans-serif'
-      ctx.fillText(subHighlight, cx, 1345)
+      ctx.fillText(subHighlight, cx, 1340)
 
-      // 11. Highlight Card Box (Event Details, Date, Time, Amount)
-      const boxW = 1520
-      const boxH = 220
+      // 11. Main Highlight Box (Date, Time, Amount, Item)
+      const boxW = 1600
+      const boxH = 210
       const boxX = cx - boxW / 2
-      const boxY = 1400
+      const boxY = 1390
 
-      ctx.fillStyle = 'rgba(255, 251, 235, 0.96)'
+      ctx.fillStyle = 'rgba(255, 251, 235, 0.98)'
       ctx.strokeStyle = '#D97706'
       ctx.lineWidth = 4.5
-      ctx.shadowColor = 'rgba(217, 119, 6, 0.15)'
+      ctx.shadowColor = 'rgba(217, 119, 6, 0.18)'
       ctx.shadowBlur = 20
       ctx.beginPath()
-      ctx.roundRect(boxX, boxY, boxW, boxH, 24)
+      ctx.roundRect(boxX, boxY, boxW, boxH, 22)
       ctx.fill()
       ctx.stroke()
       ctx.shadowBlur = 0
 
       ctx.fillStyle = '#7C2414'
-      ctx.font = mainHighlight.length > 30 ? 'bold 54px Mukta, sans-serif' : 'bold 68px Mukta, Georgia, sans-serif'
-      ctx.fillText(mainHighlight, cx, boxY + 130)
+      ctx.font = mainHighlight.length > 30 ? 'bold 52px Mukta, sans-serif' : 'bold 66px Mukta, Georgia, sans-serif'
+      ctx.fillText(mainHighlight, cx, boxY + 125)
 
       // 12. Ref No & Date
       let nextY = boxY + boxH + 80
       ctx.fillStyle = '#292524'
-      ctx.font = 'bold 42px Mukta, sans-serif'
+      ctx.font = 'bold 40px Mukta, sans-serif'
       ctx.fillText(`${refLabel}   ·   📅 ${fmtDate(record.date)}`, cx, nextY)
 
-      nextY += 70
+      nextY += 68
       if (noteStr) {
         ctx.fillStyle = '#78350F'
-        ctx.font = 'italic 40px Georgia, serif'
+        ctx.font = 'italic 38px Georgia, serif'
         ctx.fillText(noteStr, cx, nextY)
-        nextY += 70
+        nextY += 68
       }
 
       // 13. Sacred Blessing Quote
       ctx.fillStyle = '#44403C'
-      ctx.font = 'italic 40px Georgia, serif'
+      ctx.font = 'italic 38px Georgia, serif'
       ctx.fillText(blessingLine1, cx, nextY)
-      ctx.fillText(blessingLine2, cx, nextY + 54)
+      ctx.fillText(blessingLine2, cx, nextY + 52)
 
       // 14. Bottom Sacred Kalash & Deepam Lamps
       drawKalashAndDiyas(ctx, W, H)
@@ -742,7 +845,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
       // 15. Verification Footer
       ctx.fillStyle = '#15803D'
       ctx.font = 'bold 36px Mukta, sans-serif'
-      ctx.fillText('✓ Verified Official Festival Record · Utsava Committee 🙏', cx, H - 100)
+      ctx.fillText('✓ Verified Official Festival Record · Utsava Committee 🙏', cx, H - 95)
     }
 
     // --- TEMPLATE 2: MARIGOLD GARLAND ARCH (SPONSORS & DONATIONS) ---
@@ -761,88 +864,86 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
       // 3. Side & Top Cascading Marigold Garlands
       drawMarigoldSideGarlands(ctx, W, H)
 
-      // 4. Centerpiece Golden Ganesha Medallion
-      drawOmGaneshaEmblem(ctx, cx, 580, 160)
+      // 4. LORD GANESHA SACRED MEDALLION
+      drawGaneshaMedallion(ctx, idol, cx, 470, 200)
 
       ctx.textAlign = 'center'
       ctx.fillStyle = '#9A3412'
-      ctx.font = 'bold 40px Mukta, sans-serif'
-      ctx.fillText('🪔 UTSAVA SEVA & ANNADANAM BLESSING 🪔', cx, 830)
+      ctx.font = 'bold 38px Mukta, sans-serif'
+      ctx.fillText('🪔 UTSAVA SEVA & ANNADANAM BLESSING 🪔', cx, 730)
 
       // Main Title
       ctx.fillStyle = '#78170D'
-      ctx.font = 'bold 94px Georgia, "Yatra One", serif'
-      ctx.fillText(cardTitle, cx, 950)
+      ctx.font = 'bold 92px Georgia, "Yatra One", serif'
+      ctx.fillText(cardTitle, cx, 845)
 
       // Village Name
       ctx.fillStyle = '#B45309'
-      ctx.font = 'bold 56px Mukta, sans-serif'
-      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 1040)
+      ctx.font = 'bold 54px Mukta, sans-serif'
+      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 930)
 
       ctx.strokeStyle = '#F59E0B'
       ctx.lineWidth = 3
       ctx.beginPath()
-      ctx.moveTo(cx - 360, 1080)
-      ctx.lineTo(cx + 360, 1080)
+      ctx.moveTo(cx - 380, 970)
+      ctx.lineTo(cx + 380, 970)
       ctx.stroke()
 
       // Prompt
       ctx.fillStyle = '#44403C'
-      ctx.font = '42px Mukta, sans-serif'
-      ctx.fillText(promptText, cx, 1160)
+      ctx.font = '40px Mukta, sans-serif'
+      ctx.fillText(promptText, cx, 1040)
 
-      // Person Name
-      ctx.fillStyle = '#7C2414'
-      ctx.font = personName.length > 25 ? 'bold 70px Georgia, serif' : 'bold 88px Georgia, "Yatra One", serif'
-      ctx.fillText(personName, cx, 1270)
+      // DECORATED, BOLD NAME HIGHLIGHT BANNER
+      drawDecoratedNameBanner(ctx, personName, cx, 1080, 1600, 190, '#78170D', '#F59E0B')
 
       // Sub Highlight
       ctx.fillStyle = '#C2410C'
       ctx.font = 'bold 38px Mukta, sans-serif'
-      ctx.fillText(subHighlight, cx, 1345)
+      ctx.fillText(subHighlight, cx, 1340)
 
       // Highlight Box
-      const boxW = 1520
-      const boxH = 220
+      const boxW = 1600
+      const boxH = 210
       const boxX = cx - boxW / 2
-      const boxY = 1400
+      const boxY = 1390
 
       ctx.fillStyle = 'rgba(255, 253, 240, 0.98)'
       ctx.strokeStyle = '#F59E0B'
       ctx.lineWidth = 5
       ctx.beginPath()
-      ctx.roundRect(boxX, boxY, boxW, boxH, 24)
+      ctx.roundRect(boxX, boxY, boxW, boxH, 22)
       ctx.fill()
       ctx.stroke()
 
       ctx.fillStyle = '#78170D'
-      ctx.font = mainHighlight.length > 30 ? 'bold 54px Mukta, sans-serif' : 'bold 68px Mukta, Georgia, sans-serif'
-      ctx.fillText(mainHighlight, cx, boxY + 130)
+      ctx.font = mainHighlight.length > 30 ? 'bold 52px Mukta, sans-serif' : 'bold 66px Mukta, Georgia, sans-serif'
+      ctx.fillText(mainHighlight, cx, boxY + 125)
 
       let nextY = boxY + boxH + 80
       ctx.fillStyle = '#292524'
-      ctx.font = 'bold 42px Mukta, sans-serif'
+      ctx.font = 'bold 40px Mukta, sans-serif'
       ctx.fillText(`${refLabel}   ·   📅 ${fmtDate(record.date)}`, cx, nextY)
 
-      nextY += 70
+      nextY += 68
       if (noteStr) {
         ctx.fillStyle = '#78350F'
-        ctx.font = 'italic 40px Georgia, serif'
+        ctx.font = 'italic 38px Georgia, serif'
         ctx.fillText(noteStr, cx, nextY)
-        nextY += 70
+        nextY += 68
       }
 
       ctx.fillStyle = '#44403C'
-      ctx.font = 'italic 40px Georgia, serif'
+      ctx.font = 'italic 38px Georgia, serif'
       ctx.fillText(blessingLine1, cx, nextY)
-      ctx.fillText(blessingLine2, cx, nextY + 54)
+      ctx.fillText(blessingLine2, cx, nextY + 52)
 
       // Bottom Diya & Kalash
       drawKalashAndDiyas(ctx, W, H)
 
       ctx.fillStyle = '#15803D'
       ctx.font = 'bold 36px Mukta, sans-serif'
-      ctx.fillText('✓ Official Verified Record · Utsava Committee 🙏', cx, H - 100)
+      ctx.fillText('✓ Official Verified Record · Utsava Committee 🙏', cx, H - 95)
     }
 
     // --- TEMPLATE 3: LOTUS BLOSSOM & PARCHMENT (AWARDS & VOLUNTEERS) ---
@@ -858,90 +959,88 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
       // 2. Ornate Border
       drawOrnateFrame(ctx, 80, 80, W - 160, H - 160, '#D97706', 24)
 
-      // 3. Pink Blooming Lotus Throne
-      drawPinkLotus(ctx, cx, 580, 2.2)
+      // 3. Pink Blooming Lotus Throne behind Ganesha
+      drawPinkLotus(ctx, cx, 580, 2.0)
 
-      // 4. Center Om Medallion above Lotus
-      drawOmGaneshaEmblem(ctx, cx, 460, 120)
+      // 4. LORD GANESHA SACRED MEDALLION
+      drawGaneshaMedallion(ctx, idol, cx, 470, 200)
 
       ctx.textAlign = 'center'
       ctx.fillStyle = '#78350F'
-      ctx.font = 'italic 40px Georgia, serif'
-      ctx.fillText('Shree Ganeshaya Namah · Seva Puraskar', cx, 830)
+      ctx.font = 'italic 38px Georgia, serif'
+      ctx.fillText('Shree Ganeshaya Namah · Seva Puraskar', cx, 730)
 
       // Main Title
       ctx.fillStyle = '#4A0E0A'
       ctx.font = 'bold 92px Georgia, "Yatra One", serif'
-      ctx.fillText(cardTitle, cx, 950)
+      ctx.fillText(cardTitle, cx, 845)
 
       // Village Name
       ctx.fillStyle = '#B45309'
-      ctx.font = 'bold 56px Mukta, sans-serif'
-      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 1040)
+      ctx.font = 'bold 54px Mukta, sans-serif'
+      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 930)
 
       ctx.strokeStyle = '#D97706'
       ctx.lineWidth = 3
       ctx.beginPath()
-      ctx.moveTo(cx - 360, 1080)
-      ctx.lineTo(cx + 360, 1080)
+      ctx.moveTo(cx - 380, 970)
+      ctx.lineTo(cx + 380, 970)
       ctx.stroke()
 
       // Prompt
       ctx.fillStyle = '#44403C'
-      ctx.font = '42px Mukta, sans-serif'
-      ctx.fillText(promptText, cx, 1160)
+      ctx.font = '40px Mukta, sans-serif'
+      ctx.fillText(promptText, cx, 1040)
 
-      // Person Name
-      ctx.fillStyle = '#7C2414'
-      ctx.font = personName.length > 25 ? 'bold 70px Georgia, serif' : 'bold 88px Georgia, "Yatra One", serif'
-      ctx.fillText(personName, cx, 1270)
+      // DECORATED, BOLD NAME HIGHLIGHT BANNER
+      drawDecoratedNameBanner(ctx, personName, cx, 1080, 1600, 190, '#4A0E0A', '#D97706')
 
       // Sub Highlight
       ctx.fillStyle = '#B45309'
       ctx.font = 'bold 38px Mukta, sans-serif'
-      ctx.fillText(subHighlight, cx, 1345)
+      ctx.fillText(subHighlight, cx, 1340)
 
       // Highlight Box
-      const boxW = 1520
-      const boxH = 220
+      const boxW = 1600
+      const boxH = 210
       const boxX = cx - boxW / 2
-      const boxY = 1400
+      const boxY = 1390
 
       ctx.fillStyle = 'rgba(254, 248, 236, 0.98)'
       ctx.strokeStyle = '#D97706'
       ctx.lineWidth = 4.5
       ctx.beginPath()
-      ctx.roundRect(boxX, boxY, boxW, boxH, 24)
+      ctx.roundRect(boxX, boxY, boxW, boxH, 22)
       ctx.fill()
       ctx.stroke()
 
       ctx.fillStyle = '#4A0E0A'
-      ctx.font = mainHighlight.length > 30 ? 'bold 54px Mukta, sans-serif' : 'bold 68px Mukta, Georgia, sans-serif'
-      ctx.fillText(mainHighlight, cx, boxY + 130)
+      ctx.font = mainHighlight.length > 30 ? 'bold 52px Mukta, sans-serif' : 'bold 66px Mukta, Georgia, sans-serif'
+      ctx.fillText(mainHighlight, cx, boxY + 125)
 
       let nextY = boxY + boxH + 80
       ctx.fillStyle = '#292524'
-      ctx.font = 'bold 42px Mukta, sans-serif'
+      ctx.font = 'bold 40px Mukta, sans-serif'
       ctx.fillText(`${refLabel}   ·   📅 ${fmtDate(record.date)}`, cx, nextY)
 
-      nextY += 70
+      nextY += 68
       if (noteStr) {
         ctx.fillStyle = '#78350F'
-        ctx.font = 'italic 40px Georgia, serif'
+        ctx.font = 'italic 38px Georgia, serif'
         ctx.fillText(noteStr, cx, nextY)
-        nextY += 70
+        nextY += 68
       }
 
       ctx.fillStyle = '#44403C'
-      ctx.font = 'italic 40px Georgia, serif'
+      ctx.font = 'italic 38px Georgia, serif'
       ctx.fillText(blessingLine1, cx, nextY)
-      ctx.fillText(blessingLine2, cx, nextY + 54)
+      ctx.fillText(blessingLine2, cx, nextY + 52)
 
       drawKalashAndDiyas(ctx, W, H)
 
       ctx.fillStyle = '#15803D'
       ctx.font = 'bold 36px Mukta, sans-serif'
-      ctx.fillText('✓ Official Committee Honour · Utsava Committee 🙏', cx, H - 100)
+      ctx.fillText('✓ Official Committee Honour · Utsava Committee 🙏', cx, H - 95)
     }
   }
 
@@ -977,23 +1076,20 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     ctx.fillStyle = idolGrad
     ctx.fillRect(idolX, idolY, idolW, idolH)
 
-    if (theme.idolImg) {
-      const idol = await loadImage(theme.idolImg)
-      if (idol) {
-        ctx.save()
-        ctx.beginPath()
-        ctx.roundRect(idolX + 40, idolY + 40, idolW - 80, idolH - 80, 24)
-        ctx.clip()
-        ctx.drawImage(idol, idolX + 40, idolY + 40, idolW - 80, idolH - 80)
-        ctx.restore()
+    if (idol) {
+      ctx.save()
+      ctx.beginPath()
+      ctx.roundRect(idolX + 40, idolY + 40, idolW - 80, idolH - 80, 24)
+      ctx.clip()
+      ctx.drawImage(idol, idolX + 40, idolY + 40, idolW - 80, idolH - 80)
+      ctx.restore()
 
-        // Gold frame around idol
-        ctx.strokeStyle = theme.accent || '#D7952F'
-        ctx.lineWidth = 6
-        ctx.beginPath()
-        ctx.roundRect(idolX + 40, idolY + 40, idolW - 80, idolH - 80, 24)
-        ctx.stroke()
-      }
+      // Gold frame around idol
+      ctx.strokeStyle = theme.accent || '#D7952F'
+      ctx.lineWidth = 6
+      ctx.beginPath()
+      ctx.roundRect(idolX + 40, idolY + 40, idolW - 80, idolH - 80, 24)
+      ctx.stroke()
     }
 
     // 3. Right Side: Frosted Glass Information Panel
@@ -1058,26 +1154,21 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     // Prompt
     ctx.fillStyle = '#F5E6D3'
     ctx.font = '44px Mukta, sans-serif'
-    ctx.fillText(promptText, panelCenterX, panelY + 480)
+    ctx.fillText(promptText, panelCenterX, panelY + 475)
 
-    // Person Name
-    ctx.fillStyle = '#FFF1B8'
-    ctx.font = personName.length > 28 ? 'bold 74px Georgia, serif' : 'bold 96px Georgia, "Yatra One", serif'
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
-    ctx.shadowBlur = 12
-    ctx.fillText(personName, panelCenterX, panelY + 605)
-    ctx.shadowBlur = 0
+    // DECORATED BOLD NAME BANNER
+    drawDecoratedNameBanner(ctx, personName, panelCenterX, panelY + 520, 1680, 165, '#FFF1B8', theme.accent || '#D7952F')
 
     // Sub Highlight
     ctx.fillStyle = '#FFA726'
     ctx.font = 'bold 42px Mukta, sans-serif'
-    ctx.fillText(subHighlight, panelCenterX, panelY + 685)
+    ctx.fillText(subHighlight, panelCenterX, panelY + 735)
 
     // Highlight Box
-    const boxW = 1260
-    const boxH = 180
+    const boxW = 1440
+    const boxH = 170
     const boxX = panelCenterX - boxW / 2
-    const boxY = panelY + 735
+    const boxY = panelY + 775
 
     ctx.fillStyle = 'rgba(255, 248, 230, 0.15)'
     ctx.strokeStyle = '#FFCA28'
@@ -1089,7 +1180,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
 
     ctx.fillStyle = '#FFFFFF'
     ctx.font = mainHighlight.length > 35 ? 'bold 56px Mukta, sans-serif' : 'bold 74px Mukta, Georgia, sans-serif'
-    ctx.fillText(mainHighlight, panelCenterX, boxY + 112)
+    ctx.fillText(mainHighlight, panelCenterX, boxY + 105)
 
     let nextY = boxY + boxH + 75
     if (noteStr) {
