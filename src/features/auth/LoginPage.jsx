@@ -1,61 +1,83 @@
 import { useState } from 'react'
-import ganeshIdol2026 from '../../assets/ganesh-idol-2026.jpg'
+import ganeshArt from '../../assets/ganesh-art-login.png'
 import { useToast } from '../../context/ToastContext'
 
 export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
-  const { signIn, setPasscode, loading } = auth
+  const { signIn, setPasscode, loading, getActivePasscode } = auth
   const { toast } = useToast()
 
   const [passcode, setPasscodeVal] = useState('')
+  const [newPasscodeVal, setNewPasscodeVal] = useState('')
   const [isSetupMode, setIsSetupMode] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const villageName = settings.village_name || 'Pathalapalli'
+  const activeCode = getActivePasscode ? getActivePasscode() : 'admin123'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrorMsg('')
 
-    if (!passcode || passcode.trim().length < 6) {
-      setErrorMsg('Passcode must be at least 6 characters.')
-      return
-    }
-
-    setIsSubmitting(true)
-    try {
-      const err = isSetupMode ? await setPasscode(passcode) : await signIn(passcode)
-      if (err) {
-        setErrorMsg(err.message || 'Incorrect passcode. Please try again or use default: admin123')
-      } else {
-        if (toast && typeof toast.success === 'function') {
-          toast.success(
-            isSetupMode
-              ? '🎉 Admin passcode saved! Application unlocked.'
-              : '🎉 Welcome Committee Admin! Application unlocked.'
-          )
-        }
-        if (onLoginSuccess) {
-          onLoginSuccess()
-        }
+    if (isSetupMode) {
+      // Setup / Reset mode
+      if (!newPasscodeVal || newPasscodeVal.trim().length < 6) {
+        setErrorMsg('New passcode must be at least 6 characters.')
+        return
       }
-    } catch (err) {
-      setErrorMsg(err?.message || 'Authentication error. Please verify passcode.')
-    } finally {
-      setIsSubmitting(false)
+
+      setIsSubmitting(true)
+      try {
+        const err = await setPasscode(newPasscodeVal.trim())
+        if (err) {
+          setErrorMsg(err.message || 'Could not save new passcode.')
+        } else {
+          if (toast && typeof toast.success === 'function') {
+            toast.success('🎉 New admin passcode saved successfully! Unlocked.')
+          }
+          if (onLoginSuccess) onLoginSuccess()
+        }
+      } catch (err) {
+        setErrorMsg(err?.message || 'Failed to save passcode.')
+      } finally {
+        setIsSubmitting(false)
+      }
+    } else {
+      // Regular Sign-In mode
+      if (!passcode || passcode.trim().length < 6) {
+        setErrorMsg('Passcode must be at least 6 characters.')
+        return
+      }
+
+      setIsSubmitting(true)
+      try {
+        const err = await signIn(passcode.trim())
+        if (err) {
+          setErrorMsg(err.message || 'Incorrect passcode. Please enter the valid passcode.')
+        } else {
+          if (toast && typeof toast.success === 'function') {
+            toast.success('🎉 Welcome Committee Admin! Application unlocked.')
+          }
+          if (onLoginSuccess) onLoginSuccess()
+        }
+      } catch (err) {
+        setErrorMsg(err?.message || 'Authentication error.')
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
   return (
     <div className="glass-login-viewport">
-      {/* Background Decorative Glow Orbs */}
+      {/* Ambient Background Glow Orbs */}
       <div className="glow-orb orb-1" aria-hidden="true"></div>
       <div className="glow-orb orb-2" aria-hidden="true"></div>
       <div className="glow-orb orb-3" aria-hidden="true"></div>
 
       <div className="glass-login-container">
-        {/* Navigation Bar / Back button */}
+        {/* Navigation Bar / Return to Portal */}
         <div className="glass-login-topbar">
           <button
             type="button"
@@ -71,22 +93,21 @@ export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
           </div>
         </div>
 
-        {/* Main 2-Column Split Glass Card */}
+        {/* 2-Column Split Glass Card */}
         <div className="glass-login-card">
-          {/* Left Column: Divine Lord Ganesha 2026 Showcase */}
+          {/* Left Column: Artistic Divine Lord Ganesha Artwork */}
           <div className="glass-ganesh-col">
             <div className="glass-ganesh-frame-wrap">
-              {/* Luminous Golden Aura */}
               <div className="glass-ganesh-halo"></div>
 
-              <div className="glass-ganesh-frame">
+              <div className="glass-ganesh-art-frame">
                 <img
-                  src={ganeshIdol2026}
-                  alt="Lord Sri Ganesha 2026 Idol"
-                  className="glass-ganesh-img"
+                  src={ganeshArt}
+                  alt="Divine Sri Ganesha Artwork"
+                  className="glass-ganesh-art-img"
                 />
                 <div className="glass-ganesh-caption">
-                  <span>🪔 2026 OFFICIAL IDOL 🪔</span>
+                  <span>🪔 SRI GANESHA BLESSINGS 🪔</span>
                 </div>
               </div>
             </div>
@@ -103,19 +124,19 @@ export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
             </div>
           </div>
 
-          {/* Right Column: Frosted Glass Form Panel */}
+          {/* Right Column: Frosted Glass Auth Panel */}
           <div className="glass-form-col">
             <div className="glass-form-header">
               <div className="glass-key-badge">
                 <span className="key-icon">🗝️</span>
               </div>
               <h1 className="glass-title">
-                {isSetupMode ? 'Create Admin Passcode' : 'Committee Admin Login'}
+                {isSetupMode ? 'Set / Change Passcode' : 'Committee Admin Login'}
               </h1>
               <p className="glass-desc">
                 {isSetupMode
-                  ? 'Set a new secure committee passcode (min. 6 characters) to manage records, finances, and members.'
-                  : 'Enter the committee passcode to unlock editing, record management, and settings.'}
+                  ? 'Set a new secure committee passcode (min. 6 characters). This will become the only active passcode.'
+                  : 'Enter the committee passcode to unlock editing, records, finances, and member management.'}
               </p>
             </div>
 
@@ -124,45 +145,81 @@ export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
               <div className="glass-hint-card">
                 <span className="hint-icon">💡</span>
                 <div className="hint-content">
-                  <span className="hint-label">Default Committee Passcode:</span>
-                  <code className="hint-code">admin123</code>
+                  <span className="hint-label">
+                    {activeCode === 'admin123' ? 'Default Passcode:' : 'Active Passcode:'}
+                  </span>
+                  <code className="hint-code">{activeCode}</code>
                 </div>
               </div>
             )}
 
             {/* Form */}
             <form className="glass-auth-form" onSubmit={handleSubmit}>
-              <div className="glass-field-group">
-                <label htmlFor="admin-passcode" className="glass-field-label">
-                  <span>{isSetupMode ? 'New Admin Passcode' : 'Admin Passcode'}</span>
-                  <span className="req-dot">*</span>
-                </label>
+              {!isSetupMode ? (
+                <div className="glass-field-group">
+                  <label htmlFor="admin-passcode" className="glass-field-label">
+                    <span>Admin Passcode</span>
+                    <span className="req-dot">*</span>
+                  </label>
 
-                <div className="glass-input-wrapper">
-                  <span className="input-leading-icon">🔒</span>
-                  <input
-                    id="admin-passcode"
-                    required
-                    minLength={6}
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter passcode (e.g. admin123)"
-                    value={passcode}
-                    disabled={isSubmitting || loading}
-                    onChange={(e) => setPasscodeVal(e.target.value)}
-                    autoFocus
-                    className="glass-input"
-                  />
-                  <button
-                    type="button"
-                    className="glass-eye-btn"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? 'Hide passcode' : 'Show passcode'}
-                    title={showPassword ? 'Hide passcode' : 'Show passcode'}
-                  >
-                    {showPassword ? '👁️‍🗨️' : '👁️'}
-                  </button>
+                  <div className="glass-input-wrapper">
+                    <span className="input-leading-icon">🔒</span>
+                    <input
+                      id="admin-passcode"
+                      required
+                      minLength={6}
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder={`Enter passcode (e.g. ${activeCode})`}
+                      value={passcode}
+                      disabled={isSubmitting || loading}
+                      onChange={(e) => setPasscodeVal(e.target.value)}
+                      autoFocus
+                      className="glass-input"
+                    />
+                    <button
+                      type="button"
+                      className="glass-eye-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide passcode' : 'Show passcode'}
+                      title={showPassword ? 'Hide passcode' : 'Show passcode'}
+                    >
+                      {showPassword ? '👁️‍🗨️' : '👁️'}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="glass-field-group">
+                  <label htmlFor="new-admin-passcode" className="glass-field-label">
+                    <span>New Secret Passcode</span>
+                    <span className="req-dot">*</span>
+                  </label>
+
+                  <div className="glass-input-wrapper">
+                    <span className="input-leading-icon">🔑</span>
+                    <input
+                      id="new-admin-passcode"
+                      required
+                      minLength={6}
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter new passcode (min. 6 characters)"
+                      value={newPasscodeVal}
+                      disabled={isSubmitting || loading}
+                      onChange={(e) => setNewPasscodeVal(e.target.value)}
+                      autoFocus
+                      className="glass-input"
+                    />
+                    <button
+                      type="button"
+                      className="glass-eye-btn"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide passcode' : 'Show passcode'}
+                      title={showPassword ? 'Hide passcode' : 'Show passcode'}
+                    >
+                      {showPassword ? '👁️‍🗨️' : '👁️'}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Error Message */}
               {errorMsg && (
@@ -181,9 +238,9 @@ export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
                 <span className="btn-glow"></span>
                 <span className="btn-text">
                   {isSubmitting || loading
-                    ? 'Verifying Passcode…'
+                    ? 'Verifying…'
                     : isSetupMode
-                    ? 'Save Passcode & Unlock'
+                    ? 'Save New Passcode & Unlock'
                     : '🔓 Unlock & Open Application'}
                 </span>
               </button>
@@ -197,6 +254,7 @@ export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
                     onClick={() => {
                       setIsSetupMode(false)
                       setErrorMsg('')
+                      setNewPasscodeVal('')
                     }}
                   >
                     ← Back to Regular Sign In
@@ -208,9 +266,10 @@ export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
                     onClick={() => {
                       setIsSetupMode(true)
                       setErrorMsg('')
+                      setPasscodeVal('')
                     }}
                   >
-                    Forgot or need to set a custom passcode?
+                    Forgot or need to change committee passcode?
                   </button>
                 )}
               </div>
@@ -219,7 +278,7 @@ export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
             {/* Trust Footer */}
             <div className="glass-trust-footer">
               <span className="shield-icon">🛡️</span>
-              <span>Secure Offline-First Committee Access · Powered by Supabase RLS</span>
+              <span>Secure Offline-First Committee Access · Strict Passcode Verification</span>
             </div>
           </div>
         </div>

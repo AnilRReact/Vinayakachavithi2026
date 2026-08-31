@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 
-const DEFAULT_PASSCODES = ['admin123', '123456', 'admin2026', 'vinayaka2026', 'utsava2026']
-
 export function usePasscode() {
   const [admin, setAdmin] = useState(() => {
     try {
@@ -16,12 +14,28 @@ export function usePasscode() {
   })
   const [loading, setLoading] = useState(false)
 
+  // Get currently active valid passcode (default: 'admin123')
+  const getActivePasscode = () => {
+    try {
+      return localStorage.getItem('vv-passcode') || 'admin123'
+    } catch {
+      return 'admin123'
+    }
+  }
+
   const signIn = async (passcode) => {
     setLoading(true)
     const candidate = (passcode || '').trim()
 
     try {
-      // 1. Try Supabase RPC if configured
+      if (!candidate || candidate.length < 6) {
+        throw new Error('Passcode must be at least 6 characters.')
+      }
+
+      // 1. Check against active valid passcode
+      const activePasscode = getActivePasscode()
+
+      // 2. If Supabase RPC is available, verify with database
       if (supabase) {
         try {
           const { data, error } = await supabase.rpc('verify_admin_passcode', { candidate })
@@ -32,36 +46,24 @@ export function usePasscode() {
             return null
           }
         } catch {
-          // Fall through to local fallback
+          // Fallback to local active passcode
         }
       }
 
-      // 2. Fallback check against saved local passcode or default passcodes
-      const savedPasscode = localStorage.getItem('vv-passcode')
-      if (savedPasscode && candidate === savedPasscode) {
+      // 3. Strict match against active passcode
+      if (candidate === activePasscode) {
         sessionStorage.setItem('vv-admin', 'yes')
         localStorage.setItem('vv-admin', 'yes')
         setAdmin(true)
         return null
       }
 
-      if (DEFAULT_PASSCODES.includes(candidate.toLowerCase())) {
-        sessionStorage.setItem('vv-admin', 'yes')
-        localStorage.setItem('vv-admin', 'yes')
-        setAdmin(true)
-        return null
-      }
-
-      // 3. First time check - if no passcode was ever configured anywhere, allow candidate to unlock & save
-      if (!savedPasscode && candidate.length >= 6) {
-        localStorage.setItem('vv-passcode', candidate)
-        sessionStorage.setItem('vv-admin', 'yes')
-        localStorage.setItem('vv-admin', 'yes')
-        setAdmin(true)
-        return null
-      }
-
-      throw new Error('Incorrect admin passcode. (Try default "admin123" or reset in Settings)')
+      // 4. Strict Rejection if mismatch
+      throw new Error(
+        activePasscode === 'admin123'
+          ? 'Incorrect passcode. Default passcode is "admin123".'
+          : 'Incorrect passcode. Please enter the current valid passcode.'
+      )
     } catch (err) {
       return err
     } finally {
@@ -75,10 +77,10 @@ export function usePasscode() {
 
     try {
       if (!newPasscode || newPasscode.length < 6) {
-        throw new Error('Passcode must be at least 6 characters.')
+        throw new Error('New passcode must be at least 6 characters.')
       }
 
-      // Save locally first
+      // Save new passcode as the ONLY active passcode
       localStorage.setItem('vv-passcode', newPasscode)
       sessionStorage.setItem('vv-admin', 'yes')
       localStorage.setItem('vv-admin', 'yes')
@@ -89,7 +91,7 @@ export function usePasscode() {
         try {
           await supabase.rpc('set_admin_passcode', { new_passcode: newPasscode })
         } catch {
-          // Local storage fallback succeeded
+          // Local storage fallback is saved
         }
       }
 
@@ -109,5 +111,5 @@ export function usePasscode() {
     setAdmin(false)
   }
 
-  return { admin, loading, signIn, setPasscode, signOut }
+  return { admin, loading, signIn, setPasscode, signOut, getActivePasscode }
 }
