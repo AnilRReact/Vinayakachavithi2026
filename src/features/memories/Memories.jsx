@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Card, Empty, Button, Modal, ConfirmModal } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
-import { uploadImageToStorage } from '../../lib/storage'
+import { uploadImageToStorage, convertGoogleDriveLink, isGoogleDriveUrl } from '../../lib/storage'
 import { fmtDate, today } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
 
@@ -130,14 +130,10 @@ export function Memories({ data, admin, add, update, remove }) {
       toast.error('Please select an image file to upload.')
       return
     }
-    if (!supabase) {
-      toast.error('Supabase is not configured.')
-      return
-    }
 
     setIsUploading(true)
     try {
-      const publicUrl = await uploadImageToStorage(photoFile, 'gallery', 1000)
+      const publicUrl = await uploadImageToStorage(photoFile, 'gallery', 1200)
 
       const err = await add('gallery_items', {
         type: 'photo',
@@ -163,22 +159,27 @@ export function Memories({ data, admin, add, update, remove }) {
   const handleAddLink = async (e) => {
     e.preventDefault()
     if (!linkUrl.trim()) {
-      toast.error('Please enter a valid video or album URL.')
+      toast.error('Please enter a valid video, Google Drive, or album URL.')
       return
     }
 
     setIsSavingLink(true)
     try {
+      const cleanUrl = linkUrl.trim()
+      const isDrive = isGoogleDriveUrl(cleanUrl)
+      const directUrl = convertGoogleDriveLink(cleanUrl)
+      const itemType = isDrive ? 'photo' : (cleanUrl.includes('youtu') ? 'video' : 'photo')
+
       const err = await add('gallery_items', {
-        type: 'video',
-        url: linkUrl.trim(),
-        caption: linkCaption.trim() || 'Festival Video / Album',
+        type: itemType,
+        url: directUrl,
+        caption: linkCaption.trim() || (isDrive ? 'Google Drive Devotional Photo' : 'Festival Video / Album'),
         date: linkDate || today()
       })
 
       if (err) throw err
 
-      toast.success('External link added to memories!')
+      toast.success(isDrive ? '📁 Google Drive photo linked to memories!' : 'Media link added to memories!')
       setLinkUrl('')
       setLinkCaption('')
       setLinkDate(today())

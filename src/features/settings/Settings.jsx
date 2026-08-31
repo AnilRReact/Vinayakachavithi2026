@@ -31,6 +31,8 @@ export function Settings({ data, add, update }) {
     { name: 'morning_aarti_time', label: 'Morning Aarti Time', type: 'time', default: settings.morning_aarti_time || '' },
     { name: 'evening_aarti_time', label: 'Evening Aarti Time', type: 'time', default: settings.evening_aarti_time || '' },
     { name: 'daily_schedule_note', label: 'Daily Schedule Note / Special Rules', default: settings.daily_schedule_note || '' },
+    { name: 'google_drive_folder_url', label: 'Google Drive Shared Photos Folder Link', default: settings.google_drive_folder_url || '' },
+    { name: 'google_drive_upload_url', label: 'Google Apps Script Upload Webhook URL (Optional for direct Drive uploads)', default: settings.google_drive_upload_url || '' },
     { name: 'em_doctor_name', label: 'Emergency Doctor Name', default: settings.em_doctor_name || '' },
     { name: 'em_doctor_phone', label: 'Emergency Doctor Phone', type: 'tel', default: settings.em_doctor_phone || '' },
     { name: 'em_police_phone', label: 'Police Station / Patrol Phone', type: 'tel', default: settings.em_police_phone || '' },
@@ -42,7 +44,7 @@ export function Settings({ data, add, update }) {
     <>
       <Card title="Committee & Festival Settings">
         <p className="muted">
-          Update the village name, aarti timings, UPI payment details, and emergency contacts.
+          Update village name, aarti timings, UPI payment details, Google Drive storage, and emergency contacts.
         </p>
         <Form
           submit="Save Festival Settings"
@@ -51,9 +53,84 @@ export function Settings({ data, add, update }) {
         />
       </Card>
 
+      <GoogleDriveSettingsCard settings={settings} />
       <PasscodeSettings />
       <BackupButton data={data} />
     </>
+  )
+}
+
+function GoogleDriveSettingsCard({ settings }) {
+  const [copied, setCopied] = useState(false)
+
+  const gasCode = `function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var folder = DriveApp.getRootFolder(); // Or DriveApp.getFolderById("YOUR_FOLDER_ID");
+    var decoded = Utilities.base64Decode(data.base64);
+    var blob = Utilities.newBlob(decoded, data.mimeType || 'image/jpeg', data.filename || 'ganesh-photo.jpg');
+    var file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      fileId: file.getId(),
+      url: "https://lh3.googleusercontent.com/d/" + file.getId()
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: err.message })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(gasCode)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2500)
+  }
+
+  return (
+    <Card
+      title={
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>📁</span>
+          <span>Google Drive Cloud Storage (15 GB Free)</span>
+        </div>
+      }
+    >
+      <p className="muted" style={{ marginBottom: '12px' }}>
+        Store infinite festival photos, videos, and albums directly on your personal or committee Google Drive account.
+      </p>
+
+      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', marginBottom: '14px' }}>
+        <h4 style={{ margin: '0 0 8px', color: '#1e293b', fontSize: '0.95rem' }}>✨ 2 Easy Ways to Use Google Drive:</h4>
+        <ol style={{ margin: '0', paddingLeft: '20px', fontSize: '0.86rem', lineHeight: '1.6', color: '#475569' }}>
+          <li>
+            <b>Direct Link Paste (No setup needed)</b>: Create a Google Drive folder or upload photos to Drive. Copy the share link (e.g. <code>https://drive.google.com/file/d/...</code>) and paste it into the <b>Memories</b> tab. It will instantly render and stream via Google CDN!
+          </li>
+          <li>
+            <b>Automated In-App Upload Webhook (1-minute setup)</b>: Deploy a free Google Apps Script web app so when anyone uploads a photo in the portal, it saves directly into your Google Drive folder!
+          </li>
+        </ol>
+      </div>
+
+      <details style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px' }}>
+        <summary style={{ fontWeight: '700', color: '#7c2414', cursor: 'pointer', fontSize: '0.88rem' }}>
+          📋 Click to view 1-Minute Google Apps Script Code
+        </summary>
+        <div style={{ marginTop: '10px' }}>
+          <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 8px' }}>
+            1. Open <a href="https://script.google.com" target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>script.google.com</a> and click <b>New project</b>.<br />
+            2. Paste the code below, then click <b>Deploy &gt; New deployment &gt; Select type: Web App</b>.<br />
+            3. Set <i>Execute as: Me</i> and <i>Who has access: Anyone</i>, then copy the Web App URL into the setting above.
+          </p>
+          <pre style={{ background: '#0f172a', color: '#f8fafc', padding: '12px', borderRadius: '6px', fontSize: '0.78rem', overflowX: 'auto' }}>
+            {gasCode}
+          </pre>
+          <Button type="button" size="small" onClick={handleCopyCode}>
+            {copied ? '✓ Code Copied!' : '📋 Copy Google Apps Script Code'}
+          </Button>
+        </div>
+      </details>
+    </Card>
   )
 }
 
