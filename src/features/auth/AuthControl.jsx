@@ -81,7 +81,7 @@ export function AuthControl({ auth }) {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title={isSetupMode ? 'Create / Reset Admin Passcode' : 'Committee Admin Access'}
-        maxWidth="460px"
+        maxWidth="480px"
       >
         <p className="modal-description">
           {isSetupMode
@@ -95,9 +95,9 @@ export function AuthControl({ auth }) {
           </div>
         )}
 
-        <form className="form auth-form" onSubmit={handleSubmit}>
-          <label>
-            <span>Passcode</span>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <label className="auth-field-label">
+            <span className="auth-label-text">Passcode</span>
             <div className="password-input-wrap">
               <input
                 required
@@ -176,4 +176,3 @@ export function AuthControl({ auth }) {
     </>
   )
 }
-
