@@ -199,11 +199,14 @@ export function ConfirmModal({ isOpen, onClose, onConfirm, title = 'Confirm Acti
   )
 }
 
-export function Stat({ label, value }) {
+export function Stat({ label, value, icon, variant = 'default' }) {
   return (
-    <div className="stat">
-      <b>{value}</b>
-      <span>{label}</span>
+    <div className={`stat stat-${variant}`}>
+      {icon && <span className="stat-icon-badge">{icon}</span>}
+      <div className="stat-content">
+        <b>{value}</b>
+        <span>{label}</span>
+      </div>
     </div>
   )
 }
@@ -211,7 +214,8 @@ export function Stat({ label, value }) {
 export function Toran() {
   return (
     <div className="toran" aria-hidden="true">
-      🌿 🟠 🌿 🟠 🌿 🟠 🌿 🟠 🌿 🟠 🌿 🟠 🌿
+      🌿 🔔 🌺 ॐ 🌸 🪔 🌿 🔔 🌺 ॐ 🌸 🪔 🌿 🔔 🌺 ॐ 🌸 🪔 🌿
     </div>
   )
 }
+

@@ -366,15 +366,60 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
         </div>
       </section>
 
+      {/* Colourful Quick Actions Bar */}
+      <div className="overview-quick-shortcuts">
+        <button
+          type="button"
+          className="quick-shortcut-pill gold"
+          onClick={() => onNavigate && onNavigate('Money')}
+        >
+          <span className="pill-icon">💰</span>
+          <span>Record Donation</span>
+        </button>
+
+        <button
+          type="button"
+          className="quick-shortcut-pill orange"
+          onClick={() => onNavigate && onNavigate('Money')}
+        >
+          <span className="pill-icon">🍛</span>
+          <span>Prasad Sponsors</span>
+        </button>
+
+        <button
+          type="button"
+          className="quick-shortcut-pill green"
+          onClick={() => onNavigate && onNavigate('Schedule')}
+        >
+          <span className="pill-icon">🪔</span>
+          <span>Pooja Schedule</span>
+        </button>
+
+        <button
+          type="button"
+          className="quick-shortcut-pill purple"
+          onClick={() => onNavigate && onNavigate('Music')}
+        >
+          <span className="pill-icon">🎵</span>
+          <span>Devotional Music</span>
+        </button>
+
+        <button
+          type="button"
+          className="quick-shortcut-pill rose"
+          onClick={() => onNavigate && onNavigate('Memories')}
+        >
+          <span className="pill-icon">📷</span>
+          <span>Festival Memories</span>
+        </button>
+      </div>
+
       <div className="stats">
-        <Stat label="Raised" value={currency.format(raised)} />
-        <Stat label="Contributors" value={donations.length} />
-        <Stat label="Committee" value={committeeMembers.length} />
-        <Stat
-          label="Upcoming"
-          value={activities.filter((item) => item.date >= today()).length}
-        />
-        <Stat label="Memories" value={galleryItems.length} />
+        <Stat label="Total Collected" value={currency.format(raised)} icon="💰" variant="gold" />
+        <Stat label="Devotee Donors" value={donations.length} icon="👥" variant="emerald" />
+        <Stat label="Expenses Spent" value={currency.format(spent)} icon="💸" variant="crimson" />
+        <Stat label="Treasury Balance" value={currency.format(balance)} icon="💵" variant="purple" />
+        <Stat label="Upcoming Poojas" value={activities.filter((item) => item.date >= today()).length} icon="🪔" variant="amber" />
       </div>
 
       {/* Featured / Pinned Contributors Showcase */}
