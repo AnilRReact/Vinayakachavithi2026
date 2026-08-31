@@ -43,7 +43,7 @@ export function ReceiptTemplateModal({
   else if (award) resolvedType = 'award'
   else if (nominee) resolvedType = 'nominee'
 
-  // Selected template theme (defaults to segment's custom theme)
+  // Selected 4K template theme (defaults to segment's custom theme)
   const [selectedTheme, setSelectedTheme] = useState(() => getDefaultThemeForSegment(resolvedType))
 
   // Reset default theme when resolvedType changes
@@ -93,9 +93,9 @@ export function ReceiptTemplateModal({
     try {
       const success = await downloadFestivalCard(record, settings, resolvedType, selectedTheme)
       if (success) {
-        toast.success('Festive card downloaded as high-resolution PNG image!')
+        toast.success('Ultra-HD 4K Festive Card downloaded successfully!')
       } else {
-        toast.error('Could not generate image card.')
+        toast.error('Could not generate 4K image card.')
       }
     } finally {
       setIsDownloading(false)
@@ -109,21 +109,16 @@ export function ReceiptTemplateModal({
       if (res.error) {
         toast.error(`Could not share image: ${res.error}`)
       } else if (res.sharedDirectly) {
-        toast.success('Festive image shared successfully to WhatsApp!')
+        toast.success('4K Festive image shared directly to WhatsApp!')
       } else if (res.downloaded) {
-        toast.success('Image downloaded! WhatsApp opened to send the image.')
+        toast.success('4K Image downloaded! WhatsApp opened to attach and send.')
       }
     } finally {
       setIsSharing(false)
     }
   }
 
-  const themeButtons = [
-    { key: 'red', label: 'Sacred Red', icon: '🔴', desc: 'Patrons & Receipts' },
-    { key: 'yellow', label: 'Golden Saffron', icon: '🟡', desc: 'Prasad & Auctions' },
-    { key: 'green', label: 'Emerald Seva', icon: '🟢', desc: 'Volunteers & Seva' },
-    { key: 'purple', label: 'Royal Amethyst', icon: '🟣', desc: 'Poojas & Events' }
-  ]
+  const themeList = Object.values(TEMPLATE_THEMES)
 
   return (
     <Modal
@@ -132,67 +127,77 @@ export function ReceiptTemplateModal({
       title={`${cardTitle}`}
       maxWidth="880px"
     >
-      {/* Interactive Segment Template Theme Switcher */}
+      {/* Interactive 4K Template Theme Selector */}
       <div style={{ marginBottom: '14px', background: '#fdf8f0', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e7d8c4' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-          <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#7c2414' }}>
-            🎨 Template Theme & 2026 Ganesh Idol Variant:
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
+          <span style={{ fontSize: '0.84rem', fontWeight: '800', color: '#7c2414' }}>
+            ✨ Select 4K Template Design:
           </span>
-          <span style={{ fontSize: '0.75rem', color: '#78716c' }}>
-            Tailored specifically for this segment (click to change)
+          <span style={{ fontSize: '0.74rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px', fontWeight: '700' }}>
+            4K Ultra-HD Resolution
           </span>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
-          {themeButtons.map((btn) => {
-            const isActive = selectedTheme === btn.key
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '6px' }}>
+          {themeList.map((t) => {
+            const isActive = selectedTheme === t.id
             return (
               <button
-                key={btn.key}
+                key={t.id}
                 type="button"
-                onClick={() => setSelectedTheme(btn.key)}
+                onClick={() => setSelectedTheme(t.id)}
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 10px',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  padding: '6px 8px',
                   borderRadius: '8px',
                   border: isActive ? '2px solid #7c2414' : '1px solid #d6d3d1',
                   background: isActive ? '#fef2f2' : '#ffffff',
                   color: isActive ? '#7c2414' : '#44403c',
-                  fontWeight: isActive ? '800' : '600',
-                  fontSize: '0.8rem',
                   cursor: 'pointer',
+                  textAlign: 'left',
                   boxShadow: isActive ? '0 2px 6px rgba(124, 36, 20, 0.15)' : 'none',
                   transition: 'all 0.15s ease'
                 }}
               >
-                <span>{btn.icon}</span>
-                <span style={{ whiteSpace: 'nowrap' }}>{btn.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: isActive ? '800' : '700', fontSize: '0.78rem' }}>
+                  <span>{t.icon}</span>
+                  <span style={{ whiteSpace: 'nowrap' }}>{t.label}</span>
+                </div>
+                <small style={{ fontSize: '0.68rem', color: '#78716c', marginTop: '2px' }}>
+                  {t.desc}
+                </small>
               </button>
             )
           })}
         </div>
       </div>
 
-      {/* Exact High-Fidelity Canvas Render Preview */}
-      <div className="card-modal-preview-wrap">
+      {/* Exact 4K High-Fidelity Canvas Render Preview */}
+      <div className="card-modal-preview-wrap" style={{ textAlign: 'center', background: '#1c0504', padding: '12px', borderRadius: '10px' }}>
         {previewUrl ? (
           <img
             src={previewUrl}
             alt={cardTitle}
-            className="card-modal-preview-img landscape"
+            style={{
+              maxHeight: '480px',
+              maxWidth: '100%',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.5)'
+            }}
           />
         ) : (
-          <div className="card-modal-loading">
+          <div className="card-modal-loading" style={{ padding: '40px', color: '#ffe0a0' }}>
             <span className="loading-spinner">🪔</span>
-            <p>{isGenerating ? 'Rendering Sacred Lord Ganesha Card…' : 'Could not generate card.'}</p>
+            <p>{isGenerating ? 'Rendering 4K Ultra-HD Lord Ganesha Card…' : 'Could not generate card.'}</p>
           </div>
         )}
       </div>
 
       {/* Action Toolbar: Only WhatsApp and Download Image */}
-      <div className="receipt-actions-toolbar">
+      <div className="receipt-actions-toolbar" style={{ marginTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
         <div className="receipt-left-actions">
           {admin && onTogglePin && resolvedType === 'donation' && (
             <Button
@@ -207,24 +212,24 @@ export function ReceiptTemplateModal({
           )}
         </div>
 
-        <div className="receipt-right-actions">
+        <div className="receipt-right-actions" style={{ display: 'flex', gap: '8px' }}>
           <Button
             type="button"
             kind="whatsapp-action"
             disabled={isSharing || isGenerating}
             onClick={handleShareWhatsApp}
-            title="Share image card directly via WhatsApp"
+            title="Share 4K image directly via WhatsApp"
           >
-            <span>{isSharing ? 'Preparing Image…' : '💬 WhatsApp Image'}</span>
+            <span>{isSharing ? 'Preparing 4K…' : '💬 WhatsApp 4K Image'}</span>
           </Button>
 
           <Button
             type="button"
             disabled={isDownloading || isGenerating}
             onClick={handleDownload}
-            title="Download high-resolution image card (.PNG)"
+            title="Download Ultra-HD 4K image card (.PNG)"
           >
-            <span>{isDownloading ? 'Generating…' : '📥 Download Image'}</span>
+            <span>{isDownloading ? 'Generating…' : '📥 Download 4K Image'}</span>
           </Button>
         </div>
       </div>

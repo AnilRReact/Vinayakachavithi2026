@@ -1,85 +1,120 @@
 import { currency, fmtDate, tier } from './formatters'
+import templateIvoryToran from '../assets/template-ivory-toran.png'
+import templateMarigoldArch from '../assets/template-marigold-arch.png'
+import templateLotusBlossom from '../assets/template-lotus-blossom.png'
 import templateBgRed from '../assets/template-bg-red.jpg'
 import templateBgYellow from '../assets/template-bg-yellow.jpg'
 import templateBgGreen from '../assets/template-bg-green.jpg'
 import templateBgPurple from '../assets/template-bg-purple.jpg'
 
 export const TEMPLATE_THEMES = {
+  ivory: {
+    id: 'ivory',
+    label: 'Ivory Toran (4K)',
+    icon: '🪔',
+    desc: 'Bells, Leaves & Kalash',
+    orientation: 'portrait',
+    bg: templateIvoryToran,
+    width: 2160,
+    height: 3040,
+    primaryColor: '#68150F',
+    accentColor: '#B45309',
+    goldColor: '#D97706',
+    boxBg: 'rgba(255, 251, 235, 0.95)',
+    boxBorder: '#D97706'
+  },
+  marigold: {
+    id: 'marigold',
+    label: 'Marigold Arch (4K)',
+    icon: '🌼',
+    desc: 'Garlands & Mandala',
+    orientation: 'portrait',
+    bg: templateMarigoldArch,
+    width: 2160,
+    height: 3040,
+    primaryColor: '#78170D',
+    accentColor: '#C2410C',
+    goldColor: '#F59E0B',
+    boxBg: 'rgba(255, 253, 240, 0.95)',
+    boxBorder: '#F59E0B'
+  },
+  lotus: {
+    id: 'lotus',
+    label: 'Lotus Blossom (4K)',
+    icon: '🌸',
+    desc: 'Seated Lotus Ganesha',
+    orientation: 'portrait',
+    bg: templateLotusBlossom,
+    width: 2160,
+    height: 3040,
+    primaryColor: '#5C1410',
+    accentColor: '#9A3412',
+    goldColor: '#D97706',
+    boxBg: 'rgba(254, 248, 236, 0.95)',
+    boxBorder: '#D97706'
+  },
   red: {
     id: 'red',
-    label: 'Sacred Red',
+    label: 'Sacred Red (4K)',
+    icon: '🔴',
+    desc: '2026 Red Idol',
+    orientation: 'landscape',
     bg: templateBgRed,
+    width: 3200,
+    height: 1800,
     accent: '#D7952F',
-    borderAccent: '#FFCA28',
-    panelBg: 'rgba(28, 4, 3, 0.90)',
-    innerBorder: 'rgba(245, 180, 50, 0.55)',
-    tagText: '🌿 ॐ శ్రీ గణేశాయ నమః 🌿 ॐ GANAPATHI BAPPA MORYA 🌿',
-    titleColor: '#FFD54F',
-    highlightBoxBg: 'rgba(255, 248, 230, 0.14)',
-    highlightBoxBorder: '#FFCA28',
-    subHighlightColor: '#FFA726',
-    verifiedColor: '#81C784'
+    panelBg: 'rgba(28, 4, 3, 0.92)'
   },
   yellow: {
     id: 'yellow',
-    label: 'Golden Saffron',
+    label: 'Golden Saffron (4K)',
+    icon: '🟡',
+    desc: '2026 Saffron Idol',
+    orientation: 'landscape',
     bg: templateBgYellow,
+    width: 3200,
+    height: 1800,
     accent: '#F59E0B',
-    borderAccent: '#FCD34D',
-    panelBg: 'rgba(32, 18, 3, 0.90)',
-    innerBorder: 'rgba(252, 211, 77, 0.55)',
-    tagText: '🪔 ॐ నమో వ్రాతపతయే నమః 🪔 ॐ GANAPATHI BAPPA MORYA 🪔',
-    titleColor: '#FDE047',
-    highlightBoxBg: 'rgba(254, 243, 199, 0.16)',
-    highlightBoxBorder: '#F59E0B',
-    subHighlightColor: '#FBBF24',
-    verifiedColor: '#A3E635'
+    panelBg: 'rgba(32, 18, 3, 0.92)'
   },
   green: {
     id: 'green',
-    label: 'Emerald Seva',
+    label: 'Emerald Seva (4K)',
+    icon: '🟢',
+    desc: '2026 Green Idol',
+    orientation: 'landscape',
     bg: templateBgGreen,
+    width: 3200,
+    height: 1800,
     accent: '#22C55E',
-    borderAccent: '#86EFAC',
-    panelBg: 'rgba(6, 25, 14, 0.90)',
-    innerBorder: 'rgba(134, 239, 172, 0.55)',
-    tagText: '🌱 ॐ గం గణపతయే నమః · నిస్వార్థ సేవా ప్రసాదం 🌱',
-    titleColor: '#86EFAC',
-    highlightBoxBg: 'rgba(220, 252, 231, 0.14)',
-    highlightBoxBorder: '#4ADE80',
-    subHighlightColor: '#86EFAC',
-    verifiedColor: '#4ADE80'
+    panelBg: 'rgba(6, 25, 14, 0.92)'
   },
   purple: {
     id: 'purple',
-    label: 'Royal Amethyst',
+    label: 'Royal Amethyst (4K)',
+    icon: '🟣',
+    desc: '2026 Purple Idol',
+    orientation: 'landscape',
     bg: templateBgPurple,
+    width: 3200,
+    height: 1800,
     accent: '#C084FC',
-    borderAccent: '#E9D5FF',
-    panelBg: 'rgba(22, 6, 30, 0.90)',
-    innerBorder: 'rgba(216, 180, 254, 0.55)',
-    tagText: '✨ ॐ శ్రీ వరసిద్ధి వినాయకాయ నమః · దివ్యోత్సవ దర్శనం ✨',
-    titleColor: '#E9D5FF',
-    highlightBoxBg: 'rgba(243, 232, 255, 0.14)',
-    highlightBoxBorder: '#C084FC',
-    subHighlightColor: '#D8B4FE',
-    verifiedColor: '#34D399'
+    panelBg: 'rgba(22, 6, 30, 0.92)'
   }
 }
 
 /**
- * Resolves the default theme for a given segment type
+ * Resolves the default 4K theme for a given segment type
  */
 export function getDefaultThemeForSegment(type = 'donation') {
-  if (type === 'sponsor' || type === 'auction') return 'yellow'
-  if (type === 'volunteer' || type === 'nominee') return 'green'
-  if (type === 'activity' || type === 'event' || type === 'notice') return 'purple'
-  if (type === 'award') return 'yellow'
-  return 'red'
+  if (type === 'activity' || type === 'event' || type === 'notice') return 'ivory'
+  if (type === 'sponsor' || type === 'donation' || type === 'auction') return 'marigold'
+  if (type === 'award' || type === 'volunteer' || type === 'nominee') return 'lotus'
+  return 'marigold'
 }
 
 /**
- * Loads an image from URL and returns a Promise resolving to HTMLImageElement or null.
+ * Loads an image from URL with CORS
  */
 function loadImage(src) {
   return new Promise((resolve) => {
@@ -96,28 +131,24 @@ function loadImage(src) {
 }
 
 /**
- * Generates a high-resolution 1600x900 festive appreciation card / receipt / certificate
- * using the segment-specific Lord Ganesha backdrop template and theme.
+ * Generates an Ultra High-Definition 4K festive card / invitation / certificate
  *
  * @param {Object} record - The entity record
  * @param {Object} settings - Festival settings (village_name, etc.)
  * @param {string} type - 'donation' | 'sponsor' | 'volunteer' | 'notice' | 'activity' | 'award' | 'nominee' | 'auction'
- * @param {string} themeOverride - 'red' | 'yellow' | 'green' | 'purple' (optional)
+ * @param {string} themeOverride - 'ivory' | 'marigold' | 'lotus' | 'red' | 'yellow' | 'green' | 'purple'
  */
 export async function generateFestivalCard(record = {}, settings = {}, type = 'donation', themeOverride = null) {
+  const activeThemeKey = themeOverride || getDefaultThemeForSegment(type)
+  const theme = TEMPLATE_THEMES[activeThemeKey] || TEMPLATE_THEMES.marigold
+
   const canvas = document.createElement('canvas')
-  const width = 1600
-  const height = 900
-  canvas.width = width
-  canvas.height = height
+  canvas.width = theme.width
+  canvas.height = theme.height
   const ctx = canvas.getContext('2d')
 
   const villageName = settings.village_name || 'Vinayaka Vedika'
   const recordId = (record.id || '0000').slice(0, 6).toUpperCase()
-
-  // Select segment theme
-  const activeThemeKey = themeOverride || getDefaultThemeForSegment(type)
-  const theme = TEMPLATE_THEMES[activeThemeKey] || TEMPLATE_THEMES.red
 
   let personName = 'Devotee / Contributor'
   let cardTitle = 'DONATION APPRECIATION RECEIPT'
@@ -209,160 +240,387 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     promptText = 'Received with heartfelt devotion and gratitude from:'
   }
 
-  // 1. Draw Segment Template Background Image
+  // Draw 4K Background Template
   const bgImg = await loadImage(theme.bg)
   if (bgImg) {
-    ctx.drawImage(bgImg, 0, 0, width, height)
-  } else {
-    // Rich fallback gradient
-    const bgGrad = ctx.createLinearGradient(0, 0, width, height)
-    bgGrad.addColorStop(0, '#380604')
-    bgGrad.addColorStop(0.5, '#6a160d')
-    bgGrad.addColorStop(1, '#8b2014')
-    ctx.fillStyle = bgGrad
-    ctx.fillRect(0, 0, width, height)
-
-    ctx.strokeStyle = theme.accent
-    ctx.lineWidth = 10
-    ctx.strokeRect(20, 20, width - 40, height - 40)
+    ctx.drawImage(bgImg, 0, 0, theme.width, theme.height)
   }
 
-  // 2. Right Side Frosted Card Panel
-  const panelX = 560
-  const panelY = 60
-  const panelW = 980
-  const panelH = 780
-  const panelCenterX = panelX + panelW / 2
+  // =========================================================================
+  // 1. PORTRAIT 4K RENDERING (Ivory Toran, Marigold Arch, Lotus Blossom)
+  // =========================================================================
+  if (theme.orientation === 'portrait') {
+    const cx = theme.width / 2
 
-  ctx.save()
-  ctx.fillStyle = theme.panelBg
-  ctx.strokeStyle = theme.accent
-  ctx.lineWidth = 3
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.75)'
-  ctx.shadowBlur = 24
-  ctx.beginPath()
-  ctx.roundRect(panelX, panelY, panelW, panelH, 18)
-  ctx.fill()
-  ctx.stroke()
-  ctx.restore()
+    // --- TEMPLATE 1: IVORY TORAN & BELLS (POOJAS & INVITATIONS) ---
+    if (activeThemeKey === 'ivory') {
+      ctx.textAlign = 'center'
 
-  // Inner decorative border
-  ctx.strokeStyle = theme.innerBorder
-  ctx.lineWidth = 1.5
-  ctx.beginPath()
-  ctx.roundRect(panelX + 10, panelY + 10, panelW - 20, panelH - 20, 14)
-  ctx.stroke()
+      // Top Tag / Invocation
+      ctx.fillStyle = '#9A3412'
+      ctx.font = 'bold 38px Mukta, sans-serif'
+      ctx.fillText('🌿 ॐ శ్రీ గణేశాయ నమః · YOU ARE CORDIALLY INVITED 🌿', cx, 1100)
 
-  // 3. Header Banner Inside Card
-  ctx.textAlign = 'center'
+      // Main Card Title
+      ctx.fillStyle = '#6B1710'
+      ctx.font = 'bold 84px Georgia, "Yatra One", serif'
+      ctx.fillText(cardTitle, cx, 1220)
 
-  // Sacred Mantra
-  ctx.fillStyle = '#FFE0A0'
-  ctx.font = 'bold 22px Mukta, sans-serif'
-  ctx.fillText(theme.tagText, panelCenterX, panelY + 46)
+      // Village Name Banner
+      ctx.fillStyle = '#B45309'
+      ctx.font = 'bold 54px Mukta, sans-serif'
+      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 1310)
 
-  // Village / Pandal Name
-  ctx.fillStyle = '#FFFFFF'
-  ctx.font = 'bold 44px Georgia, "Yatra One", serif'
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'
-  ctx.shadowBlur = 8
-  ctx.fillText(`🪔 ${villageName} 🪔`, panelCenterX, panelY + 100)
-  ctx.shadowBlur = 0
+      // Prompt Text
+      ctx.fillStyle = '#44403C'
+      ctx.font = '40px Mukta, sans-serif'
+      ctx.fillText(promptText, cx, 1420)
 
-  // Card Subtitle / Type
-  ctx.fillStyle = theme.titleColor
-  ctx.font = 'bold 24px Mukta, sans-serif'
-  ctx.fillText(cardTitle, panelCenterX, panelY + 138)
+      // Person / Entity Name
+      ctx.fillStyle = '#7C2414'
+      ctx.font = personName.length > 25 ? 'bold 64px Georgia, serif' : 'bold 80px Georgia, "Yatra One", serif'
+      ctx.fillText(personName, cx, 1530)
 
-  // Meta Bar (Ref No + Date)
-  const dateStr = fmtDate(record.date)
-  ctx.fillStyle = '#E0D2C0'
-  ctx.font = '18px Mukta, sans-serif'
-  ctx.fillText(`${refLabel}   ·   📅 ${dateStr}`, panelCenterX, panelY + 170)
+      // Sub Highlight Badge
+      ctx.fillStyle = '#B45309'
+      ctx.font = 'bold 36px Mukta, sans-serif'
+      ctx.fillText(subHighlight, cx, 1610)
 
-  // Divider
-  ctx.strokeStyle = theme.accent
-  ctx.lineWidth = 1.5
-  ctx.beginPath()
-  ctx.moveTo(panelX + 60, panelY + 188)
-  ctx.lineTo(panelX + panelW - 60, panelY + 188)
-  ctx.stroke()
+      // Highlight Box (Date, Time, Amount, Item)
+      const boxW = 1440
+      const boxH = 200
+      const boxX = cx - boxW / 2
+      const boxY = 1660
 
-  // 4. Prompt & Person / Entity Presentation
-  ctx.fillStyle = '#F5E6D3'
-  ctx.font = '22px Mukta, sans-serif'
-  ctx.fillText(promptText, panelCenterX, panelY + 230)
+      ctx.fillStyle = 'rgba(255, 251, 235, 0.92)'
+      ctx.strokeStyle = '#D97706'
+      ctx.lineWidth = 4
+      ctx.beginPath()
+      ctx.roundRect(boxX, boxY, boxW, boxH, 20)
+      ctx.fill()
+      ctx.stroke()
 
-  // Person / Entity Name
-  ctx.fillStyle = '#FFF1B8'
-  ctx.font = personName.length > 28 ? 'bold 36px Georgia, serif' : 'bold 46px Georgia, "Yatra One", serif'
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
-  ctx.shadowBlur = 10
-  ctx.fillText(personName, panelCenterX, panelY + 290)
-  ctx.shadowBlur = 0
+      ctx.fillStyle = '#7C2414'
+      ctx.font = mainHighlight.length > 30 ? 'bold 52px Mukta, sans-serif' : 'bold 64px Mukta, Georgia, sans-serif'
+      ctx.fillText(mainHighlight, cx, boxY + 120)
 
-  // Sub Highlight (Tier or Badge)
-  ctx.fillStyle = theme.subHighlightColor
-  ctx.font = 'bold 20px Mukta, sans-serif'
-  ctx.fillText(subHighlight, panelCenterX, panelY + 328)
+      // Venue / Reference / Date
+      let nextY = boxY + boxH + 70
+      ctx.fillStyle = '#292524'
+      ctx.font = 'bold 38px Mukta, sans-serif'
+      ctx.fillText(`${refLabel}   ·   📅 ${fmtDate(record.date)}`, cx, nextY)
 
-  // 5. Main Highlight Box
-  const boxW = 620
-  const boxH = 88
-  const boxX = panelCenterX - boxW / 2
-  const boxY = panelY + 352
+      nextY += 60
+      if (noteStr) {
+        ctx.fillStyle = '#78350F'
+        ctx.font = 'italic 38px Georgia, serif'
+        ctx.fillText(noteStr, cx, nextY)
+        nextY += 60
+      }
 
-  ctx.fillStyle = theme.highlightBoxBg
-  ctx.strokeStyle = theme.highlightBoxBorder
-  ctx.lineWidth = 2.5
-  ctx.beginPath()
-  ctx.roundRect(boxX, boxY, boxW, boxH, 12)
-  ctx.fill()
-  ctx.stroke()
+      // Blessing
+      ctx.fillStyle = '#57534E'
+      ctx.font = 'italic 36px Georgia, serif'
+      ctx.fillText(blessingLine1, cx, nextY)
+      ctx.fillText(blessingLine2, cx, nextY + 50)
 
-  ctx.fillStyle = '#FFFFFF'
-  ctx.font = mainHighlight.length > 35 ? 'bold 28px Mukta, sans-serif' : 'bold 36px Mukta, Georgia, sans-serif'
-  ctx.fillText(mainHighlight, panelCenterX, boxY + 54)
+      // Verification Footer
+      const footY = 2440
+      ctx.strokeStyle = '#E7E5E4'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(cx - 500, footY - 40)
+      ctx.lineTo(cx + 500, footY - 40)
+      ctx.stroke()
 
-  // 6. Gotram / Detail / Description (if present)
-  let nextY = boxY + boxH + 34
-  if (noteStr) {
-    ctx.fillStyle = '#FFE57F'
-    ctx.font = 'italic 20px Georgia, serif'
-    ctx.fillText(noteStr, panelCenterX, nextY)
-    nextY += 34
+      ctx.fillStyle = '#15803D'
+      ctx.font = 'bold 34px Mukta, sans-serif'
+      ctx.fillText('✓ Official Utsava Invitation & Record', cx, footY)
+    }
+
+    // --- TEMPLATE 2: MARIGOLD GARLAND ARCH (SPONSORS & DONATIONS) ---
+    else if (activeThemeKey === 'marigold') {
+      ctx.textAlign = 'center'
+
+      // Top Tag
+      ctx.fillStyle = '#9A3412'
+      ctx.font = 'bold 38px Mukta, sans-serif'
+      ctx.fillText('🪔 JOIN US FOR THE GRAND SEVA CELEBRATION 🪔', cx, 1150)
+
+      // Main Card Title
+      ctx.fillStyle = '#78170D'
+      ctx.font = 'bold 82px Georgia, "Yatra One", serif'
+      ctx.fillText(cardTitle, cx, 1260)
+
+      // Village
+      ctx.fillStyle = '#B45309'
+      ctx.font = 'bold 52px Mukta, sans-serif'
+      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 1345)
+
+      // Prompt
+      ctx.fillStyle = '#44403C'
+      ctx.font = '40px Mukta, sans-serif'
+      ctx.fillText(promptText, cx, 1445)
+
+      // Person Name
+      ctx.fillStyle = '#7C2414'
+      ctx.font = personName.length > 25 ? 'bold 64px Georgia, serif' : 'bold 78px Georgia, "Yatra One", serif'
+      ctx.fillText(personName, cx, 1545)
+
+      // Sub Highlight
+      ctx.fillStyle = '#C2410C'
+      ctx.font = 'bold 36px Mukta, sans-serif'
+      ctx.fillText(subHighlight, cx, 1625)
+
+      // Highlight Box
+      const boxW = 1440
+      const boxH = 200
+      const boxX = cx - boxW / 2
+      const boxY = 1675
+
+      ctx.fillStyle = 'rgba(255, 253, 240, 0.95)'
+      ctx.strokeStyle = '#F59E0B'
+      ctx.lineWidth = 4.5
+      ctx.beginPath()
+      ctx.roundRect(boxX, boxY, boxW, boxH, 20)
+      ctx.fill()
+      ctx.stroke()
+
+      ctx.fillStyle = '#7A150D'
+      ctx.font = mainHighlight.length > 30 ? 'bold 52px Mukta, sans-serif' : 'bold 64px Mukta, Georgia, sans-serif'
+      ctx.fillText(mainHighlight, cx, boxY + 120)
+
+      let nextY = boxY + boxH + 70
+      ctx.fillStyle = '#292524'
+      ctx.font = 'bold 38px Mukta, sans-serif'
+      ctx.fillText(`${refLabel}   ·   📅 ${fmtDate(record.date)}`, cx, nextY)
+
+      nextY += 60
+      if (noteStr) {
+        ctx.fillStyle = '#78350F'
+        ctx.font = 'italic 38px Georgia, serif'
+        ctx.fillText(noteStr, cx, nextY)
+        nextY += 60
+      }
+
+      ctx.fillStyle = '#57534E'
+      ctx.font = 'italic 36px Georgia, serif'
+      ctx.fillText(blessingLine1, cx, nextY)
+      ctx.fillText(blessingLine2, cx, nextY + 50)
+
+      const footY = 2440
+      ctx.fillStyle = '#15803D'
+      ctx.font = 'bold 34px Mukta, sans-serif'
+      ctx.fillText('✓ Official Verified Record · Utsava Committee 🙏', cx, footY)
+    }
+
+    // --- TEMPLATE 3: LOTUS BLOSSOM & FLORAL (AWARDS & VOLUNTEERS) ---
+    else if (activeThemeKey === 'lotus') {
+      ctx.textAlign = 'center'
+
+      // Invocation
+      ctx.fillStyle = '#7C2414'
+      ctx.font = 'italic 38px Georgia, serif'
+      ctx.fillText('Shree Ganeshaya Namah', cx, 1640)
+
+      ctx.fillStyle = '#78350F'
+      ctx.font = 'italic 34px Georgia, serif'
+      ctx.fillText('We seek the divine blessings of Lord Ganesha, the remover of obstacles.', cx, 1720)
+
+      // Main Card Title
+      ctx.fillStyle = '#5C1410'
+      ctx.font = 'bold 78px Georgia, "Yatra One", serif'
+      ctx.fillText(cardTitle, cx, 1830)
+
+      // Village
+      ctx.fillStyle = '#B45309'
+      ctx.font = 'bold 50px Mukta, sans-serif'
+      ctx.fillText(`🪔 ${villageName} 2026 🪔`, cx, 1910)
+
+      // Prompt
+      ctx.fillStyle = '#44403C'
+      ctx.font = '38px Mukta, sans-serif'
+      ctx.fillText(promptText, cx, 2000)
+
+      // Person Name
+      ctx.fillStyle = '#7C2414'
+      ctx.font = personName.length > 25 ? 'bold 64px Georgia, serif' : 'bold 78px Georgia, "Yatra One", serif'
+      ctx.fillText(personName, cx, 2100)
+
+      // Highlight Box
+      const boxW = 1440
+      const boxH = 190
+      const boxX = cx - boxW / 2
+      const boxY = 2150
+
+      ctx.fillStyle = 'rgba(254, 248, 236, 0.95)'
+      ctx.strokeStyle = '#D97706'
+      ctx.lineWidth = 4
+      ctx.beginPath()
+      ctx.roundRect(boxX, boxY, boxW, boxH, 20)
+      ctx.fill()
+      ctx.stroke()
+
+      ctx.fillStyle = '#7C2414'
+      ctx.font = mainHighlight.length > 30 ? 'bold 48px Mukta, sans-serif' : 'bold 60px Mukta, Georgia, sans-serif'
+      ctx.fillText(mainHighlight, cx, boxY + 115)
+
+      let nextY = boxY + boxH + 65
+      ctx.fillStyle = '#292524'
+      ctx.font = 'bold 36px Mukta, sans-serif'
+      ctx.fillText(`${refLabel}   ·   📅 ${fmtDate(record.date)}`, cx, nextY)
+
+      nextY += 55
+      if (noteStr) {
+        ctx.fillStyle = '#78350F'
+        ctx.font = 'italic 36px Georgia, serif'
+        ctx.fillText(noteStr, cx, nextY)
+        nextY += 55
+      }
+
+      ctx.fillStyle = '#57534E'
+      ctx.font = 'italic 34px Georgia, serif'
+      ctx.fillText(blessingLine1, cx, nextY)
+      ctx.fillText(blessingLine2, cx, nextY + 46)
+
+      const footY = 2760
+      ctx.fillStyle = '#15803D'
+      ctx.font = 'bold 34px Mukta, sans-serif'
+      ctx.fillText('✓ Official Committee Honour · Utsava Committee 🙏', cx, footY)
+    }
   }
 
-  // 7. Sacred Blessing Quote
-  ctx.fillStyle = '#FFF8E1'
-  ctx.font = 'italic 21px Georgia, serif'
-  ctx.fillText(blessingLine1, panelCenterX, nextY + 10)
-  ctx.fillText(blessingLine2, panelCenterX, nextY + 38)
+  // =========================================================================
+  // 2. LANDSCAPE 4K RENDERING (2026 Red, Yellow, Green, Purple Idols)
+  // =========================================================================
+  else {
+    const scale = 2 // 3200x1800 4K
+    const panelX = 1120
+    const panelY = 120
+    const panelW = 1960
+    const panelH = 1560
+    const panelCenterX = panelX + panelW / 2
 
-  // 8. Footer Seal & Signature
-  const footerY = panelY + panelH - 32
-  ctx.strokeStyle = theme.innerBorder
-  ctx.lineWidth = 1
-  ctx.beginPath()
-  ctx.moveTo(panelX + 40, footerY - 22)
-  ctx.lineTo(panelX + panelW - 40, footerY - 22)
-  ctx.stroke()
+    // Frosted Card Backdrop
+    ctx.save()
+    ctx.fillStyle = theme.panelBg || 'rgba(28, 4, 3, 0.92)'
+    ctx.strokeStyle = theme.accent || '#D7952F'
+    ctx.lineWidth = 6
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)'
+    ctx.shadowBlur = 48
+    ctx.beginPath()
+    ctx.roundRect(panelX, panelY, panelW, panelH, 36)
+    ctx.fill()
+    ctx.stroke()
+    ctx.restore()
 
-  ctx.textAlign = 'left'
-  ctx.fillStyle = theme.verifiedColor
-  ctx.font = 'bold 18px Mukta, sans-serif'
-  ctx.fillText('✓ Verified Official Record', panelX + 44, footerY)
+    // Inner gold border
+    ctx.strokeStyle = 'rgba(255, 215, 100, 0.55)'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.roundRect(panelX + 20, panelY + 20, panelW - 40, panelH - 40, 28)
+    ctx.stroke()
 
-  ctx.textAlign = 'right'
-  ctx.fillStyle = theme.titleColor
-  ctx.font = 'bold 20px Mukta, sans-serif'
-  ctx.fillText('Utsava Committee 🙏', panelX + panelW - 44, footerY)
+    ctx.textAlign = 'center'
+
+    // Mantra
+    ctx.fillStyle = '#FFE0A0'
+    ctx.font = 'bold 44px Mukta, sans-serif'
+    ctx.fillText('🌿 ॐ శ్రీ గణేశాయ నమః 🌿 ॐ GANAPATHI BAPPA MORYA 🌿', panelCenterX, panelY + 92)
+
+    // Village
+    ctx.fillStyle = '#FFFFFF'
+    ctx.font = 'bold 88px Georgia, "Yatra One", serif'
+    ctx.fillText(`🪔 ${villageName} 🪔`, panelCenterX, panelY + 200)
+
+    // Card Title
+    ctx.fillStyle = '#FFD54F'
+    ctx.font = 'bold 48px Mukta, sans-serif'
+    ctx.fillText(cardTitle, panelCenterX, panelY + 276)
+
+    // Meta Bar
+    ctx.fillStyle = '#E0D2C0'
+    ctx.font = '36px Mukta, sans-serif'
+    ctx.fillText(`${refLabel}   ·   📅 ${fmtDate(record.date)}`, panelCenterX, panelY + 340)
+
+    // Divider
+    ctx.strokeStyle = theme.accent || '#D7952F'
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.moveTo(panelX + 120, panelY + 376)
+    ctx.lineTo(panelX + panelW - 120, panelY + 376)
+    ctx.stroke()
+
+    // Prompt
+    ctx.fillStyle = '#F5E6D3'
+    ctx.font = '44px Mukta, sans-serif'
+    ctx.fillText(promptText, panelCenterX, panelY + 460)
+
+    // Person Name
+    ctx.fillStyle = '#FFF1B8'
+    ctx.font = personName.length > 28 ? 'bold 72px Georgia, serif' : 'bold 92px Georgia, "Yatra One", serif'
+    ctx.fillText(personName, panelCenterX, panelY + 580)
+
+    // Sub Highlight
+    ctx.fillStyle = '#FFA726'
+    ctx.font = 'bold 40px Mukta, sans-serif'
+    ctx.fillText(subHighlight, panelCenterX, panelY + 656)
+
+    // Highlight Box
+    const boxW = 1240
+    const boxH = 176
+    const boxX = panelCenterX - boxW / 2
+    const boxY = panelY + 704
+
+    ctx.fillStyle = 'rgba(255, 248, 230, 0.14)'
+    ctx.strokeStyle = '#FFCA28'
+    ctx.lineWidth = 5
+    ctx.beginPath()
+    ctx.roundRect(boxX, boxY, boxW, boxH, 24)
+    ctx.fill()
+    ctx.stroke()
+
+    ctx.fillStyle = '#FFFFFF'
+    ctx.font = mainHighlight.length > 35 ? 'bold 56px Mukta, sans-serif' : 'bold 72px Mukta, Georgia, sans-serif'
+    ctx.fillText(mainHighlight, panelCenterX, boxY + 108)
+
+    let nextY = boxY + boxH + 68
+    if (noteStr) {
+      ctx.fillStyle = '#FFE57F'
+      ctx.font = 'italic 40px Georgia, serif'
+      ctx.fillText(noteStr, panelCenterX, nextY)
+      nextY += 68
+    }
+
+    ctx.fillStyle = '#FFF8E1'
+    ctx.font = 'italic 42px Georgia, serif'
+    ctx.fillText(blessingLine1, panelCenterX, nextY + 20)
+    ctx.fillText(blessingLine2, panelCenterX, nextY + 76)
+
+    const footerY = panelY + panelH - 64
+    ctx.strokeStyle = 'rgba(215, 149, 47, 0.6)'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(panelX + 80, footerY - 44)
+    ctx.lineTo(panelX + panelW - 80, footerY - 44)
+    ctx.stroke()
+
+    ctx.textAlign = 'left'
+    ctx.fillStyle = '#81C784'
+    ctx.font = 'bold 36px Mukta, sans-serif'
+    ctx.fillText('✓ Verified Official Record', panelX + 88, footerY)
+
+    ctx.textAlign = 'right'
+    ctx.fillStyle = '#FFD54F'
+    ctx.font = 'bold 40px Mukta, sans-serif'
+    ctx.fillText('Utsava Committee 🙏', panelX + panelW - 88, footerY)
+  }
 
   return canvas
 }
 
 /**
- * Generates and triggers download of the PNG festival appreciation card for any record type.
+ * Generates and triggers download of the 4K PNG festival card.
  */
 export async function downloadFestivalCard(record, settings = {}, type = 'donation', themeOverride = null) {
   try {
@@ -378,7 +636,7 @@ export async function downloadFestivalCard(record, settings = {}, type = 'donati
     const prefix = type.toUpperCase()
 
     const link = document.createElement('a')
-    link.download = `${prefix}_${sanitizedName}_2026.png`
+    link.download = `${prefix}_${sanitizedName}_2026_4K.png`
     link.href = canvas.toDataURL('image/png')
     link.click()
     return true
@@ -388,7 +646,7 @@ export async function downloadFestivalCard(record, settings = {}, type = 'donati
 }
 
 /**
- * Shares the actual Card/Receipt image directly via Web Share API or downloads with WhatsApp fallback
+ * Shares the 4K Card/Receipt image directly via Web Share API or downloads with WhatsApp fallback
  */
 export async function shareFestivalCardImage(record = {}, settings = {}, type = 'donation', themeOverride = null) {
   try {
@@ -403,7 +661,7 @@ export async function shareFestivalCardImage(record = {}, settings = {}, type = 
       record.title ||
       record.name ||
       'Festival_Card'
-    const fileName = `${type.toUpperCase()}_${rawName.slice(0, 24).replace(/[^a-z0-9]/gi, '_')}_2026.png`
+    const fileName = `${type.toUpperCase()}_${rawName.slice(0, 24).replace(/[^a-z0-9]/gi, '_')}_4K.png`
     const file = new File([blob], fileName, { type: 'image/png' })
     const villageName = settings.village_name || 'Vinayaka Vedika'
 
@@ -427,7 +685,7 @@ export async function shareFestivalCardImage(record = {}, settings = {}, type = 
       })
       return { sharedDirectly: true }
     } else {
-      // Desktop / fallback: download the image and open WhatsApp
+      // Desktop / fallback
       const link = document.createElement('a')
       link.download = fileName
       link.href = canvas.toDataURL('image/png')
@@ -437,7 +695,7 @@ export async function shareFestivalCardImage(record = {}, settings = {}, type = 
       const digits = String(targetPhone).replace(/\D/g, '')
       const phoneParam = digits ? (digits.length === 10 ? `91${digits}` : digits) : ''
       const encoded = encodeURIComponent(
-        `🪔 *${shareTitle}*\n*${villageName} 2026*\n\n(The festive card image has been downloaded to your device.)`
+        `🪔 *${shareTitle}*\n*${villageName} 2026*\n\n(The high-resolution 4K card image has been downloaded to your device.)`
       )
       const url = phoneParam
         ? `https://api.whatsapp.com/send?phone=${phoneParam}&text=${encoded}`
@@ -449,11 +707,4 @@ export async function shareFestivalCardImage(record = {}, settings = {}, type = 
     if (err.name === 'AbortError') return { cancelled: true }
     return { error: err.message }
   }
-}
-
-/**
- * Backward compatibility alias for donations.
- */
-export async function downloadReceiptImage(donation, settings) {
-  return downloadFestivalCard(donation, settings, 'donation')
 }
