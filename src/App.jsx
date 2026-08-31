@@ -8,8 +8,8 @@ import { PushNotifications } from './components/PushNotifications'
 import { LanguageSelector } from './components/LanguageSelector'
 import { translate } from './i18n/locales'
 
-// Features
 import { AuthControl } from './features/auth/AuthControl'
+import { LoginPage } from './features/auth/LoginPage'
 import { Overview } from './features/overview/Overview'
 import { Community } from './features/community/Community'
 import { Money } from './features/money/Money'
@@ -37,6 +37,7 @@ function AppContent() {
   const { data, loading, error, add, update, remove, refresh, recordBid, closeBid } = portal
 
   const [tab, setTab] = useState('Overview')
+  const [isLoginView, setIsLoginView] = useState(false)
   const [locale, setLocale] = useState(() => {
     try {
       return localStorage.getItem('vv-locale') || 'en'
@@ -135,6 +136,21 @@ function AppContent() {
     }
   }
 
+  // If user clicked Sign In, show full-screen Glassmorphism Divine Login Page
+  if (isLoginView && !isAdmin) {
+    return (
+      <LoginPage
+        auth={auth}
+        settings={settings}
+        onBack={() => setIsLoginView(false)}
+        onLoginSuccess={() => {
+          setIsLoginView(false)
+          setTab('Overview')
+        }}
+      />
+    )
+  }
+
   return (
     <div className="app-shell">
       <Toran />
@@ -151,7 +167,7 @@ function AppContent() {
 
         <div className="header-actions">
           <LanguageSelector locale={locale} onChange={changeLocale} />
-          <AuthControl auth={auth} />
+          <AuthControl auth={auth} onOpenLogin={() => setIsLoginView(true)} />
         </div>
       </header>
 
