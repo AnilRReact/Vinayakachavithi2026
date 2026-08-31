@@ -1,5 +1,82 @@
 import { currency, fmtDate, tier } from './formatters'
-import ganeshaBg from '../assets/ganesha-template-bg.jpg'
+import templateBgRed from '../assets/template-bg-red.jpg'
+import templateBgYellow from '../assets/template-bg-yellow.jpg'
+import templateBgGreen from '../assets/template-bg-green.jpg'
+import templateBgPurple from '../assets/template-bg-purple.jpg'
+
+export const TEMPLATE_THEMES = {
+  red: {
+    id: 'red',
+    label: 'Sacred Red',
+    bg: templateBgRed,
+    accent: '#D7952F',
+    borderAccent: '#FFCA28',
+    panelBg: 'rgba(28, 4, 3, 0.90)',
+    innerBorder: 'rgba(245, 180, 50, 0.55)',
+    tagText: '🌿 ॐ శ్రీ గణేశాయ నమః 🌿 ॐ GANAPATHI BAPPA MORYA 🌿',
+    titleColor: '#FFD54F',
+    highlightBoxBg: 'rgba(255, 248, 230, 0.14)',
+    highlightBoxBorder: '#FFCA28',
+    subHighlightColor: '#FFA726',
+    verifiedColor: '#81C784'
+  },
+  yellow: {
+    id: 'yellow',
+    label: 'Golden Saffron',
+    bg: templateBgYellow,
+    accent: '#F59E0B',
+    borderAccent: '#FCD34D',
+    panelBg: 'rgba(32, 18, 3, 0.90)',
+    innerBorder: 'rgba(252, 211, 77, 0.55)',
+    tagText: '🪔 ॐ నమో వ్రాతపతయే నమః 🪔 ॐ GANAPATHI BAPPA MORYA 🪔',
+    titleColor: '#FDE047',
+    highlightBoxBg: 'rgba(254, 243, 199, 0.16)',
+    highlightBoxBorder: '#F59E0B',
+    subHighlightColor: '#FBBF24',
+    verifiedColor: '#A3E635'
+  },
+  green: {
+    id: 'green',
+    label: 'Emerald Seva',
+    bg: templateBgGreen,
+    accent: '#22C55E',
+    borderAccent: '#86EFAC',
+    panelBg: 'rgba(6, 25, 14, 0.90)',
+    innerBorder: 'rgba(134, 239, 172, 0.55)',
+    tagText: '🌱 ॐ గం గణపతయే నమః · నిస్వార్థ సేవా ప్రసాదం 🌱',
+    titleColor: '#86EFAC',
+    highlightBoxBg: 'rgba(220, 252, 231, 0.14)',
+    highlightBoxBorder: '#4ADE80',
+    subHighlightColor: '#86EFAC',
+    verifiedColor: '#4ADE80'
+  },
+  purple: {
+    id: 'purple',
+    label: 'Royal Amethyst',
+    bg: templateBgPurple,
+    accent: '#C084FC',
+    borderAccent: '#E9D5FF',
+    panelBg: 'rgba(22, 6, 30, 0.90)',
+    innerBorder: 'rgba(216, 180, 254, 0.55)',
+    tagText: '✨ ॐ శ్రీ వరసిద్ధి వినాయకాయ నమః · దివ్యోత్సవ దర్శనం ✨',
+    titleColor: '#E9D5FF',
+    highlightBoxBg: 'rgba(243, 232, 255, 0.14)',
+    highlightBoxBorder: '#C084FC',
+    subHighlightColor: '#D8B4FE',
+    verifiedColor: '#34D399'
+  }
+}
+
+/**
+ * Resolves the default theme for a given segment type
+ */
+export function getDefaultThemeForSegment(type = 'donation') {
+  if (type === 'sponsor' || type === 'auction') return 'yellow'
+  if (type === 'volunteer' || type === 'nominee') return 'green'
+  if (type === 'activity' || type === 'event' || type === 'notice') return 'purple'
+  if (type === 'award') return 'yellow'
+  return 'red'
+}
 
 /**
  * Loads an image from URL and returns a Promise resolving to HTMLImageElement or null.
@@ -20,13 +97,14 @@ function loadImage(src) {
 
 /**
  * Generates a high-resolution 1600x900 festive appreciation card / receipt / certificate
- * using the official Lord Ganesha backdrop template for all record types.
+ * using the segment-specific Lord Ganesha backdrop template and theme.
  *
  * @param {Object} record - The entity record
  * @param {Object} settings - Festival settings (village_name, etc.)
  * @param {string} type - 'donation' | 'sponsor' | 'volunteer' | 'notice' | 'activity' | 'award' | 'nominee' | 'auction'
+ * @param {string} themeOverride - 'red' | 'yellow' | 'green' | 'purple' (optional)
  */
-export async function generateFestivalCard(record = {}, settings = {}, type = 'donation') {
+export async function generateFestivalCard(record = {}, settings = {}, type = 'donation', themeOverride = null) {
   const canvas = document.createElement('canvas')
   const width = 1600
   const height = 900
@@ -36,6 +114,10 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
 
   const villageName = settings.village_name || 'Vinayaka Vedika'
   const recordId = (record.id || '0000').slice(0, 6).toUpperCase()
+
+  // Select segment theme
+  const activeThemeKey = themeOverride || getDefaultThemeForSegment(type)
+  const theme = TEMPLATE_THEMES[activeThemeKey] || TEMPLATE_THEMES.red
 
   let personName = 'Devotee / Contributor'
   let cardTitle = 'DONATION APPRECIATION RECEIPT'
@@ -49,11 +131,13 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
 
   if (type === 'sponsor') {
     personName = record.sponsor_name || record.name || 'Devotee Sponsor'
-    cardTitle = 'PRASAD & BHANDARA SPONSOR'
+    cardTitle = 'PRASAD & BHANDARA SEVA SPONSOR'
     refLabel = `Sponsor Ref: #PR-2026-${recordId}`
     subHighlight = '★ DEDICATED SEVA SPONSOR ★'
     mainHighlight = record.item || 'Maha Prasadam'
     promptText = 'Sponsored with devotion & seva by:'
+    blessingLine1 = '“May Lord Ganesha and Goddess Lakshmi shower divine abundance,'
+    blessingLine2 = 'health, and joy on your family for your sacred Annadanam seva.” 🙏'
   } else if (type === 'volunteer') {
     personName = record.name || 'Dedicated Volunteer'
     cardTitle = 'VOLUNTEER SEVA DUTY PASS'
@@ -76,7 +160,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     blessingLine2 = 'warmly welcome to join the festivities and poojas.” 🙏'
   } else if (type === 'activity' || type === 'event') {
     personName = record.title || 'Festival Event'
-    cardTitle = 'POOJA & EVENT INVITATION'
+    cardTitle = 'POOJA & UTSAVA INVITATION'
     refLabel = `Event Ref: #EVT-2026-${recordId}`
     subHighlight = '★ CORDIAL INVITATION ★'
     mainHighlight = `📅 ${fmtDate(record.date)}${record.start_time ? ` at ${record.start_time}` : ''}`
@@ -96,7 +180,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     blessingLine2 = 'generosity, and devotion to our village celebration.” 🙏'
   } else if (type === 'nominee') {
     personName = record.name || 'Pandal Mandali'
-    cardTitle = 'BEST PANDAL RECOGNITION'
+    cardTitle = 'BEST PANDAL CONTEST RECOGNITION'
     refLabel = `Entry Ref: #PAN-2026-${recordId}`
     subHighlight = '★ UTSAVA PANDAL COMPETITION ★'
     mainHighlight = `🎪 ${record.name}`
@@ -106,11 +190,11 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     blessingLine2 = 'energy, unity, harmony, and grand success.” 🙏'
   } else if (type === 'auction') {
     personName = record.current_bidder || record.donor_name || record.name || 'Winning Bidder'
-    cardTitle = 'DAY 3 AUCTION WINNER CARD'
+    cardTitle = 'DAY 3 AUCTION WINNER CERTIFICATE'
     refLabel = `Auction Ref: #AUC-2026-${recordId}`
-    subHighlight = '★ AUCTION PATRON ★'
+    subHighlight = '★ SACRED PRASADAM AUCTION WINNER ★'
     mainHighlight = record.amount ? currency.format(record.amount) : (record.item_name || 'Winning Bid')
-    promptText = 'Sacred prasadam / laddu auction awarded to:'
+    promptText = 'Sacred laddu / prasadam auction awarded to:'
     noteStr = record.item_name ? `Item: ${record.item_name}` : ''
     blessingLine1 = '“May the sacred prasadam bring health, prosperity, and'
     blessingLine2 = 'immense auspiciousness to your home.” 🙏'
@@ -125,37 +209,34 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
     promptText = 'Received with heartfelt devotion and gratitude from:'
   }
 
-  // 1. Draw Background Image or Fallback Gradient
-  const bgImg = await loadImage(ganeshaBg)
+  // 1. Draw Segment Template Background Image
+  const bgImg = await loadImage(theme.bg)
   if (bgImg) {
     ctx.drawImage(bgImg, 0, 0, width, height)
   } else {
     // Rich fallback gradient
     const bgGrad = ctx.createLinearGradient(0, 0, width, height)
     bgGrad.addColorStop(0, '#380604')
-    bgGrad.addColorStop(0.4, '#6a160d')
-    bgGrad.addColorStop(0.8, '#8b2014')
-    bgGrad.addColorStop(1, '#a82c1a')
+    bgGrad.addColorStop(0.5, '#6a160d')
+    bgGrad.addColorStop(1, '#8b2014')
     ctx.fillStyle = bgGrad
     ctx.fillRect(0, 0, width, height)
 
-    // Gold outer frame
-    ctx.strokeStyle = '#D7952F'
+    ctx.strokeStyle = theme.accent
     ctx.lineWidth = 10
     ctx.strokeRect(20, 20, width - 40, height - 40)
   }
 
-  // 2. Right Side Card Panel
+  // 2. Right Side Frosted Card Panel
   const panelX = 560
   const panelY = 60
   const panelW = 980
   const panelH = 780
   const panelCenterX = panelX + panelW / 2
 
-  // Frosted dark-crimson card backdrop
   ctx.save()
-  ctx.fillStyle = 'rgba(28, 6, 5, 0.88)'
-  ctx.strokeStyle = '#D7952F'
+  ctx.fillStyle = theme.panelBg
+  ctx.strokeStyle = theme.accent
   ctx.lineWidth = 3
   ctx.shadowColor = 'rgba(0, 0, 0, 0.75)'
   ctx.shadowBlur = 24
@@ -165,8 +246,8 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   ctx.stroke()
   ctx.restore()
 
-  // Inner gold decorative border
-  ctx.strokeStyle = 'rgba(245, 180, 50, 0.55)'
+  // Inner decorative border
+  ctx.strokeStyle = theme.innerBorder
   ctx.lineWidth = 1.5
   ctx.beginPath()
   ctx.roundRect(panelX + 10, panelY + 10, panelW - 20, panelH - 20, 14)
@@ -178,7 +259,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   // Sacred Mantra
   ctx.fillStyle = '#FFE0A0'
   ctx.font = 'bold 22px Mukta, sans-serif'
-  ctx.fillText('🌿 ॐ శ్రీ గణేశాయ నమః 🌿 ॐ GANAPATHI BAPPA MORYA 🌿', panelCenterX, panelY + 46)
+  ctx.fillText(theme.tagText, panelCenterX, panelY + 46)
 
   // Village / Pandal Name
   ctx.fillStyle = '#FFFFFF'
@@ -189,7 +270,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   ctx.shadowBlur = 0
 
   // Card Subtitle / Type
-  ctx.fillStyle = '#FFD54F'
+  ctx.fillStyle = theme.titleColor
   ctx.font = 'bold 24px Mukta, sans-serif'
   ctx.fillText(cardTitle, panelCenterX, panelY + 138)
 
@@ -199,8 +280,8 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   ctx.font = '18px Mukta, sans-serif'
   ctx.fillText(`${refLabel}   ·   📅 ${dateStr}`, panelCenterX, panelY + 170)
 
-  // Golden Divider
-  ctx.strokeStyle = '#D7952F'
+  // Divider
+  ctx.strokeStyle = theme.accent
   ctx.lineWidth = 1.5
   ctx.beginPath()
   ctx.moveTo(panelX + 60, panelY + 188)
@@ -212,7 +293,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   ctx.font = '22px Mukta, sans-serif'
   ctx.fillText(promptText, panelCenterX, panelY + 230)
 
-  // Person / Entity Name (with auto font size scaling)
+  // Person / Entity Name
   ctx.fillStyle = '#FFF1B8'
   ctx.font = personName.length > 28 ? 'bold 36px Georgia, serif' : 'bold 46px Georgia, "Yatra One", serif'
   ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'
@@ -221,7 +302,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   ctx.shadowBlur = 0
 
   // Sub Highlight (Tier or Badge)
-  ctx.fillStyle = '#FFA726'
+  ctx.fillStyle = theme.subHighlightColor
   ctx.font = 'bold 20px Mukta, sans-serif'
   ctx.fillText(subHighlight, panelCenterX, panelY + 328)
 
@@ -231,8 +312,8 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   const boxX = panelCenterX - boxW / 2
   const boxY = panelY + 352
 
-  ctx.fillStyle = 'rgba(255, 248, 230, 0.14)'
-  ctx.strokeStyle = '#FFCA28'
+  ctx.fillStyle = theme.highlightBoxBg
+  ctx.strokeStyle = theme.highlightBoxBorder
   ctx.lineWidth = 2.5
   ctx.beginPath()
   ctx.roundRect(boxX, boxY, boxW, boxH, 12)
@@ -260,7 +341,7 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
 
   // 8. Footer Seal & Signature
   const footerY = panelY + panelH - 32
-  ctx.strokeStyle = 'rgba(215, 149, 47, 0.6)'
+  ctx.strokeStyle = theme.innerBorder
   ctx.lineWidth = 1
   ctx.beginPath()
   ctx.moveTo(panelX + 40, footerY - 22)
@@ -268,12 +349,12 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
   ctx.stroke()
 
   ctx.textAlign = 'left'
-  ctx.fillStyle = '#81C784'
+  ctx.fillStyle = theme.verifiedColor
   ctx.font = 'bold 18px Mukta, sans-serif'
   ctx.fillText('✓ Verified Official Record', panelX + 44, footerY)
 
   ctx.textAlign = 'right'
-  ctx.fillStyle = '#FFD54F'
+  ctx.fillStyle = theme.titleColor
   ctx.font = 'bold 20px Mukta, sans-serif'
   ctx.fillText('Utsava Committee 🙏', panelX + panelW - 44, footerY)
 
@@ -283,9 +364,9 @@ export async function generateFestivalCard(record = {}, settings = {}, type = 'd
 /**
  * Generates and triggers download of the PNG festival appreciation card for any record type.
  */
-export async function downloadFestivalCard(record, settings = {}, type = 'donation') {
+export async function downloadFestivalCard(record, settings = {}, type = 'donation', themeOverride = null) {
   try {
-    const canvas = await generateFestivalCard(record, settings, type)
+    const canvas = await generateFestivalCard(record, settings, type, themeOverride)
     const rawName =
       record.donor_name ||
       record.sponsor_name ||
@@ -309,9 +390,9 @@ export async function downloadFestivalCard(record, settings = {}, type = 'donati
 /**
  * Shares the actual Card/Receipt image directly via Web Share API or downloads with WhatsApp fallback
  */
-export async function shareFestivalCardImage(record = {}, settings = {}, type = 'donation') {
+export async function shareFestivalCardImage(record = {}, settings = {}, type = 'donation', themeOverride = null) {
   try {
-    const canvas = await generateFestivalCard(record, settings, type)
+    const canvas = await generateFestivalCard(record, settings, type, themeOverride)
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
     if (!blob) throw new Error('Canvas blob generation failed')
 
@@ -336,7 +417,7 @@ export async function shareFestivalCardImage(record = {}, settings = {}, type = 
     else if (type === 'nominee') shareTitle = `Best Pandal Nominee - ${rawName}`
     else if (type === 'auction') shareTitle = `Auction Winner - ${rawName}`
 
-    const shareText = `🪔 *${villageName} — 2026* 🙏\nGanapathi Bappa Morya!`
+    const shareText = `🪔 *${shareTitle}*\n*${villageName} — 2026* 🙏\nGanapathi Bappa Morya!`
 
     if (typeof navigator !== 'undefined' && navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
@@ -376,4 +457,3 @@ export async function shareFestivalCardImage(record = {}, settings = {}, type = 
 export async function downloadReceiptImage(donation, settings) {
   return downloadFestivalCard(donation, settings, 'donation')
 }
-
