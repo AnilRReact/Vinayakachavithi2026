@@ -2,9 +2,10 @@ import { localeOptions } from '../i18n/locales'
 
 export function LanguageSelector({ locale, onChange }) {
   return (
-    <label className="language-selector" title="Change display language">
+    <div className="language-selector-wrap" title="Change display language">
       <span className="lang-icon" aria-hidden="true">🌐</span>
       <select
+        className="lang-select"
         value={locale}
         onChange={(event) => onChange(event.target.value)}
         aria-label="Select interface language"
@@ -15,6 +16,6 @@ export function LanguageSelector({ locale, onChange }) {
           </option>
         ))}
       </select>
-    </label>
+    </div>
   )
 }
