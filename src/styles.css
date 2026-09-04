@@ -4989,6 +4989,573 @@ table {
   color: #7c2414;
 }
 
+/* ==========================================================================
+   OFFICIAL PRINTABLE TEMPLE RECEIPT & WHATSAPP ACTION STYLES
+   ========================================================================== */
+.receipt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.receipt-modal-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  max-width: 680px;
+  width: 100%;
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: receiptModalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes receiptModalPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.receipt-top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: #2a1005;
+  color: #fff;
+  border-bottom: 2px solid #eab308;
+}
+
+.receipt-actions-left {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-print-action {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: all 0.15s ease;
+}
+
+.btn-print-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4);
+}
+
+.btn-whatsapp-action {
+  background: #25d366;
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, 0.3);
+  transition: all 0.15s ease;
+}
+
+.btn-whatsapp-action:hover {
+  background: #20ba5a;
+  transform: translateY(-1px);
+}
+
+.btn-close-receipt {
+  background: transparent;
+  border: none;
+  color: #fde68a;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.btn-close-receipt:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Printable Temple Sheet Layout */
+.temple-receipt-sheet {
+  padding: 22px;
+  background: #fdfbf7;
+  overflow-y: auto;
+  color: #292524;
+  font-family: inherit;
+}
+
+.receipt-inner-border {
+  border: 3px double #d97706;
+  border-radius: 12px;
+  padding: 20px;
+  background: #ffffff;
+  position: relative;
+  box-shadow: inset 0 0 15px rgba(217, 119, 6, 0.05);
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 16px;
+  border-bottom: 1.5px dashed #f59e0b;
+  padding-bottom: 14px;
+}
+
+.receipt-ganesha-emblem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #dc2626;
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+}
+
+.receipt-ganesha-emblem .om-symbol {
+  font-size: 1.9rem;
+  color: #b45309;
+  font-weight: bold;
+}
+
+.receipt-committee-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #7c2414;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.receipt-committee-subtitle {
+  font-size: 0.84rem;
+  color: #78716c;
+  margin: 0 0 6px 0;
+  font-weight: 600;
+}
+
+.receipt-divider-ornament {
+  font-size: 0.75rem;
+  color: #f59e0b;
+  letter-spacing: 6px;
+  margin: 4px 0;
+}
+
+.receipt-badge-pill {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.receipt-meta-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fffbeb;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #fef08a;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+}
+
+.meta-label {
+  color: #78716c;
+  margin-right: 6px;
+}
+
+.meta-value {
+  font-weight: 700;
+  color: #1c1917;
+}
+
+.meta-value.bold-accent {
+  color: #b45309;
+  letter-spacing: 0.5px;
+}
+
+.receipt-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+}
+
+.receipt-details-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f5f5f4;
+}
+
+.receipt-details-table .field-label {
+  color: #78716c;
+  width: 38%;
+  font-weight: 600;
+}
+
+.receipt-details-table .field-value {
+  color: #1c1917;
+  font-weight: 600;
+}
+
+.receipt-details-table .field-value.highlight-name {
+  color: #7c2414;
+  font-weight: 800;
+  font-size: 0.98rem;
+}
+
+.payment-mode-tag {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.receipt-amount-container {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1.5px solid #fde68a;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.amount-digit-box {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  color: #92400e;
+  font-weight: 900;
+}
+
+.amount-digit-box .rupee-symbol {
+  font-size: 1.25rem;
+}
+
+.amount-digit-box .amount-number {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.amount-digit-box .amount-suffix {
+  font-size: 1.2rem;
+}
+
+.amount-words-box {
+  font-size: 0.82rem;
+  color: #78716c;
+}
+
+.words-label {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.words-value {
+  color: #1c1917;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.receipt-blessing-banner {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #b45309;
+  background: #fafaf9;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px dashed #d6d3d1;
+  margin-bottom: 16px;
+}
+
+.receipt-footer-grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.receipt-qr-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.receipt-qr-img {
+  width: 78px;
+  height: 78px;
+  border: 1px solid #e7dfd5;
+  border-radius: 6px;
+  background: #fff;
+  padding: 2px;
+}
+
+.qr-caption {
+  font-size: 0.62rem;
+  color: #a8a29e;
+  text-align: center;
+}
+
+.temple-seal-stamp {
+  display: flex;
+  justify-content: center;
+}
+
+.seal-inner {
+  width: 90px;
+  height: 90px;
+  border: 2px dashed #dc2626;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #dc2626;
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.1;
+  padding: 4px;
+  transform: rotate(-10deg);
+  opacity: 0.85;
+}
+
+.seal-center {
+  font-size: 0.65rem;
+  color: #991b1b;
+  margin: 2px 0;
+}
+
+.receipt-signature-col {
+  text-align: center;
+  min-width: 150px;
+}
+
+.signature-line {
+  border-bottom: 1.5px solid #292524;
+  margin-bottom: 6px;
+  height: 28px;
+}
+
+.signature-title {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #292524;
+}
+
+.signature-sub {
+  display: block;
+  font-size: 0.64rem;
+  color: #78716c;
+}
+
+/* WhatsApp Table Action Button */
+.btn-wa-receipt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-wa-receipt:hover {
+  background: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+.btn-formal-receipt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-formal-receipt:hover {
+  background: #f59e0b;
+  color: #ffffff;
+  border-color: #d97706;
+}
+
+/* PRINT CSS - Clean Official Print Output */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: transparent !important;
+    padding: 0;
+    overflow: visible;
+  }
+  .receipt-modal-card {
+    box-shadow: none;
+    border: none;
+    max-width: 100%;
+    width: 100%;
+    overflow: visible;
+  }
+  .no-print {
+    display: none !important;
+  }
+  #printable-receipt, #printable-receipt * {
+    visibility: visible;
+  }
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 10mm;
+    background: #fff !important;
+  }
+}
+
+/* Sub-Navigation Pill Bar */
+.sub-nav-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 6px 2px 14px 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sub-nav-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.sub-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1.5px solid #e7dfd5;
+  color: #57534e;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.sub-nav-pill:hover {
+  border-color: #f59e0b;
+  color: #7c2414;
+  transform: translateY(-1px);
+}
+
+.sub-nav-pill.active {
+  background: linear-gradient(135deg, #7c2414, #991b1b);
+  border-color: #7c2414;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(124, 36, 20, 0.25);
+}
+
+.sub-nav-pill .pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5eedf;
+  color: #7c2414;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  min-width: 18px;
+}
+
+.sub-nav-pill.active .pill-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Money summary bar flex styles */
+.moneybar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1.5px solid #fde68a;
+  border-radius: 14px;
+  padding: 12px 18px;
+  margin-bottom: 14px;
+}
+
+.moneybar-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.moneybar-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #78716c;
+  letter-spacing: 0.5px;
+}
+
+.moneybar-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #7c2414;
+}
+
+
 
 
 

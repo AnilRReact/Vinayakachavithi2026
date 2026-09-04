@@ -3,6 +3,7 @@ import { Card, Empty, Form, Button, ConfirmModal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { currency } from '../../lib/formatters'
+import { openLadduBidWinnerWhatsApp } from '../../lib/whatsapp'
 import { useToast } from '../../context/ToastContext'
 
 export function Bidding({ data, admin, add, update, remove, recordBid, closeBid }) {
@@ -145,7 +146,24 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
               </div>
 
               {item.current_bidder && (
-                <div style={{ marginTop: '8px' }}>
+                <div style={{ marginTop: '8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn-wa-receipt"
+                    onClick={() => {
+                      openLadduBidWinnerWhatsApp({
+                        bidderName: item.current_bidder,
+                        phone: '',
+                        amount: item.current_bid,
+                        item: item.item_name,
+                        villageName: (data.settings?.[0] || {}).festival_title || 'శ్రీ వినాయక ఉత్సవ కమిటీ 2026'
+                      })
+                    }}
+                    title="Send WhatsApp congratulations to winner"
+                  >
+                    📲 <span>WhatsApp Alert</span>
+                  </button>
+
                   <Button
                     type="button"
                     kind="receipt-action"
