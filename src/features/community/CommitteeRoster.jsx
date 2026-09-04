@@ -22,7 +22,7 @@ export function CommitteeRoster({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingMember, setEditingMember] = useState(null)
 
-  // Form states
+  // Form states for inline + modal
   const [name, setName] = useState('')
   const [role, setRole] = useState('')
   const [phone, setPhone] = useState('')
@@ -56,9 +56,9 @@ export function CommitteeRoster({
   }
 
   const handleSaveAdd = async (e) => {
-    e.preventDefault()
-    if (!name.trim() || !role.trim() || !phone.trim()) {
-      toast.error('Please enter name, role, and phone number.')
+    if (e) e.preventDefault()
+    if (!name.trim() || !role.trim()) {
+      toast.error('Please enter member name and role.')
       return
     }
 
@@ -66,20 +66,29 @@ export function CommitteeRoster({
     try {
       let photoUrl = null
       if (photoFile) {
-        photoUrl = await uploadImageToStorage(photoFile, 'committee', 600)
+        try {
+          photoUrl = await uploadImageToStorage(photoFile, 'committee', 600)
+        } catch {
+          photoUrl = photoPreview
+        }
       }
 
       const err = await add('committee_members', {
         name: name.trim(),
         role: role.trim(),
-        phone: phone.trim(),
+        phone: phone.trim() || '',
         photo_url: photoUrl
       })
 
       if (err) {
         toast.error(err.message || 'Could not add member.')
       } else {
-        toast.success(`Appointed ${name} as ${role}!`)
+        toast.success(`🙏 Appointed ${name} as ${role}!`)
+        setName('')
+        setRole('')
+        setPhone('')
+        setPhotoFile(null)
+        setPhotoPreview('')
         setIsAddModalOpen(false)
       }
     } finally {
@@ -95,7 +104,11 @@ export function CommitteeRoster({
     try {
       let photoUrl = editingMember.photo_url
       if (photoFile) {
-        photoUrl = await uploadImageToStorage(photoFile, 'committee', 600)
+        try {
+          photoUrl = await uploadImageToStorage(photoFile, 'committee', 600)
+        } catch {
+          photoUrl = photoPreview
+        }
       }
 
       const err = await update('committee_members', editingMember.id, {
@@ -132,7 +145,7 @@ export function CommitteeRoster({
   return (
     <>
       <Card
-        title="Committee Office Bearers"
+        title="Committee Office Bearers (కమిటీ బాధ్యులు)"
         action={
           admin && (
             <Button onClick={handleOpenAdd}>
@@ -215,11 +228,65 @@ export function CommitteeRoster({
         </div>
 
         {!members.length && (
-          <Empty text="No committee members added yet." />
+          <Empty text="No committee members added yet. Use the form below to appoint members." />
         )}
       </Card>
 
-      {/* Add Member Modal */}
+      {/* Prominent Inline Add Member Card for Admin */}
+      {admin && (
+        <Card title="Add Committee Member (కొత్త సభ్యుని నియామకం)">
+          <form onSubmit={handleSaveAdd} className="member-inline-form">
+            <div className="form-row-grid">
+              <div className="form-group">
+                <label>Full Name (పేరు) *</label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Ramesh Kumar"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Committee Role (బాధ్యత) *</label>
+                <input
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  placeholder="e.g. President, Treasurer, Secretary"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Mobile / WhatsApp Number (ఫోన్)</label>
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. 9876543210"
+                />
+              </div>
+              <div className="form-group">
+                <label>Photo (ఫోటో - Optional)</label>
+                <input type="file" accept="image/*" onChange={handlePhotoSelect} />
+              </div>
+            </div>
+
+            {photoPreview && (
+              <div style={{ marginTop: '8px', marginBottom: '12px' }}>
+                <img
+                  src={photoPreview}
+                  alt="Preview"
+                  style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover' }}
+                />
+              </div>
+            )}
+
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? 'Saving…' : '➕ Appoint Member (సభ్యుని చేర్చు)'}
+            </Button>
+          </form>
+        </Card>
+      )}
+
+      {/* Add Member Modal (when clicking top button) */}
       {isAddModalOpen && (
         <Modal
           title="Add Committee Member (సభ్యుని చేరిక)"
@@ -245,12 +312,11 @@ export function CommitteeRoster({
               />
             </div>
             <div className="form-group">
-              <label>Phone / WhatsApp Number (ఫోన్) *</label>
+              <label>Phone / WhatsApp Number (ఫోన్)</label>
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. 9876543210"
-                required
               />
             </div>
             <div className="form-group">
@@ -302,11 +368,10 @@ export function CommitteeRoster({
               />
             </div>
             <div className="form-group">
-              <label>Phone *</label>
+              <label>Phone</label>
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                required
               />
             </div>
             <div className="form-group">
@@ -357,4 +422,3 @@ export function CommitteeRoster({
     </>
   )
 }
-
