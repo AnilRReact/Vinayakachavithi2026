@@ -51,11 +51,13 @@ export async function compressImage(file, maxDim = 1200, quality = 0.84) {
   })
 }
 
+const DEFAULT_GDRIVE_WEBHOOK = 'https://script.google.com/macros/s/AKfycbw3O382NowkBlPVFSfGbMEOM5SOw453GXbYLJQl5pmpFSTBfEHIvV2ok5UvoHH-wgIkEA/exec'
+
 /**
  * Uploads an image or video to Google Drive via Google Apps Script Web App (if configured)
  */
-export async function uploadToGoogleDrive(file, scriptUrl) {
-  if (!scriptUrl) throw new Error('Google Apps Script URL is not configured.')
+export async function uploadToGoogleDrive(file, scriptUrl = DEFAULT_GDRIVE_WEBHOOK) {
+  const targetUrl = scriptUrl || DEFAULT_GDRIVE_WEBHOOK
 
   let base64Data = ''
   let mimeType = file.type || 'image/jpeg'
@@ -93,19 +95,27 @@ export async function uploadToGoogleDrive(file, scriptUrl) {
     mimeType
   }
 
-  const response = await fetch(scriptUrl, {
+  const response = await fetch(targetUrl, {
     method: 'POST',
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
+    redirect: 'follow'
   })
 
-  if (!response.ok) {
-    throw new Error(`Google Drive upload failed with status ${response.status}`)
+  let result = null
+  const rawText = await response.text()
+  try {
+    result = JSON.parse(rawText)
+  } catch {
+    result = { url: rawText }
   }
 
-  const result = await response.json()
   if (result.error) throw new Error(result.error)
 
-  return result.url || convertGoogleDriveLink(result.fileUrl)
+  const directLink = result.url || (result.fileId ? `https://lh3.googleusercontent.com/d/${result.fileId}` : '') || convertGoogleDriveLink(result.fileUrl)
+  if (!directLink) {
+    throw new Error('Google Drive upload did not return a valid file URL.')
+  }
+  return directLink
 }
 
 /**
@@ -117,10 +127,11 @@ export async function uploadToGoogleDrive(file, scriptUrl) {
 export async function uploadImageToStorage(file, folder = 'general', maxDim = 1200) {
   if (!file) return null
 
-  // 1. Check if Google Drive Webhook URL is in environment or localStorage
+  // 1. Check if Google Drive Webhook URL is in environment, settings or default
   const gdriveScriptUrl =
     import.meta.env.VITE_GOOGLE_DRIVE_UPLOAD_URL ||
-    localStorage.getItem('vv_gdrive_upload_url')
+    localStorage.getItem('vv_gdrive_upload_url') ||
+    DEFAULT_GDRIVE_WEBHOOK
 
   if (gdriveScriptUrl) {
     try {
@@ -175,7 +186,8 @@ export async function uploadVideoToStorage(file, folder = 'videos') {
   // 1. Check if Google Drive Webhook URL is configured
   const gdriveScriptUrl =
     import.meta.env.VITE_GOOGLE_DRIVE_UPLOAD_URL ||
-    localStorage.getItem('vv_gdrive_upload_url')
+    localStorage.getItem('vv_gdrive_upload_url') ||
+    DEFAULT_GDRIVE_WEBHOOK
 
   if (gdriveScriptUrl) {
     try {

@@ -28,7 +28,8 @@ const DEFAULT_SETTINGS = [
     festival_date: '2026-09-14',
     morning_aarti_time: '06:30 AM',
     evening_aarti_time: '07:30 PM',
-    daily_schedule_note: 'Daily Pooja & Maha Harathi every morning & evening.'
+    daily_schedule_note: 'Daily Pooja & Maha Harathi every morning & evening.',
+    google_drive_upload_url: 'https://script.google.com/macros/s/AKfycbw3O382NowkBlPVFSfGbMEOM5SOw453GXbYLJQl5pmpFSTBfEHIvV2ok5UvoHH-wgIkEA/exec'
   }
 ]
 
