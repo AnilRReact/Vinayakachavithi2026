@@ -52,28 +52,45 @@ export async function compressImage(file, maxDim = 1200, quality = 0.84) {
 }
 
 /**
- * Uploads an image to Google Drive via Google Apps Script Web App (if configured)
+ * Uploads an image or video to Google Drive via Google Apps Script Web App (if configured)
  */
 export async function uploadToGoogleDrive(file, scriptUrl) {
   if (!scriptUrl) throw new Error('Google Apps Script URL is not configured.')
 
-  const compressedBlob = await compressImage(file, 1400)
-  const reader = new FileReader()
+  let base64Data = ''
+  let mimeType = file.type || 'image/jpeg'
 
-  const base64Data = await new Promise((resolve, reject) => {
-    reader.onload = () => {
-      const res = reader.result
-      const base64 = res.split(',')[1]
-      resolve(base64)
-    }
-    reader.onerror = reject
-    reader.readAsDataURL(compressedBlob)
-  })
+  if (file.type?.startsWith('image/')) {
+    const compressedBlob = await compressImage(file, 1400)
+    const reader = new FileReader()
+    base64Data = await new Promise((resolve, reject) => {
+      reader.onload = () => {
+        const res = reader.result
+        const base64 = res.split(',')[1]
+        resolve(base64)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(compressedBlob)
+    })
+    mimeType = 'image/jpeg'
+  } else {
+    // Video or other media file
+    const reader = new FileReader()
+    base64Data = await new Promise((resolve, reject) => {
+      reader.onload = () => {
+        const res = reader.result
+        const base64 = res.split(',')[1]
+        resolve(base64)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
 
   const payload = {
     base64: base64Data,
     filename: file.name.replace(/[^a-z0-9.]/gi, '-').toLowerCase(),
-    mimeType: 'image/jpeg'
+    mimeType
   }
 
   const response = await fetch(scriptUrl, {
@@ -148,13 +165,27 @@ export async function uploadImageToStorage(file, folder = 'general', maxDim = 12
 
 /**
  * Universal Video Upload Handler:
- * 1. Tries Supabase Storage if configured
- * 2. Fallback to Data URL / Blob URL for local offline playback
+ * 1. Tries Google Drive if configured
+ * 2. Tries Supabase Storage if configured
+ * 3. Fallback to Data URL / Blob URL for local offline playback
  */
 export async function uploadVideoToStorage(file, folder = 'videos') {
   if (!file) return null
 
-  // 1. Try Supabase Storage if available
+  // 1. Check if Google Drive Webhook URL is configured
+  const gdriveScriptUrl =
+    import.meta.env.VITE_GOOGLE_DRIVE_UPLOAD_URL ||
+    localStorage.getItem('vv_gdrive_upload_url')
+
+  if (gdriveScriptUrl) {
+    try {
+      return await uploadToGoogleDrive(file, gdriveScriptUrl)
+    } catch (err) {
+      console.warn('Google Drive video upload error, attempting fallback:', err)
+    }
+  }
+
+  // 2. Try Supabase Storage if available
   if (supabase) {
     try {
       const sanitizedName = file.name.replace(/[^a-z0-9.]/gi, '-').toLowerCase()
@@ -178,7 +209,7 @@ export async function uploadVideoToStorage(file, folder = 'videos') {
     }
   }
 
-  // 2. Fallback to base64 / Data URL
+  // 3. Fallback to base64 / Data URL
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result)
