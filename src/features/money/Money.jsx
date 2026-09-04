@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import { Card, Empty, Form, Button } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
+import { ExcelImportModal } from '../../components/ExcelImportModal'
 import { Bidding } from './Bidding'
 import { currency, fmtDate, tier, today } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
@@ -14,6 +15,13 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('')
   const [selectedReceiptDonation, setSelectedReceiptDonation] = useState(null)
   const [selectedSponsor, setSelectedSponsor] = useState(null)
+  const [excelModalOpen, setExcelModalOpen] = useState(false)
+  const [importSegment, setImportSegment] = useState('donations')
+
+  const openExcelImport = (seg = 'donations') => {
+    setImportSegment(seg)
+    setExcelModalOpen(true)
+  }
 
   const settings = data.settings?.[0] || {}
   const donations = data.donations || []
@@ -197,6 +205,16 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
             <option value="date">Sort: Newest first (Pinned top)</option>
             <option value="amount">Sort: Highest amount</option>
           </select>
+
+          {admin && (
+            <Button
+              kind="secondary"
+              onClick={() => openExcelImport('donations')}
+              title="Upload Excel or CSV file to extract and import donations in bulk"
+            >
+              📊 Bulk Excel Import
+            </Button>
+          )}
         </div>
 
         {topDonations.length > 0 && !search && (
@@ -302,7 +320,21 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
       </Card>
 
       {/* Prasad & Bhandara Sponsors Section (Moved to Money) */}
-      <Card title="Prasad & Bhandara Sponsors">
+      <Card
+        title="Prasad & Bhandara Sponsors"
+        action={
+          admin && (
+            <Button
+              kind="secondary"
+              size="small"
+              onClick={() => openExcelImport('prasad_sponsors')}
+              title="Upload Excel or CSV file to extract and import prasad sponsors in bulk"
+            >
+              📊 Bulk Excel Import
+            </Button>
+          )
+        }
+      >
         <p className="muted">
           Devotees sponsoring daily pooja prasad, annadanam, flowers, and offerings.
         </p>
@@ -356,7 +388,7 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
           <div style={{ marginTop: '24px' }}>
             <h4>Add Prasad Sponsor</h4>
             <Form
-              submit="Add Sponsor"
+              submit="Save Sponsor"
               onSubmit={(v) => add('prasad_sponsors', v)}
               fields={sponsorFields}
             />
@@ -365,7 +397,21 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
       </Card>
 
       {/* Expenses Section */}
-      <Card title="Expenses & Payments">
+      <Card
+        title="Expenses & Payments"
+        action={
+          admin && (
+            <Button
+              kind="secondary"
+              size="small"
+              onClick={() => openExcelImport('expenses')}
+              title="Upload Excel or CSV file to extract and import expenses in bulk"
+            >
+              📊 Bulk Excel Import
+            </Button>
+          )
+        }
+      >
         <p className="muted">
           All festival purchases, stage setups, sound, flowers, and pooja costs.
         </p>
@@ -440,42 +486,48 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
                 <div className="year-header">
                   <h3>
                     Year {year}{' '}
-                    <small>Total: {currency.format(yearTotal)}</small>
+                    <small>({items.length} assets · {currency.format(yearTotal)})</small>
                   </h3>
                 </div>
                 <div className="records-list">
                   {items.map((p) => (
-                    <div className="purchase-line" key={p.id}>
-                      <div className="purchase-info">
-                        <b>{p.item}</b>
-                        <span> · {p.category} · </span>
-                        <strong>{currency.format(p.cost)}</strong>
-                        {p.reusable && (
-                          <span className="badge green">Reusable</span>
-                        )}
-                        {p.condition_note && (
-                          <small className="purchase-condition">
-                            📝 {p.condition_note}
-                          </small>
-                        )}
+                    <article className="record-item" key={p.id}>
+                      <div className="record-main">
+                        <div className="record-title-row">
+                          <b>{p.item}</b>
+                          <span className="badge amber">{p.category}</span>
+                          {p.reusable && (
+                            <span className="badge green">♻ Reusable</span>
+                          )}
+                          <strong className="record-amount">
+                            {currency.format(p.cost)}
+                          </strong>
+                        </div>
+                        <small className="record-meta">
+                          Purchased in {p.year}
+                          {p.condition_note && ` · 📍 ${p.condition_note}`}
+                        </small>
                       </div>
+
                       {admin && (
-                        <RecordActions
-                          record={p}
-                          fields={purchaseFields}
-                          onSave={(values) =>
-                            update('purchases', p.id, {
-                              ...values,
-                              cost: Number(values.cost),
-                              year: Number(values.year)
-                            })
-                          }
-                          onDelete={() => remove('purchases', p.id)}
-                          deleteTitle="Delete Purchase Record"
-                          deleteMessage={`Delete asset record "${p.item}"?`}
-                        />
+                        <div className="record-actions-cell">
+                          <RecordActions
+                            record={p}
+                            fields={purchaseFields}
+                            onSave={(values) =>
+                              update('purchases', p.id, {
+                                ...values,
+                                cost: Number(values.cost),
+                                year: Number(values.year)
+                              })
+                            }
+                            onDelete={() => remove('purchases', p.id)}
+                            deleteTitle="Delete Asset"
+                            deleteMessage={`Delete ${p.item} from purchases?`}
+                          />
+                        </div>
                       )}
-                    </div>
+                    </article>
                   ))}
                 </div>
               </div>
@@ -484,17 +536,14 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
         </div>
 
         {!purchases.length && (
-          <Empty>
-            Record asset purchases so future committees know what is already on
-            hand.
-          </Empty>
+          <Empty>No permanent or reusable purchases logged yet.</Empty>
         )}
 
         {admin && (
           <div style={{ marginTop: '24px' }}>
-            <h4>Add Asset / Purchase Record</h4>
+            <h4>Record Asset Purchase</h4>
             <Form
-              submit="Add Asset"
+              submit="Save Purchase"
               onSubmit={(v) =>
                 add('purchases', {
                   ...v,
@@ -540,6 +589,20 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
           type="sponsor"
           settings={settings}
           admin={admin}
+        />
+      )}
+
+      {/* Universal Bulk Excel / CSV Data Import Modal */}
+      {excelModalOpen && (
+        <ExcelImportModal
+          isOpen={excelModalOpen}
+          onClose={() => setExcelModalOpen(false)}
+          initialSegment={importSegment}
+          portalData={data}
+          onAddRecord={add}
+          onBatchComplete={() => {
+            if (toast?.success) toast.success('🎉 Excel import operation completed!')
+          }}
         />
       )}
     </>

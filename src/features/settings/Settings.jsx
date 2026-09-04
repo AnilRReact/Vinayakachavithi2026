@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Card, Form, Button } from '../../components/ui'
+import { ExcelImportModal } from '../../components/ExcelImportModal'
+import { SEGMENT_CONFIGS, downloadSampleTemplate, exportTableToExcel } from '../../lib/excelParser'
 import { requireSupabase } from '../../lib/supabase'
 import { today } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
@@ -7,6 +9,13 @@ import { useToast } from '../../context/ToastContext'
 export function Settings({ data, add, update }) {
   const { toast } = useToast()
   const settings = data.settings?.[0] || {}
+  const [excelModalOpen, setExcelModalOpen] = useState(false)
+  const [excelSegment, setExcelSegment] = useState('donations')
+
+  const openExcelModal = (seg = 'donations') => {
+    setExcelSegment(seg)
+    setExcelModalOpen(true)
+  }
 
   const saveFestivalSettings = async (values) => {
     try {
@@ -53,9 +62,23 @@ export function Settings({ data, add, update }) {
         />
       </Card>
 
+      <ExcelManagerCard data={data} onOpenImport={openExcelModal} />
       <GoogleDriveSettingsCard settings={settings} />
       <PasscodeSettings />
       <BackupButton data={data} />
+
+      {excelModalOpen && (
+        <ExcelImportModal
+          isOpen={excelModalOpen}
+          onClose={() => setExcelModalOpen(false)}
+          initialSegment={excelSegment}
+          portalData={data}
+          onAddRecord={add}
+          onBatchComplete={() => {
+            if (toast?.success) toast.success('🎉 Bulk Excel data operation completed!')
+          }}
+        />
+      )}
     </>
   )
 }
@@ -202,6 +225,88 @@ function PasscodeSettings() {
   )
 }
 
+function ExcelManagerCard({ data = {}, onOpenImport }) {
+  const { toast } = useToast()
+
+  const handleQuickDownloadTemplate = async (segId) => {
+    try {
+      await downloadSampleTemplate(segId, 'xlsx')
+      toast.success('Sample Excel template downloaded!')
+    } catch {
+      toast.error('Failed to download template.')
+    }
+  }
+
+  const handleQuickExport = async (segId) => {
+    const config = SEGMENT_CONFIGS[segId]
+    const list = data[config.table] || []
+    if (list.length === 0) {
+      toast.info(`No records in ${config.label} to export.`)
+      return
+    }
+    try {
+      await exportTableToExcel(list, segId, `${config.table}_2026.xlsx`)
+      toast.success(`Exported ${list.length} records to ${config.table}_2026.xlsx!`)
+    } catch {
+      toast.error('Export failed.')
+    }
+  }
+
+  return (
+    <Card title="📊 Excel & CSV Batch Data Manager">
+      <p className="muted">
+        Upload spreadsheets from MS Excel or Google Sheets to automatically extract and populate donations, expenses, sponsors, volunteers, schedules, and committee members into the database.
+      </p>
+
+      <div className="excel-settings-grid">
+        {Object.values(SEGMENT_CONFIGS).map((cfg) => {
+          const count = (data[cfg.table] || []).length
+          return (
+            <div className="excel-segment-card" key={cfg.id}>
+              <div className="segment-card-title-row">
+                <span className="card-icon">{cfg.icon}</span>
+                <div>
+                  <b className="card-label">{cfg.label}</b>
+                  <small className="card-count">{count} records in database</small>
+                </div>
+              </div>
+
+              <div className="segment-card-actions">
+                <Button
+                  kind="primary"
+                  size="small"
+                  onClick={() => onOpenImport(cfg.id)}
+                  title={`Upload Excel or CSV file to extract ${cfg.label}`}
+                >
+                  ⚡ Upload & Extract Excel
+                </Button>
+                <div className="card-sub-actions">
+                  <button
+                    type="button"
+                    className="sub-action-btn"
+                    onClick={() => handleQuickDownloadTemplate(cfg.id)}
+                    title="Download ready-to-fill Excel template"
+                  >
+                    📥 Blank Template
+                  </button>
+                  <button
+                    type="button"
+                    className="sub-action-btn"
+                    onClick={() => handleQuickExport(cfg.id)}
+                    title="Export existing database records to Excel"
+                  >
+                    📊 Export (.xlsx)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
+}
+
 function BackupButton({ data }) {
   const { toast } = useToast()
 
@@ -242,4 +347,5 @@ function BackupButton({ data }) {
     </Card>
   )
 }
+
 
