@@ -6,6 +6,7 @@ import { ToastProvider } from './context/ToastContext'
 import { Toran } from './components/ui'
 import { PushNotifications } from './components/PushNotifications'
 import { LanguageSelector } from './components/LanguageSelector'
+import { InstallAppButton } from './components/InstallAppButton'
 import { translate } from './i18n/locales'
 
 import { AuthControl } from './features/auth/AuthControl'
@@ -166,6 +167,7 @@ function AppContent() {
         </div>
 
         <div className="header-actions">
+          <InstallAppButton />
           <LanguageSelector locale={locale} onChange={changeLocale} />
           <AuthControl auth={auth} onOpenLogin={() => setIsLoginView(true)} />
         </div>

@@ -5555,6 +5555,35 @@ table {
   color: #7c2414;
 }
 
+/* Install App Button */
+.btn-install-app {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #15803d, #166534);
+  color: #ffffff;
+  border: 1px solid #14532d;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-install-app:hover {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35);
+}
+
+.btn-install-app .install-icon {
+  font-size: 0.95rem;
+}
+
+
 
 
 
