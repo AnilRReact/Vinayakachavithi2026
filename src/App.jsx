@@ -207,13 +207,6 @@ function AppContent() {
         </aside>
 
         <main id="main-content">
-          {!supabase && (
-            <div className="setup" role="alert">
-              Connect Supabase to begin. Copy <code>.env.example</code> to{' '}
-              <code>.env.local</code>, then run the included database migrations.
-            </div>
-          )}
-
           {error && (
             <div className="setup error" role="alert">
               Could not load portal data: {error}
