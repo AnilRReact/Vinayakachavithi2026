@@ -614,3 +614,4 @@ export async function exportTableToExcel(dataArray = [], segmentKey = 'donations
   link.click()
   return true
 }
+

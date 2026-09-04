@@ -202,10 +202,14 @@ export function ConfirmModal({ isOpen, onClose, onConfirm, title = 'Confirm Acti
 export function Stat({ label, value, icon, variant = 'default' }) {
   return (
     <div className={`stat stat-${variant}`}>
-      {icon && <span className="stat-icon-badge">{icon}</span>}
+      {icon && (
+        <div className="stat-icon-badge" aria-hidden="true">
+          <span className="stat-icon-symbol">{icon}</span>
+        </div>
+      )}
       <div className="stat-content">
-        <b>{value}</b>
-        <span>{label}</span>
+        <b className="stat-value">{value}</b>
+        <span className="stat-label">{label}</span>
       </div>
     </div>
   )
