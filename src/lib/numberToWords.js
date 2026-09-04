@@ -59,3 +59,4 @@ export function numberToIndianRupeesWords(amount) {
 
   return `${res.trim()} Rupees Only`
 }
+

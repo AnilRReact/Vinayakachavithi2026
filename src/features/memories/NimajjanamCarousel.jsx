@@ -118,3 +118,4 @@ export function NimajjanamCarousel({ items = [] }) {
     </Card>
   )
 }
+

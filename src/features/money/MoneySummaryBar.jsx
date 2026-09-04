@@ -27,3 +27,4 @@ export function MoneySummaryBar({ raised = 0, spent = 0, balance = 0, reusableWo
     </div>
   )
 }
+

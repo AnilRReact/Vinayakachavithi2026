@@ -82,3 +82,4 @@ export function syncNewExpense(expense) {
     Receipt_Photo: expense.receipt_url || ''
   })
 }
+

@@ -177,3 +177,4 @@ export function OfficialReceiptModal({ donation, settings = {}, onClose }) {
     </div>
   )
 }
+

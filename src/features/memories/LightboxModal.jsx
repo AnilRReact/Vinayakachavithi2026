@@ -75,3 +75,4 @@ export function LightboxModal({ item, onClose }) {
     </div>
   )
 }
+
