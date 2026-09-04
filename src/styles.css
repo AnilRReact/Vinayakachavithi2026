@@ -2878,29 +2878,88 @@ textarea {
   box-shadow: 0 2px 8px rgba(157, 50, 31, 0.25);
 }
 
-.file-upload-box {
+.file-upload-box,
+.photo-dropzone {
   grid-column: 1 / -1;
-  padding: 18px;
+  padding: 20px 16px;
   border: 2px dashed #d9cfc2;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fffdf9;
   text-align: center;
+  transition: all 0.2s ease;
 }
 
-.file-drop-label {
+.photo-dropzone:hover {
+  border-color: #f59e0b;
+  background: #fffbf0;
+}
+
+.video-dropzone {
+  border-color: #f59e0b;
+  background: #fffcf2;
+}
+
+.file-drop-label,
+.file-input-label {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
 }
 
-.file-drop-label input[type="file"] {
+.file-drop-label input[type="file"],
+.file-input-label input[type="file"] {
   display: none;
 }
 
 .upload-icon {
-  font-size: 2rem;
+  font-size: 2.4rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.upload-preview-img {
+  max-height: 220px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1.5px solid #d9cfc2;
+  object-fit: contain;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.upload-preview-video {
+  max-height: 240px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1.5px solid #f59e0b;
+  background: #000000;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.remove-preview-btn {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.remove-preview-btn:hover {
+  background: #fecaca;
+  color: #7f1d1d;
+  transform: translateY(-1px);
 }
 
 .upload-preview {
@@ -2926,7 +2985,7 @@ textarea {
   place-items: center;
   padding: 24px;
   background: rgba(10, 8, 7, 0.88);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
 .lightbox-close {
@@ -2942,10 +3001,13 @@ textarea {
   border-radius: 50%;
   display: grid;
   place-items: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .lightbox-close:hover {
   background: rgba(255, 255, 255, 0.35);
+  transform: scale(1.08);
 }
 
 .lightbox-body {
@@ -2961,20 +3023,39 @@ textarea {
   max-height: 75vh;
   object-fit: contain;
   border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.lightbox-embed-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
 }
 
 .lightbox-body iframe {
-  width: min(85vw, 760px);
+  width: min(85vw, 840px);
   aspect-ratio: 16 / 9;
   border: 0;
   border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.lightbox-video-player {
+  max-width: min(85vw, 840px);
+  max-height: 75vh;
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
 .lightbox-caption {
-  color: #fff;
-  margin-top: 10px;
-  font-size: 0.95rem;
+  color: #fef08a;
+  margin-top: 12px;
+  font-size: 0.98rem;
+  font-weight: 700;
   text-align: center;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 /* ==========================================================================

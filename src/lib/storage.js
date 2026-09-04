@@ -145,3 +145,45 @@ export async function uploadImageToStorage(file, folder = 'general', maxDim = 12
     reader.readAsDataURL(compressedBlob)
   })
 }
+
+/**
+ * Universal Video Upload Handler:
+ * 1. Tries Supabase Storage if configured
+ * 2. Fallback to Data URL / Blob URL for local offline playback
+ */
+export async function uploadVideoToStorage(file, folder = 'videos') {
+  if (!file) return null
+
+  // 1. Try Supabase Storage if available
+  if (supabase) {
+    try {
+      const sanitizedName = file.name.replace(/[^a-z0-9.]/gi, '-').toLowerCase()
+      const ext = file.name.split('.').pop() || 'mp4'
+      const path = `${folder}/${Date.now()}-${sanitizedName}`
+      const contentType = file.type || `video/${ext}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('gallery')
+        .upload(path, file, {
+          contentType,
+          upsert: true
+        })
+
+      if (!uploadError) {
+        const { data: publicUrlData } = supabase.storage.from('gallery').getPublicUrl(path)
+        if (publicUrlData?.publicUrl) return publicUrlData.publicUrl
+      }
+    } catch (err) {
+      console.warn('Supabase video upload error, using local fallback:', err)
+    }
+  }
+
+  // 2. Fallback to base64 / Data URL
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
+

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Card, Empty, Button, Modal, ConfirmModal } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
-import { uploadImageToStorage, convertGoogleDriveLink, isGoogleDriveUrl } from '../../lib/storage'
+import { uploadImageToStorage, uploadVideoToStorage, convertGoogleDriveLink, isGoogleDriveUrl } from '../../lib/storage'
 import { fmtDate, today } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
 
@@ -20,13 +20,20 @@ export function Memories({ data, admin, add, update, remove }) {
   const [editDate, setEditDate] = useState(today())
   const [isUpdating, setIsUpdating] = useState(false)
 
-  // B-2: Add Media Flow State
-  const [mediaMode, setMediaMode] = useState('photo') // 'photo' | 'link'
+  // Add Media Flow State: 'photo' | 'video' | 'link'
+  const [mediaMode, setMediaMode] = useState('photo')
   const [photoFile, setPhotoFile] = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
   const [photoCaption, setPhotoCaption] = useState('')
   const [photoDate, setPhotoDate] = useState(today())
   const [isUploading, setIsUploading] = useState(false)
+
+  // Video File Upload State
+  const [videoFile, setVideoFile] = useState(null)
+  const [videoPreview, setVideoPreview] = useState('')
+  const [videoCaption, setVideoCaption] = useState('')
+  const [videoDate, setVideoDate] = useState(today())
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false)
 
   const [linkUrl, setLinkUrl] = useState('')
   const [linkCaption, setLinkCaption] = useState('')
@@ -156,6 +163,46 @@ export function Memories({ data, admin, add, update, remove }) {
     }
   }
 
+  const handleVideoFileSelect = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setVideoFile(file)
+    const previewUrl = URL.createObjectURL(file)
+    setVideoPreview(previewUrl)
+  }
+
+  const handleUploadVideo = async (e) => {
+    e.preventDefault()
+    if (!videoFile) {
+      toast.error('Please select a video file from your device to upload.')
+      return
+    }
+
+    setIsUploadingVideo(true)
+    try {
+      const publicUrl = await uploadVideoToStorage(videoFile, 'gallery')
+
+      const err = await add('gallery_items', {
+        type: 'video',
+        url: publicUrl,
+        caption: videoCaption.trim() || 'Festival Devotional Video Clip',
+        date: videoDate || today()
+      })
+
+      if (err) throw err
+
+      toast.success('🎬 Video uploaded and published to memories!')
+      setVideoFile(null)
+      setVideoPreview('')
+      setVideoCaption('')
+      setVideoDate(today())
+    } catch (err) {
+      toast.error(err.message || 'Failed to upload video.')
+    } finally {
+      setIsUploadingVideo(false)
+    }
+  }
+
   const handleAddLink = async (e) => {
     e.preventDefault()
     if (!linkUrl.trim()) {
@@ -265,6 +312,13 @@ export function Memories({ data, admin, add, update, remove }) {
                   }?rel=0`}
                   allowFullScreen
                 />
+              ) : currentImmersionItem.type === 'video' ? (
+                <video
+                  controls
+                  playsInline
+                  src={currentImmersionItem.url}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
+                />
               ) : currentImmersionItem.type === 'photo' ? (
                 <img
                   src={currentImmersionItem.url}
@@ -299,8 +353,8 @@ export function Memories({ data, admin, add, update, remove }) {
                   type="button"
                   size="small"
                   kind="secondary"
-                  disabled={carouselIndex === 0}
-                  onClick={() => setCarouselIndex((prev) => Math.max(0, prev - 1))}
+                  onClick={() => setCarouselIndex((prev) => (prev > 0 ? prev - 1 : immersionItems.length - 1))}
+                  title="Previous highlight"
                 >
                   ◀ Prev
                 </Button>
@@ -308,8 +362,8 @@ export function Memories({ data, admin, add, update, remove }) {
                   type="button"
                   size="small"
                   kind="secondary"
-                  disabled={carouselIndex >= immersionItems.length - 1}
-                  onClick={() => setCarouselIndex((prev) => Math.min(immersionItems.length - 1, prev + 1))}
+                  onClick={() => setCarouselIndex((prev) => (prev < immersionItems.length - 1 ? prev + 1 : 0))}
+                  title="Next highlight"
                 >
                   Next ▶
                 </Button>
@@ -319,61 +373,53 @@ export function Memories({ data, admin, add, update, remove }) {
         )}
       </Card>
 
-      <Card title="Memories & Gallery">
-        <p className="muted">
-          Moments, celebrations, aarti videos, and procession photos from over the years.
-        </p>
+      {/* Gallery Section */}
+      <Card title="Devotional Photo & Video Memories">
+        <div className="filter-bar">
+          <p className="muted" style={{ margin: 0 }}>
+            Moments, celebrations, aarti videos, and procession photos from over the years.
+          </p>
 
-        {/* Filter Tabs */}
-        <div className="media-tabs" role="tablist">
-          <button
-            type="button"
-            className={activeFilter === 'all' ? 'active' : ''}
-            onClick={() => setActiveFilter('all')}
-          >
-            All <small>({galleryItems.length})</small>
-          </button>
-          <button
-            type="button"
-            className={activeFilter === 'immersion' ? 'active' : ''}
-            onClick={() => setActiveFilter('immersion')}
-          >
-            🎆 Nimajjanam Special <small>({immersionCount})</small>
-          </button>
-          <button
-            type="button"
-            className={activeFilter === 'photo' ? 'active' : ''}
-            onClick={() => setActiveFilter('photo')}
-          >
-            📷 Photos <small>({photoCount})</small>
-          </button>
-          <button
-            type="button"
-            className={activeFilter === 'video' ? 'active' : ''}
-            onClick={() => setActiveFilter('video')}
-          >
-            🎬 Videos & Links <small>({videoCount})</small>
-          </button>
+          <div className="media-tabs">
+            <button
+              type="button"
+              className={activeFilter === 'all' ? 'active' : ''}
+              onClick={() => setActiveFilter('all')}
+            >
+              🌟 All Media <small>({galleryItems.length})</small>
+            </button>
+            <button
+              type="button"
+              className={activeFilter === 'immersion' ? 'active' : ''}
+              onClick={() => setActiveFilter('immersion')}
+            >
+              🎆 Immersion Specials <small>({immersionCount})</small>
+            </button>
+            <button
+              type="button"
+              className={activeFilter === 'photo' ? 'active' : ''}
+              onClick={() => setActiveFilter('photo')}
+            >
+              📷 Photos <small>({photoCount})</small>
+            </button>
+            <button
+              type="button"
+              className={activeFilter === 'video' ? 'active' : ''}
+              onClick={() => setActiveFilter('video')}
+            >
+              🎬 Videos & Clips <small>({videoCount})</small>
+            </button>
+          </div>
         </div>
 
-        {/* Storage Health Indicator (Admin) */}
-        {admin && (
-          <div className={`storage-indicator-banner ${isNearLimit ? 'warning' : ''}`}>
-            <span>📊 <b>Storage:</b> ~{estimatedStorageMB} MB used of 1 GB free quota ({isNearLimit ? '⚠️ Nearing 1GB limit' : 'Healthy'})</span>
-          </div>
-        )}
-
-        {/* Year Grouped Gallery Items */}
-        <div className="gallery-years">
+        {/* Gallery Grid */}
+        <div className="gallery-section">
           {groupsByYear.map(([year, items]) => (
-            <div className="year-group" key={year}>
-              <h3 className="year-title">
-                {year} <small>({items.length} {items.length === 1 ? 'item' : 'items'})</small>
-              </h3>
-
+            <div key={year} className="gallery-year-block">
+              <h3 className="gallery-year-title">Year {year}</h3>
               <div className="gallery">
                 {items.map((item) => (
-                  <div className="gallery-card" key={item.id}>
+                  <div key={item.id} className="gallery-item-card">
                     <button
                       type="button"
                       className="gallery-item-btn"
@@ -389,7 +435,7 @@ export function Memories({ data, admin, add, update, remove }) {
                       ) : (
                         <div className="video-thumb">
                           <span className="play-icon">▶</span>
-                          <small>{item.caption || 'External Link / Video'}</small>
+                          <small>{item.caption || 'Video Clip'}</small>
                         </div>
                       )}
                       <span className="gallery-caption">
@@ -431,11 +477,11 @@ export function Memories({ data, admin, add, update, remove }) {
         )}
       </Card>
 
-      {/* B-2 Overhaul: Explicit 2-Path Add Media Card */}
+      {/* Add Media Card with 3 Explicit Modes: Photo, Video File, Link */}
       {admin && (
-        <Card title="Add Photo or Video Link">
+        <Card title="Add Photos & Videos to Gallery">
           <p className="muted">
-            Choose whether you are uploading a photo from your device or linking an external video/album.
+            Choose whether you are uploading a photo, choosing a video file from your device, or linking an external YouTube/album stream.
           </p>
 
           {/* Mode Switcher */}
@@ -449,15 +495,22 @@ export function Memories({ data, admin, add, update, remove }) {
             </button>
             <button
               type="button"
+              className={`mode-btn ${mediaMode === 'video' ? 'active' : ''}`}
+              onClick={() => setMediaMode('video')}
+            >
+              🎥 Upload Device Video (Choose File)
+            </button>
+            <button
+              type="button"
               className={`mode-btn ${mediaMode === 'link' ? 'active' : ''}`}
               onClick={() => setMediaMode('link')}
             >
-              🎬 Add Video / Album Link
+              🔗 Add YouTube / Web Link
             </button>
           </div>
 
-          {/* Upload Photo Form */}
-          {mediaMode === 'photo' ? (
+          {/* Mode 1: Upload Photo Form */}
+          {mediaMode === 'photo' && (
             <form className="form" onSubmit={handleUploadPhoto}>
               <div className="photo-dropzone" style={{ gridColumn: 'span 2' }}>
                 {photoPreview ? (
@@ -516,8 +569,78 @@ export function Memories({ data, admin, add, update, remove }) {
                 </Button>
               </div>
             </form>
-          ) : (
-            /* Add Link Form */
+          )}
+
+          {/* Mode 2: Upload Video File Form */}
+          {mediaMode === 'video' && (
+            <form className="form" onSubmit={handleUploadVideo}>
+              <div className="photo-dropzone video-dropzone" style={{ gridColumn: 'span 2' }}>
+                {videoPreview ? (
+                  <div className="preview-container video-preview-wrap">
+                    <video
+                      controls
+                      src={videoPreview}
+                      className="upload-preview-video"
+                      playsInline
+                    />
+                    <button
+                      type="button"
+                      className="remove-preview-btn"
+                      onClick={() => {
+                        setVideoFile(null)
+                        setVideoPreview('')
+                      }}
+                    >
+                      ✕ Remove Video
+                    </button>
+                  </div>
+                ) : (
+                  <label className="file-input-label">
+                    <span className="upload-icon">🎥</span>
+                    <b>Click to choose a video file from your device</b>
+                    <small>Supports MP4, WebM, MOV clips (Visarjan, Aarti, Procession)</small>
+                    <input
+                      type="file"
+                      accept="video/*,video/mp4,video/webm,video/quicktime,video/ogg"
+                      onChange={handleVideoFileSelect}
+                      disabled={isUploadingVideo}
+                    />
+                  </label>
+                )}
+              </div>
+
+              <label style={{ gridColumn: 'span 2' }}>
+                <span>Video Title / Caption <span className="req-star">*</span></span>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Immersion Procession Dance, Maha Aarti Clip"
+                  value={videoCaption}
+                  disabled={isUploadingVideo}
+                  onChange={(e) => setVideoCaption(e.target.value)}
+                />
+              </label>
+
+              <label style={{ gridColumn: 'span 2' }}>
+                <span>Date</span>
+                <input
+                  type="date"
+                  value={videoDate}
+                  disabled={isUploadingVideo}
+                  onChange={(e) => setVideoDate(e.target.value)}
+                />
+              </label>
+
+              <div className="form-actions" style={{ gridColumn: 'span 2' }}>
+                <Button type="submit" disabled={isUploadingVideo || !videoFile}>
+                  {isUploadingVideo ? 'Uploading Video to Gallery…' : '🎬 Publish Video to Gallery'}
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* Mode 3: Add YouTube / Web Link Form */}
+          {mediaMode === 'link' && (
             <form className="form" onSubmit={handleAddLink}>
               <label style={{ gridColumn: 'span 2' }}>
                 <span>Video or External Album Link <span className="req-star">*</span></span>
@@ -595,6 +718,15 @@ export function Memories({ data, admin, add, update, remove }) {
                       selectedItem.url.match(/(?:youtu\.be\/|v=|embed\/)([^?&/]+)/)[1]
                     }`}
                     allowFullScreen
+                  />
+                ) : selectedItem.url?.startsWith('data:video/') || selectedItem.url?.startsWith('blob:') || selectedItem.url?.match(/\.(mp4|webm|mov|ogg|m4v)($|\?)/i) || selectedItem.url?.includes('/storage/v1/object/public/gallery/') ? (
+                  <video
+                    controls
+                    autoPlay
+                    playsInline
+                    src={selectedItem.url}
+                    className="lightbox-video-player"
+                    style={{ width: '100%', maxHeight: '75vh', borderRadius: '8px', background: '#000' }}
                   />
                 ) : (
                   <div className="external-link-view">
