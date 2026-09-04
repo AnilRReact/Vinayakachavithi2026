@@ -20,21 +20,21 @@ export function Community({ data, admin, add, update, remove }) {
           className={`sub-nav-pill ${subTab === 'committee' ? 'active' : ''}`}
           onClick={() => setSubTab('committee')}
         >
-          👥 కమిటీ సభ్యులు (Committee) <span className="pill-count">{committeeMembers.length}</span>
+          👥 Committee Members <span className="pill-count">{committeeMembers.length}</span>
         </button>
         <button
           type="button"
           className={`sub-nav-pill ${subTab === 'volunteers' ? 'active' : ''}`}
           onClick={() => setSubTab('volunteers')}
         >
-          🤝 వాలంటీర్లు (Volunteers) <span className="pill-count">{volunteers.length}</span>
+          🤝 Volunteers & Seva <span className="pill-count">{volunteers.length}</span>
         </button>
         <button
           type="button"
           className={`sub-nav-pill ${subTab === 'notices' ? 'active' : ''}`}
           onClick={() => setSubTab('notices')}
         >
-          📢 ప్రకటనలు (Notices) <span className="pill-count">{notices.length}</span>
+          📢 Announcements <span className="pill-count">{notices.length}</span>
         </button>
       </div>
 

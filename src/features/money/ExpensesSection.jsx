@@ -149,7 +149,7 @@ export function ExpensesSection({
           <Form
             fields={expenseFields}
             onSubmit={handleAddExpense}
-            submitLabel="Record Expense (ఖర్చు నమోదు)"
+            submitLabel="Record Expense"
           />
         </Card>
       )}

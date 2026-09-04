@@ -251,3 +251,4 @@ end $$;
 insert into public.settings (village_name, tagline, festival_date, morning_aarti_time, evening_aarti_time, daily_schedule_note, committee_passcode)
 values ('Vinayaka Vedika', 'Our village celebration, in one place.', '2026-09-14', '06:30:00', '19:30:00', 'Daily Pooja & Maha Harathi every morning & evening.', 'admin123')
 on conflict (singleton) do nothing;
+

@@ -16,17 +16,17 @@ export function VolunteerManager({
   remove
 }) {
   const { toast } = useToast()
-  const villageName = settings.festival_title || settings.village_name || 'శ్రీ వినాయక ఉత్సవ సమితి 2026'
+  const villageName = settings.festival_title || settings.village_name || 'Vinayaka Vedika 2026'
 
   const [selectedVolunteerForId, setSelectedVolunteerForId] = useState(null)
   const [selectedTemplateItem, setSelectedTemplateItem] = useState(null)
 
   const volunteerFields = [
-    { name: 'name', label: 'Volunteer Name (వాలంటీర్ పేరు)', required: true, placeholder: 'e.g. Shiva Reddy' },
-    { name: 'duty', label: 'Assigned Duty (సేవా బాధ్యత)', required: true, placeholder: 'e.g. Prasadam Distribution, Stage Management' },
-    { name: 'contact', label: 'Mobile / WhatsApp No (ఫోన్ నం)', placeholder: 'e.g. 9876543210' },
-    { name: 'date', label: 'Service Date (తేదీ)', type: 'date', default: today(), required: true },
-    { name: 'shift_time', label: 'Shift Time (సమయం)', placeholder: 'e.g. 06:00 PM – 10:00 PM' }
+    { name: 'name', label: 'Volunteer Name', required: true, placeholder: 'e.g. Shiva Reddy' },
+    { name: 'duty', label: 'Assigned Duty', required: true, placeholder: 'e.g. Prasadam Distribution, Stage Management' },
+    { name: 'contact', label: 'Mobile / WhatsApp Number', placeholder: 'e.g. 9876543210' },
+    { name: 'date', label: 'Service Date', type: 'date', default: today(), required: true },
+    { name: 'shift_time', label: 'Shift Time', placeholder: 'e.g. 06:00 PM – 10:00 PM' }
   ]
 
   const handleAddVolunteer = async (values) => {
@@ -130,11 +130,11 @@ export function VolunteerManager({
       </Card>
 
       {admin && (
-        <Card title="Assign Volunteer Duty (వాలంటీర్ నియామకం)">
+        <Card title="Assign Volunteer Duty">
           <Form
             fields={volunteerFields}
             onSubmit={handleAddVolunteer}
-            submitLabel="Assign Volunteer (సేవకుడిని కేటాయించండి)"
+            submitLabel="Assign Volunteer"
           />
         </Card>
       )}
@@ -162,4 +162,3 @@ export function VolunteerManager({
     </>
   )
 }
-

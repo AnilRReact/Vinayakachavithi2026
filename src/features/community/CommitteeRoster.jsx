@@ -22,10 +22,11 @@ export function CommitteeRoster({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingMember, setEditingMember] = useState(null)
 
-  // Form states for inline + modal
+  // Form states
   const [name, setName] = useState('')
   const [role, setRole] = useState('')
   const [phone, setPhone] = useState('')
+  const [notes, setNotes] = useState('')
   const [photoFile, setPhotoFile] = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -41,6 +42,7 @@ export function CommitteeRoster({
     setName('')
     setRole('')
     setPhone('')
+    setNotes('')
     setPhotoFile(null)
     setPhotoPreview('')
     setIsAddModalOpen(true)
@@ -51,12 +53,13 @@ export function CommitteeRoster({
     setName(m.name || '')
     setRole(m.role || '')
     setPhone(m.phone || '')
+    setNotes(m.notes || '')
     setPhotoPreview(m.photo_url || '')
     setPhotoFile(null)
   }
 
   const handleSaveAdd = async (e) => {
-    if (e) e.preventDefault()
+    e.preventDefault()
     if (!name.trim() || !role.trim()) {
       toast.error('Please enter member name and role.')
       return
@@ -76,19 +79,15 @@ export function CommitteeRoster({
       const err = await add('committee_members', {
         name: name.trim(),
         role: role.trim(),
-        phone: phone.trim() || '',
+        phone: phone.trim(),
+        notes: notes.trim(),
         photo_url: photoUrl
       })
 
       if (err) {
         toast.error(err.message || 'Could not add member.')
       } else {
-        toast.success(`🙏 Appointed ${name} as ${role}!`)
-        setName('')
-        setRole('')
-        setPhone('')
-        setPhotoFile(null)
-        setPhotoPreview('')
+        toast.success(`Appointed ${name} as ${role}!`)
         setIsAddModalOpen(false)
       }
     } finally {
@@ -115,6 +114,7 @@ export function CommitteeRoster({
         name: name.trim(),
         role: role.trim(),
         phone: phone.trim(),
+        notes: notes.trim(),
         photo_url: photoUrl
       })
 
@@ -145,11 +145,11 @@ export function CommitteeRoster({
   return (
     <>
       <Card
-        title="Committee Office Bearers (కమిటీ బాధ్యులు)"
+        title="Committee Office Bearers"
         action={
           admin && (
             <Button onClick={handleOpenAdd}>
-              ➕ Add Member (సభ్యుని చేర్చు)
+              ➕ Add Member
             </Button>
           )
         }
@@ -174,6 +174,7 @@ export function CommitteeRoster({
                     📞 {m.phone}
                   </a>
                 )}
+                {m.notes && <small className="committee-notes">{m.notes}</small>}
               </div>
 
               <div className="committee-card-actions">
@@ -228,73 +229,19 @@ export function CommitteeRoster({
         </div>
 
         {!members.length && (
-          <Empty text="No committee members added yet. Use the form below to appoint members." />
+          <Empty text="No committee members added yet. Click 'Add Member' above to appoint members." />
         )}
       </Card>
 
-      {/* Prominent Inline Add Member Card for Admin */}
-      {admin && (
-        <Card title="Add Committee Member (కొత్త సభ్యుని నియామకం)">
-          <form onSubmit={handleSaveAdd} className="member-inline-form">
-            <div className="form-row-grid">
-              <div className="form-group">
-                <label>Full Name (పేరు) *</label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Ramesh Kumar"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Committee Role (బాధ్యత) *</label>
-                <input
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  placeholder="e.g. President, Treasurer, Secretary"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Mobile / WhatsApp Number (ఫోన్)</label>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 9876543210"
-                />
-              </div>
-              <div className="form-group">
-                <label>Photo (ఫోటో - Optional)</label>
-                <input type="file" accept="image/*" onChange={handlePhotoSelect} />
-              </div>
-            </div>
-
-            {photoPreview && (
-              <div style={{ marginTop: '8px', marginBottom: '12px' }}>
-                <img
-                  src={photoPreview}
-                  alt="Preview"
-                  style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover' }}
-                />
-              </div>
-            )}
-
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? 'Saving…' : '➕ Appoint Member (సభ్యుని చేర్చు)'}
-            </Button>
-          </form>
-        </Card>
-      )}
-
-      {/* Add Member Modal (when clicking top button) */}
+      {/* Add Member Modal Popup (Opens cleanly when clicking Add Member) */}
       {isAddModalOpen && (
         <Modal
-          title="Add Committee Member (సభ్యుని చేరిక)"
+          title="Add Committee Member"
           onClose={() => setIsAddModalOpen(false)}
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Full Name (పేరు) *</label>
+              <label>Full Name *</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -303,16 +250,16 @@ export function CommitteeRoster({
               />
             </div>
             <div className="form-group">
-              <label>Committee Role (బాధ్యత) *</label>
+              <label>Committee Role *</label>
               <input
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. President, Treasurer, General Secretary"
+                placeholder="e.g. President, Vice President, Treasurer, Secretary"
                 required
               />
             </div>
             <div className="form-group">
-              <label>Phone / WhatsApp Number (ఫోన్)</label>
+              <label>Mobile / WhatsApp Number</label>
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -320,7 +267,15 @@ export function CommitteeRoster({
               />
             </div>
             <div className="form-group">
-              <label>Profile Photo (ఫోటో)</label>
+              <label>Responsibilities / Notes</label>
+              <input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="e.g. Stage arrangement, Pooja coordinator"
+              />
+            </div>
+            <div className="form-group">
+              <label>Profile Photo (Optional)</label>
               <input type="file" accept="image/*" onChange={handlePhotoSelect} />
               {photoPreview && (
                 <div style={{ marginTop: '8px' }}>
@@ -334,7 +289,7 @@ export function CommitteeRoster({
             </div>
             <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
               <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving…' : 'Add Member'}
+                {isSaving ? 'Saving…' : 'Appoint Member'}
               </Button>
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
@@ -368,10 +323,17 @@ export function CommitteeRoster({
               />
             </div>
             <div className="form-group">
-              <label>Phone</label>
+              <label>Mobile / WhatsApp Number</label>
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Responsibilities / Notes</label>
+              <input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
               />
             </div>
             <div className="form-group">

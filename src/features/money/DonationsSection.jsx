@@ -327,7 +327,7 @@ export function DonationsSection({
           <Form
             fields={donationFields}
             onSubmit={handleAddDonation}
-            submitLabel="Record Contribution (విరాళం నమోదు)"
+            submitLabel="Record Contribution"
           />
         </Card>
       )}

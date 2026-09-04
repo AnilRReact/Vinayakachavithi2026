@@ -123,7 +123,7 @@ export function InventorySection({
           <Form
             fields={purchaseFields}
             onSubmit={handleAddPurchase}
-            submitLabel="Add to Inventory (ఆస్తి నమోదు)"
+            submitLabel="Add to Inventory"
           />
         </Card>
       )}

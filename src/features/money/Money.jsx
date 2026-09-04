@@ -60,35 +60,35 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
           className={`sub-nav-pill ${activeSubTab === 'donations' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('donations')}
         >
-          💰 విరాళాలు (Donations) <span className="pill-count">{donations.length}</span>
+          💰 Donations <span className="pill-count">{donations.length}</span>
         </button>
         <button
           type="button"
           className={`sub-nav-pill ${activeSubTab === 'expenses' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('expenses')}
         >
-          💸 ఖర్చులు (Expenses) <span className="pill-count">{expenses.length}</span>
+          💸 Expenses <span className="pill-count">{expenses.length}</span>
         </button>
         <button
           type="button"
           className={`sub-nav-pill ${activeSubTab === 'sponsors' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('sponsors')}
         >
-          🍯 ప్రసాదాలు (Prasadam) <span className="pill-count">{prasadSponsors.length}</span>
+          🍯 Prasadam Sponsors <span className="pill-count">{prasadSponsors.length}</span>
         </button>
         <button
           type="button"
           className={`sub-nav-pill ${activeSubTab === 'bidding' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('bidding')}
         >
-          🏆 లడ్డూ వేలం (Laddu Auction)
+          🏆 Laddu Auction
         </button>
         <button
           type="button"
           className={`sub-nav-pill ${activeSubTab === 'inventory' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('inventory')}
         >
-          🏷️ ఆస్తులు (Assets / Inventory) <span className="pill-count">{purchases.length}</span>
+          🏷️ Assets & Inventory <span className="pill-count">{purchases.length}</span>
         </button>
       </div>
 

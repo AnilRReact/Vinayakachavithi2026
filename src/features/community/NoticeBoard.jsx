@@ -14,7 +14,7 @@ export function NoticeBoard({
   const { toast } = useToast()
 
   const noticeFields = [
-    { name: 'message', label: 'Notice Message (ప్రకటన సారాంశం)', type: 'textarea', required: true, placeholder: 'Write the announcement here...' },
+    { name: 'message', label: 'Notice Message', type: 'textarea', required: true, placeholder: 'Write the announcement here...' },
     { name: 'pinned', label: 'Pin this notice to top of Overview', type: 'checkbox' },
     { name: 'date', label: 'Notice Date', type: 'date', default: today() }
   ]
@@ -33,7 +33,7 @@ export function NoticeBoard({
 
   return (
     <>
-      <Card title="Public Notice Board & Announcements (ప్రకటనల బోర్డు)">
+      <Card title="Public Notice Board & Announcements">
         <div className="notices-list">
           {notices.map((n) => (
             <article className={`notice-item ${n.pinned ? 'pinned-notice' : ''}`} key={n.id}>
@@ -67,15 +67,14 @@ export function NoticeBoard({
       </Card>
 
       {admin && (
-        <Card title="Publish New Announcement (కొత్త ప్రకటన)">
+        <Card title="Publish New Announcement">
           <Form
             fields={noticeFields}
             onSubmit={handleAddNotice}
-            submitLabel="Publish Announcement (ప్రకటన విడుదల)"
+            submitLabel="Publish Announcement"
           />
         </Card>
       )}
     </>
   )
 }
-

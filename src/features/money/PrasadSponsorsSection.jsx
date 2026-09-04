@@ -123,7 +123,7 @@ export function PrasadSponsorsSection({
           <Form
             fields={sponsorFields}
             onSubmit={handleAddSponsor}
-            submitLabel="Record Sponsor (ప్రసాద దాత నమోదు)"
+            submitLabel="Record Sponsor"
           />
         </Card>
       )}
