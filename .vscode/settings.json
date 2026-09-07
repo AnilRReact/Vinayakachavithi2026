@@ -1,0 +1,1 @@
+{" git.autorefresh\: true, \git.autoStash\: true, \git.showProgress\: false, \files.watcherExclude\: {\**/.git/objects/**\: true, \**/.git/subtree-cache/**\: true, \**/node_modules/*/**\: true, \**/dist/**\: true}}
