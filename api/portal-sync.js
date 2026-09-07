@@ -7,7 +7,7 @@
 const DEFAULT_GDRIVE_WEBHOOK =
   process.env.VITE_GOOGLE_DRIVE_UPLOAD_URL ||
   process.env.GOOGLE_DRIVE_UPLOAD_URL ||
-  'https://script.google.com/macros/s/AKfycbw3O382NowkBlPVFSfGbMEOM5SOw453GXbYLJQl5pmpFSTBfEHIvV2ok5UvoHH-wgIkEA/exec'
+  'https://script.google.com/macros/s/AKfycbx1uG_Vy7dQDjUbzUHEtvRC8v8bQa7WVQ090PO8RaJo2LeirNa4B4Y9VpZojEyci51G/exec'
 
 // Fallback seed database for fresh instances
 const SEED_DATABASE = {

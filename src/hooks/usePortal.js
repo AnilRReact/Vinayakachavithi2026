@@ -28,7 +28,7 @@ const DEFAULT_SETTINGS = [
     morning_aarti_time: '06:30 AM',
     evening_aarti_time: '07:30 PM',
     daily_schedule_note: 'Daily Pooja & Maha Harathi every morning & evening. All devotees are welcome.',
-    google_drive_upload_url: 'https://script.google.com/macros/s/AKfycbw3O382NowkBlPVFSfGbMEOM5SOw453GXbYLJQl5pmpFSTBfEHIvV2ok5UvoHH-wgIkEA/exec'
+    google_drive_upload_url: 'https://script.google.com/macros/s/AKfycbx1uG_Vy7dQDjUbzUHEtvRC8v8bQa7WVQ090PO8RaJo2LeirNa4B4Y9VpZojEyci51G/exec'
   }
 ]
 

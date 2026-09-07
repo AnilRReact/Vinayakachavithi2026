@@ -97,7 +97,7 @@ function GoogleDriveSettingsCard({ settings, data, syncAllToCloud, refresh }) {
 
   const webhookUrl =
     settings.google_drive_upload_url ||
-    'https://script.google.com/macros/s/AKfycbw3O382NowkBlPVFSfGbMEOM5SOw453GXbYLJQl5pmpFSTBfEHIvV2ok5UvoHH-wgIkEA/exec'
+    'https://script.google.com/macros/s/AKfycbx1uG_Vy7dQDjUbzUHEtvRC8v8bQa7WVQ090PO8RaJo2LeirNa4B4Y9VpZojEyci51G/exec'
 
   const gasCode = `/**
  * Sri Vinayaka Vedika 2026 - Master Google Drive & Cloud Database Script

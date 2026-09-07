@@ -51,7 +51,7 @@ export async function compressImage(file, maxDim = 1200, quality = 0.84) {
   })
 }
 
-const DEFAULT_GDRIVE_WEBHOOK = 'https://script.google.com/macros/s/AKfycbw3O382NowkBlPVFSfGbMEOM5SOw453GXbYLJQl5pmpFSTBfEHIvV2ok5UvoHH-wgIkEA/exec'
+const DEFAULT_GDRIVE_WEBHOOK = 'https://script.google.com/macros/s/AKfycbx1uG_Vy7dQDjUbzUHEtvRC8v8bQa7WVQ090PO8RaJo2LeirNa4B4Y9VpZojEyci51G/exec'
 
 /**
  * Uploads an image or video to Google Drive via serverless proxy / direct Google Apps Script
