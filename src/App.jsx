@@ -127,7 +127,13 @@ function AppContent() {
         return <Help data={data} />
       case 'Settings':
         return isAdmin ? (
-          <Settings data={data} add={add} update={update} />
+          <Settings
+            data={data}
+            add={add}
+            update={update}
+            syncAllToCloud={portal.syncAllToCloud}
+            refresh={portal.refresh}
+          />
         ) : (
           <Overview data={data} admin={isAdmin} add={add} update={update} remove={remove} onNavigate={setTab} />
         )

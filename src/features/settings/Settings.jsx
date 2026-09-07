@@ -6,7 +6,7 @@ import { usePasscode } from '../../hooks/usePasscode'
 import { today } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
 
-export function Settings({ data, add, update }) {
+export function Settings({ data, add, update, syncAllToCloud, refresh }) {
   const { toast } = useToast()
   const settings = data.settings?.[0] || {}
   const [excelModalOpen, setExcelModalOpen] = useState(false)
@@ -63,7 +63,12 @@ export function Settings({ data, add, update }) {
       </Card>
 
       <ExcelManagerCard data={data} onOpenImport={openExcelModal} />
-      <GoogleDriveSettingsCard settings={settings} />
+      <GoogleDriveSettingsCard
+        settings={settings}
+        data={data}
+        syncAllToCloud={syncAllToCloud}
+        refresh={refresh}
+      />
       <PasscodeSettings />
       <BackupButton data={data} />
 
@@ -83,24 +88,133 @@ export function Settings({ data, add, update }) {
   )
 }
 
-function GoogleDriveSettingsCard({ settings }) {
+function GoogleDriveSettingsCard({ settings, data, syncAllToCloud, refresh }) {
+  const { toast } = useToast()
   const [copied, setCopied] = useState(false)
+  const [isTesting, setIsTesting] = useState(false)
+  const [testResult, setTestResult] = useState(null)
+  const [isSyncing, setIsSyncing] = useState(false)
 
-  const gasCode = `function doPost(e) {
+  const webhookUrl =
+    settings.google_drive_upload_url ||
+    'https://script.google.com/macros/s/AKfycbw3O382NowkBlPVFSfGbMEOM5SOw453GXbYLJQl5pmpFSTBfEHIvV2ok5UvoHH-wgIkEA/exec'
+
+  const gasCode = `/**
+ * Sri Vinayaka Vedika 2026 - Master Google Drive & Cloud Database Script
+ */
+var MASTER_DB_FILENAME = 'vinayaka_vedika_cloud_db.json';
+
+function loadDatabase() {
+  var props = PropertiesService.getScriptProperties();
+  var raw = props.getProperty('VV_CLOUD_DATABASE');
+  if (raw) {
+    try { return JSON.parse(raw); } catch (e) {}
+  }
   try {
-    var data = JSON.parse(e.postData.contents);
-    var folder = DriveApp.getRootFolder(); // Or DriveApp.getFolderById("YOUR_FOLDER_ID");
-    var decoded = Utilities.base64Decode(data.base64);
-    var blob = Utilities.newBlob(decoded, data.mimeType || 'image/jpeg', data.filename || 'ganesh-photo.jpg');
-    var file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return ContentService.createTextOutput(JSON.stringify({
-      success: true,
-      fileId: file.getId(),
-      url: "https://lh3.googleusercontent.com/d/" + file.getId()
-    })).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.message })).setMimeType(ContentService.MimeType.JSON);
+    var files = DriveApp.getFilesByName(MASTER_DB_FILENAME);
+    if (files.hasNext()) {
+      var file = files.next();
+      var content = file.getBlob().getDataAsString();
+      if (content) {
+        var parsed = JSON.parse(content);
+        props.setProperty('VV_CLOUD_DATABASE', JSON.stringify(parsed));
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return {};
+}
+
+function persistDatabase(db) {
+  var jsonString = JSON.stringify(db, null, 2);
+  try { PropertiesService.getScriptProperties().setProperty('VV_CLOUD_DATABASE', jsonString); } catch (e) {}
+  try {
+    var files = DriveApp.getFilesByName(MASTER_DB_FILENAME);
+    if (files.hasNext()) {
+      files.next().setContent(jsonString);
+    } else {
+      var newFile = DriveApp.createFile(MASTER_DB_FILENAME, jsonString, MimeType.PLAIN_TEXT);
+      newFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    }
+  } catch (e) {}
+}
+
+function jsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  try {
+    return jsonResponse({ success: true, data: loadDatabase() });
+  } catch (err) {
+    return jsonResponse({ success: false, error: err.message });
+  }
+}
+
+function doPost(e) {
+  try {
+    if (!e || !e.postData || !e.postData.contents) return jsonResponse({ error: 'No data' });
+    var payload = JSON.parse(e.postData.contents);
+
+    // 1. File / Photo / Video Upload to Google Drive
+    if (payload.base64 && payload.filename) {
+      var folder = DriveApp.getRootFolder();
+      var decoded = Utilities.base64Decode(payload.base64);
+      var blob = Utilities.newBlob(decoded, payload.mimeType || 'image/jpeg', payload.filename);
+      var file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      return jsonResponse({
+        success: true,
+        fileId: file.getId(),
+        url: "https://lh3.googleusercontent.com/d/" + file.getId()
+      });
+    }
+
+    // 2. Database Real-time Sync
+    var action = payload.action || 'get_all';
+    var table = payload.table;
+    var record = payload.record;
+    var id = payload.id;
+    var db = loadDatabase();
+
+    if (action === 'get_all' || action === 'read') return jsonResponse({ success: true, data: db });
+
+    if (action === 'bulk_sync' && payload.allData) {
+      Object.keys(payload.allData).forEach(function(tbl) {
+        if (Array.isArray(payload.allData[tbl])) db[tbl] = payload.allData[tbl];
+      });
+      persistDatabase(db);
+      return jsonResponse({ success: true, data: db });
+    }
+
+    if (!table) return jsonResponse({ error: 'Table required' });
+    if (!db[table]) db[table] = [];
+
+    if (action === 'add' && record) {
+      var newRecord = Object.assign({
+        id: record.id || ('cloud_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
+        created_at: record.created_at || new Date().toISOString()
+      }, record);
+      db[table] = [newRecord].concat(db[table].filter(function(i) { return i.id !== newRecord.id; }));
+      persistDatabase(db);
+      return jsonResponse({ success: true, record: newRecord, data: db[table] });
+    }
+
+    if (action === 'update' && id && record) {
+      db[table] = db[table].map(function(i) { return i.id === id ? Object.assign({}, i, record) : i; });
+      persistDatabase(db);
+      return jsonResponse({ success: true, data: db[table] });
+    }
+
+    if (action === 'delete' && id) {
+      db[table] = db[table].filter(function(i) { return i.id !== id; });
+      persistDatabase(db);
+      return jsonResponse({ success: true, data: db[table] });
+    }
+
+    return jsonResponse({ error: 'Invalid action' });
+  } catch (err) {
+    return jsonResponse({ success: false, error: err.message });
   }
 }`
 
@@ -110,46 +224,134 @@ function GoogleDriveSettingsCard({ settings }) {
     setTimeout(() => setCopied(false), 2500)
   }
 
+  const handleTestConnection = async () => {
+    setIsTesting(true)
+    setTestResult(null)
+    try {
+      const res = await fetch('/api/portal-sync', { method: 'GET' })
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}`)
+      const json = await res.json()
+      if (json && json.success) {
+        setTestResult({
+          status: 'success',
+          msg: '✅ Real-time Cloud Sync API is live and responding!'
+        })
+        toast.success('Cloud Database connection verified!')
+      } else {
+        setTestResult({
+          status: 'warn',
+          msg: '⚠️ Webhook responded but returned unexpected payload. Ensure the latest Google Apps Script code is deployed.'
+        })
+      }
+    } catch (err) {
+      setTestResult({
+        status: 'error',
+        msg: `❌ Webhook connection error: ${err.message || 'Network error'}`
+      })
+      toast.error('Failed to reach cloud database.')
+    } finally {
+      setIsTesting(false)
+    }
+  }
+
+  const handleSyncAllToGoogleDrive = async () => {
+    setIsSyncing(true)
+    try {
+      if (syncAllToCloud) {
+        const err = await syncAllToCloud(data)
+        if (err) throw err
+      } else {
+        const res = await fetch('/api/portal-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'bulk_sync', allData: data })
+        })
+        if (!res.ok) throw new Error('Cloud push failed.')
+      }
+      toast.success('🚀 All database records pushed to Google Drive cloud!')
+    } catch (err) {
+      toast.error(err.message || 'Could not push all records.')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
+
   return (
     <Card
       title={
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span>📁</span>
-          <span>Google Drive Cloud Storage (15 GB Free)</span>
+          <span>Google Drive Cloud Storage & Real-Time Sync</span>
         </div>
       }
     >
       <p className="muted" style={{ marginBottom: '12px' }}>
-        Store infinite festival photos, videos, and albums directly on your personal or committee Google Drive account.
+        All data entered on any mobile phone, tablet, or laptop is automatically synchronized in real-time and stored directly on your personal <b>Google Drive</b>.
       </p>
 
+      {/* Sync Action Buttons */}
+      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <Button
+          type="button"
+          onClick={handleSyncAllToGoogleDrive}
+          disabled={isSyncing}
+          style={{ background: '#15803d', borderColor: '#166534' }}
+        >
+          {isSyncing ? 'Pushing Data…' : '☁️ Push All Local Data to Google Drive'}
+        </Button>
+
+        <Button
+          type="button"
+          kind="secondary"
+          onClick={handleTestConnection}
+          disabled={isTesting}
+        >
+          {isTesting ? 'Testing…' : '🔌 Test Cloud Connection'}
+        </Button>
+      </div>
+
+      {testResult && (
+        <div
+          style={{
+            padding: '10px 14px',
+            borderRadius: '8px',
+            marginBottom: '14px',
+            fontSize: '0.88rem',
+            fontWeight: '600',
+            background: testResult.status === 'success' ? '#dcfce7' : testResult.status === 'warn' ? '#fef3c7' : '#fee2e2',
+            color: testResult.status === 'success' ? '#166534' : testResult.status === 'warn' ? '#92400e' : '#991b1b',
+            border: `1px solid ${testResult.status === 'success' ? '#86efac' : testResult.status === 'warn' ? '#fde68a' : '#fca5a5'}`
+          }}
+        >
+          {testResult.msg}
+        </div>
+      )}
+
       <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '14px', marginBottom: '14px' }}>
-        <h4 style={{ margin: '0 0 8px', color: '#1e293b', fontSize: '0.95rem' }}>✨ 2 Easy Ways to Use Google Drive:</h4>
+        <h4 style={{ margin: '0 0 8px', color: '#1e293b', fontSize: '0.95rem' }}>✨ 3 Easy Steps to Connect Google Drive:</h4>
         <ol style={{ margin: '0', paddingLeft: '20px', fontSize: '0.86rem', lineHeight: '1.6', color: '#475569' }}>
           <li>
-            <b>Direct Link Paste (No setup needed)</b>: Create a Google Drive folder or upload photos to Drive. Copy the share link (e.g. <code>https://drive.google.com/file/d/...</code>) and paste it into the <b>Memories</b> tab. It will instantly render and stream via Google CDN!
+            Open <a href="https://script.google.com" target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'underline', fontWeight: '700' }}>script.google.com</a> and create a new project.
           </li>
           <li>
-            <b>Automated In-App Upload Webhook (1-minute setup)</b>: Deploy a free Google Apps Script web app so when anyone uploads a photo in the portal, it saves directly into your Google Drive folder!
+            Copy the <b>Master Script Code</b> below and paste it into the code editor.
+          </li>
+          <li>
+            Click <b>Deploy &gt; New deployment &gt; Select type: Web App</b>, set <i>Execute as: Me</i> and <i>Who has access: Anyone</i>, and click <b>Deploy</b>.
           </li>
         </ol>
       </div>
 
       <details style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '12px' }}>
         <summary style={{ fontWeight: '700', color: '#7c2414', cursor: 'pointer', fontSize: '0.88rem' }}>
-          📋 Click to view 1-Minute Google Apps Script Code
+          📋 Click to view & copy Master Google Apps Script Code
         </summary>
         <div style={{ marginTop: '10px' }}>
-          <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 8px' }}>
-            1. Open <a href="https://script.google.com" target="_blank" rel="noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>script.google.com</a> and click <b>New project</b>.<br />
-            2. Paste the code below, then click <b>Deploy &gt; New deployment &gt; Select type: Web App</b>.<br />
-            3. Set <i>Execute as: Me</i> and <i>Who has access: Anyone</i>, then copy the Web App URL into the setting above.
-          </p>
-          <pre style={{ background: '#0f172a', color: '#f8fafc', padding: '12px', borderRadius: '6px', fontSize: '0.78rem', overflowX: 'auto' }}>
+          <pre style={{ background: '#0f172a', color: '#f8fafc', padding: '12px', borderRadius: '6px', fontSize: '0.78rem', overflowX: 'auto', maxHeight: '280px' }}>
             {gasCode}
           </pre>
           <Button type="button" size="small" onClick={handleCopyCode}>
-            {copied ? '✓ Code Copied!' : '📋 Copy Google Apps Script Code'}
+            {copied ? '✓ Code Copied!' : '📋 Copy Master Google Apps Script Code'}
           </Button>
         </div>
       </details>

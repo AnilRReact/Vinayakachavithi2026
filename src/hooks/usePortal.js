@@ -78,9 +78,9 @@ export function usePortal() {
 
   // Master synchronization function
   const refresh = useCallback(async () => {
-    // 1. Try Central Serverless Sync API (/api/portal-sync)
+    // 1. Fetch from Central Serverless Cloud Sync API (/api/portal-sync)
     try {
-      const res = await withTimeout(fetch('/api/portal-sync', { method: 'GET' }), 3500)
+      const res = await withTimeout(fetch('/api/portal-sync', { method: 'GET' }), 4000)
       if (res && res.ok) {
         const json = await res.json()
         if (json && json.data) {
@@ -88,7 +88,7 @@ export function usePortal() {
           setData((prev) => {
             const next = { ...prev }
             TABLES.forEach((table) => {
-              if (Array.isArray(cloudData[table]) && cloudData[table].length > 0) {
+              if (Array.isArray(cloudData[table])) {
                 next[table] = cloudData[table]
                 setLocalTable(table, cloudData[table])
               }
@@ -339,6 +339,21 @@ export function usePortal() {
     return null
   }
 
+  const syncAllToCloud = async (customData) => {
+    const payloadData = customData || data
+    try {
+      const res = await fetch('/api/portal-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'bulk_sync', allData: payloadData })
+      })
+      if (!res.ok) throw new Error('Failed to push data to cloud.')
+      return null
+    } catch (err) {
+      return err
+    }
+  }
+
   return {
     data,
     loading,
@@ -348,6 +363,8 @@ export function usePortal() {
     remove,
     refresh,
     recordBid,
-    closeBid
+    closeBid,
+    syncAllToCloud
   }
 }
+
