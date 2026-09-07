@@ -9,6 +9,7 @@ import { useToast } from '../../context/ToastContext'
 export function Settings({ data, add, update, syncAllToCloud, refresh }) {
   const { toast } = useToast()
   const settings = data.settings?.[0] || {}
+  const [activeCategory, setActiveCategory] = useState('pandal')
   const [excelModalOpen, setExcelModalOpen] = useState(false)
   const [excelSegment, setExcelSegment] = useState('donations')
 
@@ -17,60 +18,177 @@ export function Settings({ data, add, update, syncAllToCloud, refresh }) {
     setExcelModalOpen(true)
   }
 
-  const saveFestivalSettings = async (values) => {
+  const saveSettingsSegment = async (values) => {
     try {
+      const merged = { ...settings, ...values }
       const err = settings.id
-        ? await update('settings', settings.id, values)
-        : await add('settings', values)
+        ? await update('settings', settings.id, merged)
+        : await add('settings', merged)
       if (err) {
         toast.error(err.message || 'Failed to save settings.')
       } else {
-        toast.success('Festival settings updated.')
+        toast.success('Customization saved to cloud!')
       }
     } catch (err) {
       toast.error(err.message || 'Failed to save settings.')
     }
   }
 
-  const settingsFields = [
-    { name: 'village_name', label: 'Village / Colony Name', default: settings.village_name || 'Vinayaka Vedika', required: true },
-    { name: 'tagline', label: 'Festival Tagline', default: settings.tagline || 'Our village celebration, in one place.' },
-    { name: 'festival_date', label: 'Festival Date (Vinayaka Chavithi)', type: 'date', default: settings.festival_date || today() },
-    { name: 'upi_id', label: 'UPI Payment ID (for QR donations)', default: settings.upi_id || '' },
-    { name: 'morning_aarti_time', label: 'Morning Aarti Time', type: 'time', default: settings.morning_aarti_time || '' },
-    { name: 'evening_aarti_time', label: 'Evening Aarti Time', type: 'time', default: settings.evening_aarti_time || '' },
-    { name: 'daily_schedule_note', label: 'Daily Schedule Note / Special Rules', default: settings.daily_schedule_note || '' },
-    { name: 'google_drive_folder_url', label: 'Google Drive Shared Photos Folder Link', default: settings.google_drive_folder_url || '' },
-    { name: 'google_drive_upload_url', label: 'Google Apps Script Upload Webhook URL (Optional for direct Drive uploads)', default: settings.google_drive_upload_url || '' },
-    { name: 'em_doctor_name', label: 'Emergency Doctor Name', default: settings.em_doctor_name || '' },
-    { name: 'em_doctor_phone', label: 'Emergency Doctor Phone', type: 'tel', default: settings.em_doctor_phone || '' },
-    { name: 'em_police_phone', label: 'Police Station / Patrol Phone', type: 'tel', default: settings.em_police_phone || '' },
-    { name: 'em_coord_name', label: 'Key Coordinator Name', default: settings.em_coord_name || '' },
-    { name: 'em_coord_phone', label: 'Key Coordinator Phone', type: 'tel', default: settings.em_coord_phone || '' }
+  const pandalFields = [
+    { name: 'village_name', label: 'Village / Colony / Pandal Name', default: settings.village_name || 'Vinayaka Vedika 2026', required: true },
+    { name: 'tagline', label: 'Festival Tagline / Devotional Slogan', default: settings.tagline || 'Our village celebration, in one place.' },
+    { name: 'festival_date', label: 'Festival Start Date (Vinayaka Chavithi)', type: 'date', default: settings.festival_date || today(), required: true },
+    { name: 'pandal_address', label: 'Pandal Stage Location / Landmark Address', default: settings.pandal_address || 'Main Village Stage, Near Temple', placeholder: 'e.g. Main Junction Stage' },
+    { name: 'maps_url', label: 'Google Maps Directions Link (URL)', default: settings.maps_url || '', placeholder: 'https://maps.google.com/?q=...' },
+    { name: 'idol_details', label: 'Idol Specifications / Eco-Details', default: settings.idol_details || '12-Foot Sacred Clay Idol', placeholder: 'e.g. 15 Feet Eco-Friendly Clay Ganesha' }
+  ]
+
+  const moneyFields = [
+    { name: 'upi_id', label: 'UPI Payment ID (for QR donations)', default: settings.upi_id || '', placeholder: 'e.g. temple@okaxis, 9876543210@upi' },
+    { name: 'receipt_org_name', label: 'Official Receipt Header Organization Name', default: settings.receipt_org_name || settings.village_name || 'Sri Vinayaka Utsava Samithi 2026', placeholder: 'e.g. Sri Varasiddhi Vinayaka Utsava Samithi' },
+    { name: 'receipt_note', label: 'Receipt Footer Blessing Message', default: settings.receipt_note || 'May Lord Ganesha shower prosperity and happiness on your family.', placeholder: 'Blessing message' }
+  ]
+
+  const timingFields = [
+    { name: 'morning_aarti_time', label: 'Morning Aarti & Pooja Time', type: 'time', default: settings.morning_aarti_time || '06:30' },
+    { name: 'evening_aarti_time', label: 'Evening Bhajan & Maha Harathi Time', type: 'time', default: settings.evening_aarti_time || '19:30' },
+    { name: 'daily_schedule_note', label: 'Daily Schedule & Pandal Instructions Notice', type: 'textarea', default: settings.daily_schedule_note || 'Daily Pooja & Maha Harathi every morning & evening. All devotees are cordially invited.', placeholder: 'Rules, timings, annadanam timings...' },
+    { name: 'procession_start_location', label: 'Shobha Yatra Starting Point', default: settings.procession_start_location || 'Main Village Pandal Stage', placeholder: 'e.g. Main Pandal Stage' },
+    { name: 'immersion_destination', label: 'Nimajjanam (Immersion) Destination Ghat', default: settings.immersion_destination || 'Village Lake Ghat', placeholder: 'e.g. Local River Ghat / Lake' },
+    { name: 'procession_route_note', label: 'Live Procession Route Landmarks', default: settings.procession_route_note || 'Main Road → Bus Stand → Bazaar Street → Lake Ghat', placeholder: 'Route stops' }
+  ]
+
+  const emergencyFields = [
+    { name: 'em_doctor_name', label: 'Emergency Medical Officer / Doctor Name', default: settings.em_doctor_name || '', placeholder: 'Dr. Ramesh' },
+    { name: 'em_doctor_phone', label: 'Emergency Doctor Contact Number', type: 'tel', default: settings.em_doctor_phone || '', placeholder: '9876543210' },
+    { name: 'em_police_phone', label: 'Local Police Station / Patrol Help Number', type: 'tel', default: settings.em_police_phone || '', placeholder: '100 / 9876543210' },
+    { name: 'em_coord_name', label: 'Key Festival Coordinator Name', default: settings.em_coord_name || '', placeholder: 'Suresh Reddy' },
+    { name: 'em_coord_phone', label: 'Key Coordinator Mobile Number', type: 'tel', default: settings.em_coord_phone || '', placeholder: '9876543210' }
   ]
 
   return (
     <>
-      <Card title="Committee & Festival Settings">
-        <p className="muted">
-          Update village name, aarti timings, UPI payment details, Google Drive storage, and emergency contacts.
+      <div className="settings-customization-hub">
+        <h2 style={{ margin: '0 0 6px', color: '#7c2414', fontSize: '1.45rem', fontWeight: '800' }}>
+          ⚙️ Festival Customization Center
+        </h2>
+        <p className="muted" style={{ margin: '0 0 16px', fontSize: '0.88rem' }}>
+          Customize every segment, title, payment mode, pooja schedule, and cloud storage setting across the entire portal.
         </p>
-        <Form
-          submit="Save Festival Settings"
-          onSubmit={saveFestivalSettings}
-          fields={settingsFields}
-        />
-      </Card>
 
-      <ExcelManagerCard data={data} onOpenImport={openExcelModal} />
-      <GoogleDriveSettingsCard
-        settings={settings}
-        data={data}
-        syncAllToCloud={syncAllToCloud}
-        refresh={refresh}
-      />
-      <PasscodeSettings />
-      <BackupButton data={data} />
+        {/* Customization Category Nav Tabs */}
+        <div className="settings-category-tabs" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', marginBottom: '18px', scrollbarWidth: 'none' }}>
+          {[
+            { id: 'pandal', label: '🏛️ Pandal & Hero', icon: '🏛️' },
+            { id: 'money', label: '💰 Money & UPI', icon: '💰' },
+            { id: 'timings', label: '📅 Timings & Route', icon: '📅' },
+            { id: 'emergency', label: '🚨 Safety & Contacts', icon: '🚨' },
+            { id: 'cloud', label: '📁 Google Drive Cloud', icon: '📁' },
+            { id: 'excel', label: '📊 Excel Batch Manager', icon: '📊' },
+            { id: 'security', label: '🔒 Passcode & Backup', icon: '🔒' }
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => setActiveCategory(cat.id)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: '999px',
+                border: activeCategory === cat.id ? '1.5px solid #d97706' : '1px solid #e2e8f0',
+                background: activeCategory === cat.id ? 'linear-gradient(135deg, #a82e18 0%, #701c0d 100%)' : '#ffffff',
+                color: activeCategory === cat.id ? '#ffffff' : '#334155',
+                fontWeight: '700',
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                boxShadow: activeCategory === cat.id ? '0 2px 8px rgba(168, 46, 24, 0.25)' : 'none',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Category 1: Pandal & Hero Showcase Customizer */}
+        {activeCategory === 'pandal' && (
+          <Card title="🏛️ Pandal Theme & Hero Showcase Customization">
+            <p className="muted">
+              Configure village name, festival slogan, countdown start date, idol specs, and GPS map directions.
+            </p>
+            <Form
+              submit="Save Pandal Settings"
+              onSubmit={saveSettingsSegment}
+              fields={pandalFields}
+            />
+          </Card>
+        )}
+
+        {/* Category 2: Money & UPI Collections Customizer */}
+        {activeCategory === 'money' && (
+          <Card title="💰 Money, UPI Payments & Receipt Customization">
+            <p className="muted">
+              Configure your UPI payment QR ID, official receipt header, and donor blessing notes.
+            </p>
+            <Form
+              submit="Save Payment & Receipt Settings"
+              onSubmit={saveSettingsSegment}
+              fields={moneyFields}
+            />
+          </Card>
+        )}
+
+        {/* Category 3: Pooja Timings & Shobha Yatra Customizer */}
+        {activeCategory === 'timings' && (
+          <Card title="📅 Pooja Timings, Aarti & Procession Route Customization">
+            <p className="muted">
+              Update morning/evening aarti hours, daily pandal notices, and immersion procession route stops.
+            </p>
+            <Form
+              submit="Save Timings & Route Settings"
+              onSubmit={saveSettingsSegment}
+              fields={timingFields}
+            />
+          </Card>
+        )}
+
+        {/* Category 4: Emergency Contacts */}
+        {activeCategory === 'emergency' && (
+          <Card title="🚨 Emergency Contacts & Public Safety">
+            <p className="muted">
+              Emergency contacts displayed in the Help tab and shared with committee members.
+            </p>
+            <Form
+              submit="Save Emergency Contacts"
+              onSubmit={saveSettingsSegment}
+              fields={emergencyFields}
+            />
+          </Card>
+        )}
+
+        {/* Category 5: Google Drive Cloud Database Hub */}
+        {activeCategory === 'cloud' && (
+          <GoogleDriveSettingsCard
+            settings={settings}
+            data={data}
+            syncAllToCloud={syncAllToCloud}
+            refresh={refresh}
+          />
+        )}
+
+        {/* Category 6: Excel Batch Manager */}
+        {activeCategory === 'excel' && (
+          <ExcelManagerCard data={data} onOpenImport={openExcelModal} />
+        )}
+
+        {/* Category 7: Security & Backup */}
+        {activeCategory === 'security' && (
+          <>
+            <PasscodeSettings />
+            <BackupButton data={data} />
+          </>
+        )}
+      </div>
 
       {excelModalOpen && (
         <ExcelImportModal
