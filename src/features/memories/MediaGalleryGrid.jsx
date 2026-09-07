@@ -196,7 +196,6 @@ export function MediaGalleryGrid({
                           <small className="gallery-date">📅 {fmtDate(item.date)}</small>
                         </div>
 
-                        {admin && (
                           <div className="gallery-card-actions">
                             <button
                               type="button"
@@ -215,7 +214,6 @@ export function MediaGalleryGrid({
                               🗑️
                             </button>
                           </div>
-                        )}
                       </div>
                     </article>
                   )

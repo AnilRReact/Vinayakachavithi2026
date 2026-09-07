@@ -10,7 +10,7 @@ import {
 import { useToast } from '../context/ToastContext'
 
 export function ReceiptTemplateModal({
-  isOpen,
+  isOpen = true,
   onClose,
   donation,
   sponsor,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Card, Empty, Form, Button, ConfirmModal } from '../../components/ui'
+import { Card, Empty, Form, Button, Modal, ConfirmModal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { currency } from '../../lib/formatters'
@@ -14,11 +14,18 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
   const [busyBidId, setBusyBidId] = useState(null)
   const [itemToClose, setItemToClose] = useState(null)
   const [selectedAuctionForCard, setSelectedAuctionForCard] = useState(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
+  // Add auction item form state
+  const [itemName, setItemName] = useState('')
+  const [description, setDescription] = useState('')
+  const [startingBid, setStartingBid] = useState('')
+  const [isSavingItem, setIsSavingItem] = useState(false)
 
   const bidItemFields = [
-    { name: 'item_name', label: 'Item Name / Description', required: true, placeholder: 'e.g. Laddu Prasadam, Silver Coin' },
+    { name: 'item_name', label: 'Item Name / Description', required: true, placeholder: 'e.g. Maha Laddu Prasadam, Silver Coin' },
     { name: 'description', label: 'Item Details', type: 'textarea', placeholder: 'Special characteristics, weight, sponsor details...' },
-    { name: 'starting_bid', label: 'Starting Bid (₹)', type: 'number', min: '1', required: true, placeholder: '500' }
+    { name: 'starting_bid', label: 'Starting Bid (₹)', type: 'number', min: '1', required: true, placeholder: '5000' }
   ]
 
   const submitBid = async (item) => {
@@ -61,46 +68,56 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
     setItemToClose(null)
   }
 
-  const handleAddBidItem = async (values) => {
-    const startingBid = Number(values.starting_bid)
-    const err = await add('bid_items', {
-      ...values,
-      starting_bid: startingBid,
-      current_bid: startingBid,
-      status: 'open'
-    })
-    if (err) {
+  const handleOpenAdd = () => {
+    setItemName('')
+    setDescription('')
+    setStartingBid('5000')
+    setIsAddModalOpen(true)
+  }
+
+  const handleSaveAddItem = async (e) => {
+    if (e) e.preventDefault()
+    const cleanName = itemName.trim()
+    const numStarting = Number(startingBid)
+
+    if (!cleanName || isNaN(numStarting) || numStarting <= 0) {
+      toast.error('Please enter valid item name and starting bid.')
+      return
+    }
+
+    setIsSavingItem(true)
+    try {
+      const err = await add('bid_items', {
+        item_name: cleanName,
+        description: description.trim() || 'Traditional Festival Auction Item',
+        starting_bid: numStarting,
+        current_bid: numStarting,
+        current_bidder: '',
+        status: 'open'
+      })
+
+      if (err) throw err
+
+      toast.success(`Added "${cleanName}" to auction list!`)
+      setIsAddModalOpen(false)
+    } catch (err) {
       toast.error(err.message || 'Failed to add auction item.')
-    } else {
-      toast.success('Auction item added.')
-    }
-  }
-
-  const handleUpdateBidItem = async (id, values) => {
-    const err = await update('bid_items', id, {
-      ...values,
-      starting_bid: Number(values.starting_bid)
-    })
-    if (err) {
-      toast.error(err.message || 'Failed to update auction item.')
-    } else {
-      toast.success('Auction item updated.')
-    }
-  }
-
-  const handleDeleteBidItem = async (id) => {
-    const err = await remove('bid_items', id)
-    if (err) {
-      toast.error(err.message || 'Failed to remove auction item.')
-    } else {
-      toast.success('Auction item removed.')
+    } finally {
+      setIsSavingItem(false)
     }
   }
 
   return (
-    <Card title="Day 3 Bidding & Auction">
+    <Card
+      title="Day 3 Bidding & Laddu Auction"
+      action={
+        <Button onClick={handleOpenAdd}>
+          ➕ Add Auction Item
+        </Button>
+      }
+    >
       <p className="muted">
-        Special items, Laddu prasadam, and traditional festival auction records.
+        Special items, Maha Laddu prasadam, and traditional festival auction records.
       </p>
 
       <div className="auctions-list">
@@ -121,16 +138,19 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
                     {isOpen ? '● Bidding Open' : '✓ Closed'}
                   </span>
                 </div>
-                {admin && (
-                  <RecordActions
-                    record={item}
-                    fields={bidItemFields}
-                    onSave={(values) => handleUpdateBidItem(item.id, values)}
-                    onDelete={() => handleDeleteBidItem(item.id)}
-                    deleteTitle="Remove Auction Item"
-                    deleteMessage={`Are you sure you want to remove "${item.item_name}" from the auction list?`}
-                  />
-                )}
+                <RecordActions
+                  record={item}
+                  fields={bidItemFields}
+                  onSave={(values) =>
+                    update('bid_items', item.id, {
+                      ...values,
+                      starting_bid: Number(values.starting_bid)
+                    })
+                  }
+                  onDelete={() => remove('bid_items', item.id)}
+                  deleteTitle="Remove Auction Item"
+                  deleteMessage={`Are you sure you want to remove "${item.item_name}" from the auction list?`}
+                />
               </div>
 
               {item.description && <p className="auction-desc">{item.description}</p>}
@@ -156,7 +176,7 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
                         phone: '',
                         amount: item.current_bid,
                         item: item.item_name,
-                        villageName: (data.settings?.[0] || {}).festival_title || 'శ్రీ వినాయక ఉత్సవ కమిటీ 2026'
+                        villageName: (data.settings?.[0] || {}).village_name || 'Sri Vinayaka Utsava Committee 2026'
                       })
                     }}
                     title="Send WhatsApp congratulations to winner"
@@ -190,7 +210,7 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
                 </div>
               )}
 
-              {admin && isOpen && (
+              {isOpen && (
                 <div className="bid-form-wrapper">
                   <h4>Record Incoming Bid</h4>
                   <div className="bid-form">
@@ -248,18 +268,60 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
       </div>
 
       {!bidItems.length && (
-        <Empty>Bid items will be listed here during the festival auction.</Empty>
+        <Empty>Bid items will be listed here during the festival auction. Click 'Add Auction Item' above.</Empty>
       )}
 
-      {admin && (
-        <div style={{ marginTop: '24px' }}>
-          <h4>Add New Auction Item</h4>
-          <Form
-            submit="Add Bid Item"
-            onSubmit={handleAddBidItem}
-            fields={bidItemFields}
-          />
-        </div>
+      {/* Add Auction Item Modal */}
+      {isAddModalOpen && (
+        <Modal
+          title="Add New Auction Item"
+          onClose={() => setIsAddModalOpen(false)}
+        >
+          <form onSubmit={handleSaveAddItem} className="member-form">
+            <div className="form-group">
+              <label>Item Name / Description *</label>
+              <input
+                value={itemName}
+                onChange={(e) => setItemName(e.target.value)}
+                placeholder="e.g. Special Maha Laddu Prasadam (21 Kg)"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Starting Bid (₹) *</label>
+              <input
+                type="number"
+                min="1"
+                value={startingBid}
+                onChange={(e) => setStartingBid(e.target.value)}
+                placeholder="e.g. 5000"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Details & Sponsor Notes</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Prepared with pure ghee and dry fruits, sponsored by Reddy family..."
+                rows={3}
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <Button type="submit" disabled={isSavingItem}>
+                {isSavingItem ? 'Adding…' : 'Add Auction Item'}
+              </Button>
+              <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
 
       <ConfirmModal
@@ -292,4 +354,3 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
     </Card>
   )
 }
-

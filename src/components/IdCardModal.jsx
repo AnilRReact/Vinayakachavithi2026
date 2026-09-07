@@ -3,7 +3,7 @@ import { Modal, Button } from './ui'
 import { generateIdCardCanvas, downloadIdCard, shareIdCardImage } from '../lib/idCardCanvas'
 import { useToast } from '../context/ToastContext'
 
-export function IdCardModal({ isOpen, onClose, member, settings = {} }) {
+export function IdCardModal({ isOpen = true, onClose, member, settings = {} }) {
   const { toast } = useToast()
   const [previewUrl, setPreviewUrl] = useState('')
   const [isGenerating, setIsGenerating] = useState(true)

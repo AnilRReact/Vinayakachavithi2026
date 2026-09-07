@@ -12,7 +12,7 @@ import { currency, fmtDate } from '../lib/formatters'
 import { useToast } from '../context/ToastContext'
 
 export function ExcelImportModal({
-  isOpen,
+  isOpen = true,
   onClose,
   initialSegment = 'donations',
   portalData = {},

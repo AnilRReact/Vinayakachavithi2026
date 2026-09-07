@@ -133,10 +133,10 @@ export function Form({ fields, onSubmit, submit = 'Save', className = '' }) {
   )
 }
 
-export function Modal({ isOpen, onClose, title, children, maxWidth = '560px' }) {
+export function Modal({ isOpen = true, onClose, title, children, maxWidth = '560px' }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen) onClose()
+      if (e.key === 'Escape' && isOpen && onClose) onClose()
     }
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -151,7 +151,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '560px' }) 
   if (!isOpen) return null
 
   return (
-    <div className="modal-overlay" role="presentation" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay" role="presentation" onClick={(e) => e.target === e.currentTarget && onClose && onClose()}>
       <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title" style={{ maxWidth }}>
         <div className="modal-header">
           <h2 id="modal-title">{title}</h2>
@@ -165,7 +165,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = '560px' }) 
   )
 }
 
-export function ConfirmModal({ isOpen, onClose, onConfirm, title = 'Confirm Action', message, confirmText = 'Delete', isDestructive = true }) {
+export function ConfirmModal({ isOpen = true, onClose, onConfirm, title = 'Confirm Action', message, confirmText = 'Delete', isDestructive = true }) {
   const [busy, setBusy] = useState(false)
 
   const handleConfirm = async () => {
