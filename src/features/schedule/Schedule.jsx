@@ -260,7 +260,10 @@ export function Schedule({ data, admin, add, update, remove }) {
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Pooja / Event Title *</label>
+              <label className="form-label">
+                <span>🪔 Pooja / Event Title</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -270,9 +273,12 @@ export function Schedule({ data, admin, add, update, remove }) {
               />
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+            <div className="form-row-grid" style={{ gridTemplateColumns: '1.2fr 1fr 1fr' }}>
               <div className="form-group">
-                <label>Event Date *</label>
+                <label className="form-label">
+                  <span>📅 Date</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="date"
                   value={date}
@@ -282,7 +288,9 @@ export function Schedule({ data, admin, add, update, remove }) {
               </div>
 
               <div className="form-group">
-                <label>Start Time</label>
+                <label className="form-label">
+                  <span>⏰ Start Time</span>
+                </label>
                 <input
                   type="time"
                   value={startTime}
@@ -291,7 +299,9 @@ export function Schedule({ data, admin, add, update, remove }) {
               </div>
 
               <div className="form-group">
-                <label>End Time</label>
+                <label className="form-label">
+                  <span>⏰ End Time</span>
+                </label>
                 <input
                   type="time"
                   value={endTime}
@@ -301,7 +311,9 @@ export function Schedule({ data, admin, add, update, remove }) {
             </div>
 
             <div className="form-group">
-              <label>Location / Venue</label>
+              <label className="form-label">
+                <span>📍 Location / Venue</span>
+              </label>
               <input
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -310,22 +322,23 @@ export function Schedule({ data, admin, add, update, remove }) {
             </div>
 
             <div className="form-group">
-              <label>Description & Ritual Details</label>
+              <label className="form-label">
+                <span>📝 Description & Ritual Details</span>
+              </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Special kumkuma archana, prasadam distribution, chief guest arrival..."
                 rows={3}
-                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Adding…' : 'Add to Schedule'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Adding…' : 'Add to Schedule'}
               </Button>
             </div>
           </form>

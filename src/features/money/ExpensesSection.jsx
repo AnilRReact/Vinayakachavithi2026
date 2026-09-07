@@ -206,7 +206,10 @@ export function ExpensesSection({
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Expense Category *</label>
+              <label className="form-label">
+                <span>🏷️ Expense Category</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -214,21 +217,12 @@ export function ExpensesSection({
                 autoFocus
                 required
               />
-              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div className="role-preset-chips">
                 {EXPENSE_CATEGORIES.map((cat) => (
                   <button
                     key={cat}
                     type="button"
-                    className="role-chip"
-                    style={{
-                      fontSize: '0.74rem',
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      border: '1px solid #fed7aa',
-                      background: category === cat ? '#ffedd5' : '#fff7ed',
-                      cursor: 'pointer',
-                      fontWeight: category === cat ? '700' : '500'
-                    }}
+                    className={`role-chip ${category === cat ? 'selected' : ''}`}
                     onClick={() => setCategory(cat)}
                   >
                     {cat}
@@ -237,9 +231,12 @@ export function ExpensesSection({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Amount Spent (₹) *</label>
+                <label className="form-label">
+                  <span>💸 Amount Spent (₹)</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -251,7 +248,10 @@ export function ExpensesSection({
               </div>
 
               <div className="form-group">
-                <label>Paid To (Vendor / Person) *</label>
+                <label className="form-label">
+                  <span>🏪 Paid To (Vendor / Person)</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   value={paidTo}
                   onChange={(e) => setPaidTo(e.target.value)}
@@ -261,9 +261,12 @@ export function ExpensesSection({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Date</label>
+                <label className="form-label">
+                  <span>📅 Date</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="date"
                   value={date}
@@ -273,7 +276,9 @@ export function ExpensesSection({
               </div>
 
               <div className="form-group">
-                <label>Payment Mode</label>
+                <label className="form-label">
+                  <span>💳 Payment Mode</span>
+                </label>
                 <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)}>
                   <option value="Cash">Cash</option>
                   <option value="UPI">UPI</option>
@@ -285,7 +290,9 @@ export function ExpensesSection({
             </div>
 
             <div className="form-group">
-              <label>Bill / Voucher Notes (Optional)</label>
+              <label className="form-label">
+                <span>🧾 Bill / Voucher / Notes (Optional)</span>
+              </label>
               <input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -293,12 +300,12 @@ export function ExpensesSection({
               />
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Recording…' : 'Record Expense'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Recording…' : 'Record Expense'}
               </Button>
             </div>
           </form>

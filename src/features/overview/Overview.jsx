@@ -854,16 +854,19 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
       <Modal
         isOpen={dateModalOpen}
         onClose={() => !isSavingDate && setDateModalOpen(false)}
-        title="Set Festival Date & Details"
-        maxWidth="480px"
+        title="Set Festival Date & Village Name"
+        maxWidth="500px"
       >
         <p className="modal-description">
-          Set the date of Vinayaka Chavithi to start the live countdown on the Overview page.
+          Configure your auspicious Vinayaka Chavithi celebration date to activate the live ticking countdown and village portal title.
         </p>
 
-        <form className="form" onSubmit={handleSaveFestivalDate}>
-          <label style={{ gridColumn: 'span 2' }}>
-            <span>Festival Date (Vinayaka Chavithi) <span className="req-star">*</span></span>
+        <form className="member-form" onSubmit={handleSaveFestivalDate}>
+          <div className="form-group">
+            <label className="form-label">
+              <span>📅 Festival Date (Vinayaka Chavithi)</span>
+              <span className="req-star">*</span>
+            </label>
             <input
               type="date"
               required
@@ -871,10 +874,13 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
               disabled={isSavingDate}
               onChange={(e) => setFestivalDateVal(e.target.value)}
             />
-          </label>
+          </div>
 
-          <label style={{ gridColumn: 'span 2' }}>
-            <span>Village / Colony Name</span>
+          <div className="form-group">
+            <label className="form-label">
+              <span>🏛️ Village / Colony / Pandal Name</span>
+              <span className="req-star">*</span>
+            </label>
             <input
               type="text"
               required
@@ -883,10 +889,12 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
               disabled={isSavingDate}
               onChange={(e) => setVillageNameVal(e.target.value)}
             />
-          </label>
+          </div>
 
-          <label style={{ gridColumn: 'span 2' }}>
-            <span>Tagline</span>
+          <div className="form-group">
+            <label className="form-label">
+              <span>📜 Tagline / Motto</span>
+            </label>
             <input
               type="text"
               placeholder="e.g. Our village celebration, in one place."
@@ -894,7 +902,7 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
               disabled={isSavingDate}
               onChange={(e) => setTaglineVal(e.target.value)}
             />
-          </label>
+          </div>
 
           <div className="modal-actions">
             <Button

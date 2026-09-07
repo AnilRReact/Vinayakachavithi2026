@@ -194,7 +194,10 @@ export function VolunteerManager({
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Volunteer Full Name *</label>
+              <label className="form-label">
+                <span>👤 Volunteer Full Name</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -205,28 +208,22 @@ export function VolunteerManager({
             </div>
 
             <div className="form-group">
-              <label>Assigned Seva Duty *</label>
+              <label className="form-label">
+                <span>🪔 Assigned Seva Duty</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={duty}
                 onChange={(e) => setDuty(e.target.value)}
                 placeholder="e.g. Prasadam Distribution"
                 required
               />
-              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div className="role-preset-chips">
                 {DUTY_PRESETS.map((d) => (
                   <button
                     key={d}
                     type="button"
-                    className="role-chip"
-                    style={{
-                      fontSize: '0.74rem',
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      border: '1px solid #fed7aa',
-                      background: duty === d ? '#ffedd5' : '#fff7ed',
-                      cursor: 'pointer',
-                      fontWeight: duty === d ? '700' : '500'
-                    }}
+                    className={`role-chip ${duty === d ? 'selected' : ''}`}
                     onClick={() => setDuty(d)}
                   >
                     {d}
@@ -235,10 +232,13 @@ export function VolunteerManager({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Mobile / WhatsApp</label>
+                <label className="form-label">
+                  <span>📱 Mobile / WhatsApp</span>
+                </label>
                 <input
+                  type="tel"
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
                   placeholder="e.g. 9876543210"
@@ -246,7 +246,10 @@ export function VolunteerManager({
               </div>
 
               <div className="form-group">
-                <label>Service Date</label>
+                <label className="form-label">
+                  <span>📅 Service Date</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="date"
                   value={date}
@@ -257,7 +260,9 @@ export function VolunteerManager({
             </div>
 
             <div className="form-group">
-              <label>Shift Timing (Optional)</label>
+              <label className="form-label">
+                <span>⏰ Shift Timing (Optional)</span>
+              </label>
               <input
                 value={shiftTime}
                 onChange={(e) => setShiftTime(e.target.value)}
@@ -265,12 +270,12 @@ export function VolunteerManager({
               />
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Assigning…' : 'Assign Duty'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Assigning…' : 'Assign Duty'}
               </Button>
             </div>
           </form>

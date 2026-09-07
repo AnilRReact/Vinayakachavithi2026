@@ -107,7 +107,10 @@ export function NoticeBoard({
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Announcement Message *</label>
+              <label className="form-label">
+                <span>📢 Announcement Message</span>
+                <span className="req-star">*</span>
+              </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -115,25 +118,26 @@ export function NoticeBoard({
                 rows={4}
                 autoFocus
                 required
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
 
-            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', background: '#fffbeb', padding: '8px 12px', borderRadius: '8px', border: '1px solid #fef08a' }}>
               <input
                 type="checkbox"
                 id="pin-check"
                 checked={pinned}
                 onChange={(e) => setPinned(e.target.checked)}
-                style={{ width: '18px', height: '18px' }}
+                style={{ width: '18px', height: '18px', margin: 0 }}
               />
-              <label htmlFor="pin-check" style={{ margin: 0, cursor: 'pointer', fontWeight: '600' }}>
-                📌 Pin to the top of Overview page
+              <label htmlFor="pin-check" style={{ margin: 0, cursor: 'pointer', fontWeight: '600', color: '#92400e', fontSize: '0.86rem' }}>
+                📌 Pin this notice to the top of Overview
               </label>
             </div>
 
             <div className="form-group">
-              <label>Date</label>
+              <label className="form-label">
+                <span>📅 Announcement Date</span>
+              </label>
               <input
                 type="date"
                 value={noticeDate}
@@ -141,12 +145,12 @@ export function NoticeBoard({
               />
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Publishing…' : 'Publish Announcement'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Publishing…' : 'Publish Announcement'}
               </Button>
             </div>
           </form>

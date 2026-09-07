@@ -179,7 +179,10 @@ export function PrasadSponsorsSection({
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Sponsor Name / Devotee Family *</label>
+              <label className="form-label">
+                <span>👤 Sponsor Name / Devotee Family</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={sponsorName}
                 onChange={(e) => setSponsorName(e.target.value)}
@@ -190,28 +193,22 @@ export function PrasadSponsorsSection({
             </div>
 
             <div className="form-group">
-              <label>Prasadam / Food Item Sponsored *</label>
+              <label className="form-label">
+                <span>🍛 Prasadam / Food Item Sponsored</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={item}
                 onChange={(e) => setItem(e.target.value)}
                 placeholder="e.g. Maha Laddu, Pulihora, Fruits"
                 required
               />
-              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div className="role-preset-chips">
                 {PRASAD_PRESETS.map((p) => (
                   <button
                     key={p}
                     type="button"
-                    className="role-chip"
-                    style={{
-                      fontSize: '0.74rem',
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      border: '1px solid #fde68a',
-                      background: item === p ? '#fef08a' : '#fffbeb',
-                      cursor: 'pointer',
-                      fontWeight: item === p ? '700' : '500'
-                    }}
+                    className={`role-chip ${item === p ? 'selected' : ''}`}
                     onClick={() => setItem(p)}
                   >
                     {p}
@@ -220,10 +217,13 @@ export function PrasadSponsorsSection({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Mobile / WhatsApp</label>
+                <label className="form-label">
+                  <span>📱 Mobile / WhatsApp</span>
+                </label>
                 <input
+                  type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 9876543210"
@@ -231,7 +231,10 @@ export function PrasadSponsorsSection({
               </div>
 
               <div className="form-group">
-                <label>Date of Seva</label>
+                <label className="form-label">
+                  <span>📅 Date of Seva</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="date"
                   value={date}
@@ -242,7 +245,9 @@ export function PrasadSponsorsSection({
             </div>
 
             <div className="form-group">
-              <label>Gotram / Special Notes (Optional)</label>
+              <label className="form-label">
+                <span>🪔 Gotram / Special Notes (Optional)</span>
+              </label>
               <input
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -250,12 +255,12 @@ export function PrasadSponsorsSection({
               />
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Recording…' : 'Record Sponsorship'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Recording…' : 'Record Sponsorship'}
               </Button>
             </div>
           </form>

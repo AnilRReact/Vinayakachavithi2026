@@ -327,6 +327,7 @@ export function CommitteeRoster({
       </Card>
 
       {/* Add Member Modal Popup (Opens cleanly when clicking Add Member) */}
+      {/* Add Member Modal Popup (Opens cleanly when clicking Add Member) */}
       {isAddModalOpen && (
         <Modal
           title="Appoint Committee Member"
@@ -334,7 +335,10 @@ export function CommitteeRoster({
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Full Name *</label>
+              <label className="form-label">
+                <span>👤 Full Name</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -345,28 +349,22 @@ export function CommitteeRoster({
             </div>
 
             <div className="form-group">
-              <label>Committee Role *</label>
+              <label className="form-label">
+                <span>👑 Committee Role / Designation</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 placeholder="e.g. President, Vice President, Treasurer"
                 required
               />
-              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div className="role-preset-chips">
                 {POPULAR_ROLES.map((r) => (
                   <button
                     key={r}
                     type="button"
-                    className="role-chip"
-                    style={{
-                      fontSize: '0.74rem',
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      border: '1px solid #fde68a',
-                      background: role === r ? '#fef08a' : '#fffbeb',
-                      cursor: 'pointer',
-                      fontWeight: role === r ? '700' : '500'
-                    }}
+                    className={`role-chip ${role === r ? 'selected' : ''}`}
                     onClick={() => setRole(r)}
                   >
                     {r}
@@ -375,10 +373,13 @@ export function CommitteeRoster({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Mobile / WhatsApp Number</label>
+                <label className="form-label">
+                  <span>📱 Mobile / WhatsApp</span>
+                </label>
                 <input
+                  type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 9876543210"
@@ -386,7 +387,9 @@ export function CommitteeRoster({
               </div>
 
               <div className="form-group">
-                <label>Blood Group</label>
+                <label className="form-label">
+                  <span>🩸 Blood Group</span>
+                </label>
                 <select value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)}>
                   <option value="">Select (Optional)</option>
                   {BLOOD_GROUPS.map((bg) => (
@@ -397,7 +400,9 @@ export function CommitteeRoster({
             </div>
 
             <div className="form-group">
-              <label>Ward / Colony / Street</label>
+              <label className="form-label">
+                <span>📍 Colony / Street / Ward</span>
+              </label>
               <input
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
@@ -406,7 +411,9 @@ export function CommitteeRoster({
             </div>
 
             <div className="form-group">
-              <label>Responsibilities / Notes (Optional)</label>
+              <label className="form-label">
+                <span>📝 Responsibilities & Notes</span>
+              </label>
               <input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -415,26 +422,57 @@ export function CommitteeRoster({
             </div>
 
             <div className="form-group">
-              <label>Profile Photo (Optional)</label>
-              <input type="file" accept="image/*" onChange={handlePhotoSelect} />
-              {photoPreview && (
-                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label className="form-label">
+                <span>📸 Member Portrait Photo</span>
+              </label>
+              
+              {!photoPreview ? (
+                <div className="custom-photo-uploader">
+                  <span style={{ fontSize: '1.5rem' }}>📷</span>
+                  <div className="photo-uploader-input-wrap">
+                    <button type="button" className="btn-custom-upload">
+                      <span>📁 Choose Member Photo</span>
+                    </button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="photo-hidden-input"
+                      onChange={handlePhotoSelect}
+                    />
+                  </div>
+                  <small style={{ color: '#64748b' }}>Supports JPG, PNG (automatically creates official Pass badge)</small>
+                </div>
+              ) : (
+                <div className="photo-preview-card">
                   <img
                     src={photoPreview}
                     alt="Preview"
-                    style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #d97706' }}
+                    className="photo-preview-avatar"
                   />
-                  <small style={{ color: '#15803d', fontWeight: '600' }}>✓ Photo selected (auto-uploads to Google Drive)</small>
+                  <div className="photo-preview-meta">
+                    <b>✓ Portrait Photo Selected</b>
+                    <small>Auto-syncs to cloud & ID card</small>
+                  </div>
+                  <button
+                    type="button"
+                    className="photo-remove-btn"
+                    onClick={() => {
+                      setPhotoFile(null)
+                      setPhotoPreview('')
+                    }}
+                  >
+                    ✕ Remove
+                  </button>
                 </div>
               )}
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Saving…' : 'Appoint Member'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Saving…' : 'Appoint Member'}
               </Button>
             </div>
           </form>
@@ -449,7 +487,10 @@ export function CommitteeRoster({
         >
           <form onSubmit={handleSaveEdit} className="member-form">
             <div className="form-group">
-              <label>Full Name *</label>
+              <label className="form-label">
+                <span>👤 Full Name</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -458,27 +499,21 @@ export function CommitteeRoster({
             </div>
 
             <div className="form-group">
-              <label>Role *</label>
+              <label className="form-label">
+                <span>👑 Committee Role / Designation</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 required
               />
-              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div className="role-preset-chips">
                 {POPULAR_ROLES.map((r) => (
                   <button
                     key={r}
                     type="button"
-                    className="role-chip"
-                    style={{
-                      fontSize: '0.74rem',
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      border: '1px solid #fde68a',
-                      background: role === r ? '#fef08a' : '#fffbeb',
-                      cursor: 'pointer',
-                      fontWeight: role === r ? '700' : '500'
-                    }}
+                    className={`role-chip ${role === r ? 'selected' : ''}`}
                     onClick={() => setRole(r)}
                   >
                     {r}
@@ -487,17 +522,22 @@ export function CommitteeRoster({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Mobile / WhatsApp Number</label>
+                <label className="form-label">
+                  <span>📱 Mobile / WhatsApp</span>
+                </label>
                 <input
+                  type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
 
               <div className="form-group">
-                <label>Blood Group</label>
+                <label className="form-label">
+                  <span>🩸 Blood Group</span>
+                </label>
                 <select value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)}>
                   <option value="">Select (Optional)</option>
                   {BLOOD_GROUPS.map((bg) => (
@@ -508,7 +548,9 @@ export function CommitteeRoster({
             </div>
 
             <div className="form-group">
-              <label>Ward / Colony / Street</label>
+              <label className="form-label">
+                <span>📍 Colony / Street / Ward</span>
+              </label>
               <input
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
@@ -516,7 +558,9 @@ export function CommitteeRoster({
             </div>
 
             <div className="form-group">
-              <label>Responsibilities / Notes</label>
+              <label className="form-label">
+                <span>📝 Responsibilities & Notes</span>
+              </label>
               <input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -524,25 +568,57 @@ export function CommitteeRoster({
             </div>
 
             <div className="form-group">
-              <label>Update Photo</label>
-              <input type="file" accept="image/*" onChange={handlePhotoSelect} />
-              {photoPreview && (
-                <div style={{ marginTop: '8px' }}>
+              <label className="form-label">
+                <span>📸 Member Portrait Photo</span>
+              </label>
+              
+              {!photoPreview ? (
+                <div className="custom-photo-uploader">
+                  <span style={{ fontSize: '1.5rem' }}>📷</span>
+                  <div className="photo-uploader-input-wrap">
+                    <button type="button" className="btn-custom-upload">
+                      <span>📁 Choose Member Photo</span>
+                    </button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="photo-hidden-input"
+                      onChange={handlePhotoSelect}
+                    />
+                  </div>
+                  <small style={{ color: '#64748b' }}>Supports JPG, PNG</small>
+                </div>
+              ) : (
+                <div className="photo-preview-card">
                   <img
                     src={photoPreview}
                     alt="Preview"
-                    style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+                    className="photo-preview-avatar"
                   />
+                  <div className="photo-preview-meta">
+                    <b>✓ Photo Available</b>
+                    <small>Auto-syncs to cloud & ID card</small>
+                  </div>
+                  <button
+                    type="button"
+                    className="photo-remove-btn"
+                    onClick={() => {
+                      setPhotoFile(null)
+                      setPhotoPreview('')
+                    }}
+                  >
+                    ✕ Remove
+                  </button>
                 </div>
               )}
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Updating…' : 'Save Changes'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setEditingMember(null)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Updating…' : 'Save Changes'}
               </Button>
             </div>
           </form>

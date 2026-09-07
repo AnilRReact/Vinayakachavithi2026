@@ -153,9 +153,13 @@ export function Modal({ isOpen = true, onClose, title, children, maxWidth = '560
   return (
     <div className="modal-overlay" role="presentation" onClick={(e) => e.target === e.currentTarget && onClose && onClose()}>
       <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title" style={{ maxWidth }}>
+        <div className="modal-top-accent" />
         <div className="modal-header">
-          <h2 id="modal-title">{title}</h2>
-          <button className="modal-close-btn" onClick={onClose} aria-label="Close dialog">
+          <div className="modal-title-wrap">
+            <span className="modal-om-mark" aria-hidden="true">🪔</span>
+            <h2 id="modal-title">{title}</h2>
+          </div>
+          <button className="modal-close-btn" onClick={onClose} aria-label="Close dialog" title="Close">
             ✕
           </button>
         </div>

@@ -372,7 +372,10 @@ export function DonationsSection({
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Devotee / Contributor Full Name *</label>
+              <label className="form-label">
+                <span>👤 Devotee / Contributor Name</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
@@ -383,7 +386,10 @@ export function DonationsSection({
             </div>
 
             <div className="form-group">
-              <label>Donation Amount (₹) *</label>
+              <label className="form-label">
+                <span>💰 Donation Amount (₹)</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 type="number"
                 min="1"
@@ -392,21 +398,12 @@ export function DonationsSection({
                 placeholder="e.g. 1116"
                 required
               />
-              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div className="role-preset-chips">
                 {QUICK_AMOUNTS.map((amt) => (
                   <button
                     key={amt}
                     type="button"
-                    className="role-chip"
-                    style={{
-                      fontSize: '0.74rem',
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      border: '1px solid #fde68a',
-                      background: Number(amount) === amt ? '#fef08a' : '#fffbeb',
-                      cursor: 'pointer',
-                      fontWeight: Number(amount) === amt ? '700' : '500'
-                    }}
+                    className={`role-chip ${Number(amount) === amt ? 'selected' : ''}`}
                     onClick={() => setAmount(String(amt))}
                   >
                     ₹{amt.toLocaleString()}
@@ -415,10 +412,13 @@ export function DonationsSection({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Mobile / WhatsApp</label>
+                <label className="form-label">
+                  <span>📱 Mobile / WhatsApp</span>
+                </label>
                 <input
+                  type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 9876543210"
@@ -426,7 +426,9 @@ export function DonationsSection({
               </div>
 
               <div className="form-group">
-                <label>Payment Mode</label>
+                <label className="form-label">
+                  <span>💳 Payment Mode</span>
+                </label>
                 <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)}>
                   <option value="Cash">Cash</option>
                   <option value="UPI">UPI</option>
@@ -438,9 +440,12 @@ export function DonationsSection({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Date</label>
+                <label className="form-label">
+                  <span>📅 Date</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="date"
                   value={date}
@@ -450,7 +455,9 @@ export function DonationsSection({
               </div>
 
               <div className="form-group">
-                <label>Gotram / Dedication Note</label>
+                <label className="form-label">
+                  <span>🪔 Gotram / Dedication Note</span>
+                </label>
                 <input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -459,25 +466,25 @@ export function DonationsSection({
               </div>
             </div>
 
-            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+            <div className="form-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', marginTop: '6px', background: '#fffbeb', padding: '8px 12px', borderRadius: '8px', border: '1px solid #fef08a' }}>
               <input
                 type="checkbox"
                 id="pin-donation"
                 checked={pinned}
                 onChange={(e) => setPinned(e.target.checked)}
-                style={{ width: '18px', height: '18px' }}
+                style={{ width: '18px', height: '18px', margin: 0 }}
               />
-              <label htmlFor="pin-donation" style={{ margin: 0, cursor: 'pointer', fontWeight: '600' }}>
-                📌 Pin to Featured Contributors on Overview
+              <label htmlFor="pin-donation" style={{ margin: 0, cursor: 'pointer', fontWeight: '600', color: '#92400e', fontSize: '0.86rem' }}>
+                📌 Feature on Overview Showcase (Pinned Patron)
               </label>
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Recording…' : 'Record Contribution'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Recording…' : 'Record Contribution'}
               </Button>
             </div>
           </form>
