@@ -151,8 +151,24 @@ export function Modal({ isOpen = true, onClose, title, children, maxWidth = '560
   if (!isOpen) return null
 
   return (
-    <div className="modal-overlay" role="presentation" onClick={(e) => e.target === e.currentTarget && onClose && onClose()}>
-      <div className="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title" style={{ maxWidth }}>
+    <div
+      className="modal-overlay"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && onClose) {
+          onClose()
+        }
+      }}
+    >
+      <div
+        className="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        style={{ maxWidth }}
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
         <div className="modal-top-accent" />
         <div className="modal-header">
           <div className="modal-title-wrap">

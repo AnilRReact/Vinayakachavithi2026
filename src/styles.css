@@ -1731,19 +1731,22 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: rgba(24, 8, 6, 0.72);
+  padding: 16px;
+  background: rgba(24, 8, 6, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   animation: fadeIn 0.18s ease-out;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
 }
 
 .modal-content {
   width: 100%;
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   padding: 0;
   border-radius: 18px;
   background: #ffffff;
@@ -1754,12 +1757,14 @@ textarea {
   position: relative;
   box-sizing: border-box;
   overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .modal-top-accent {
   height: 6px;
   background: linear-gradient(90deg, #d97706 0%, #fbbf24 35%, #881e0f 70%, #d97706 100%);
   width: 100%;
+  flex-shrink: 0;
 }
 
 .modal-header {
@@ -1769,6 +1774,7 @@ textarea {
   padding: 16px 22px;
   background: #fffcf7;
   border-bottom: 1.5px solid #f1e9dc;
+  flex-shrink: 0;
 }
 
 .modal-title-wrap {
@@ -1816,7 +1822,11 @@ textarea {
 
 .modal-body {
   padding: 20px 22px 24px;
-  overflow-y: visible;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  flex: 1;
+  max-height: calc(90vh - 75px);
+  overscroll-behavior: contain;
   background: #ffffff;
 }
 
@@ -7024,16 +7034,36 @@ table {
   /* 12. Forms & Modals Touch Optimization */
   .modal-overlay {
     padding: 10px !important;
+    align-items: center !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .modal-content {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    max-height: 88vh !important;
-    border-radius: 14px !important;
-    padding: 16px 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    border-radius: 16px !important;
     margin: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    overscroll-behavior: contain !important;
+  }
+
+  .modal-header {
+    padding: 14px 16px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .modal-body {
+    padding: 16px 14px 28px !important;
     overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex: 1 !important;
+    max-height: calc(90vh - 65px) !important;
+    overscroll-behavior: contain !important;
   }
 
   .form-row-grid,
