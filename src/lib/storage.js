@@ -54,7 +54,7 @@ export async function compressImage(file, maxDim = 1200, quality = 0.84) {
 const DEFAULT_GDRIVE_WEBHOOK = 'https://script.google.com/macros/s/AKfycbw3O382NowkBlPVFSfGbMEOM5SOw453GXbYLJQl5pmpFSTBfEHIvV2ok5UvoHH-wgIkEA/exec'
 
 /**
- * Uploads an image or video to Google Drive via Google Apps Script Web App (if configured)
+ * Uploads an image or video to Google Drive via serverless proxy / direct Google Apps Script
  */
 export async function uploadToGoogleDrive(file, scriptUrl = DEFAULT_GDRIVE_WEBHOOK) {
   const targetUrl = scriptUrl || DEFAULT_GDRIVE_WEBHOOK
@@ -68,7 +68,7 @@ export async function uploadToGoogleDrive(file, scriptUrl = DEFAULT_GDRIVE_WEBHO
     base64Data = await new Promise((resolve, reject) => {
       reader.onload = () => {
         const res = reader.result
-        const base64 = res.split(',')[1]
+        const base64 = typeof res === 'string' ? res.split(',')[1] : ''
         resolve(base64)
       }
       reader.onerror = reject
@@ -81,7 +81,7 @@ export async function uploadToGoogleDrive(file, scriptUrl = DEFAULT_GDRIVE_WEBHO
     base64Data = await new Promise((resolve, reject) => {
       reader.onload = () => {
         const res = reader.result
-        const base64 = res.split(',')[1]
+        const base64 = typeof res === 'string' ? res.split(',')[1] : ''
         resolve(base64)
       }
       reader.onerror = reject
@@ -91,10 +91,29 @@ export async function uploadToGoogleDrive(file, scriptUrl = DEFAULT_GDRIVE_WEBHO
 
   const payload = {
     base64: base64Data,
-    filename: file.name.replace(/[^a-z0-9.]/gi, '-').toLowerCase(),
+    filename: (file.name || `upload_${Date.now()}`).replace(/[^a-z0-9.]/gi, '-').toLowerCase(),
     mimeType
   }
 
+  // 1. Try serverless proxy first (bypasses all browser CORS restrictions)
+  try {
+    const proxyRes = await fetch('/api/gdrive-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (proxyRes.ok) {
+      const data = await proxyRes.json()
+      if (data.url) return data.url
+    }
+  } catch (proxyErr) {
+    console.warn('Serverless proxy error, trying direct Google webhook:', proxyErr)
+  }
+
+  // 2. Direct fetch fallback to Google Apps Script Web App
   const response = await fetch(targetUrl, {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -111,7 +130,11 @@ export async function uploadToGoogleDrive(file, scriptUrl = DEFAULT_GDRIVE_WEBHO
 
   if (result.error) throw new Error(result.error)
 
-  const directLink = result.url || (result.fileId ? `https://lh3.googleusercontent.com/d/${result.fileId}` : '') || convertGoogleDriveLink(result.fileUrl)
+  const directLink =
+    result.url ||
+    (result.fileId ? `https://lh3.googleusercontent.com/d/${result.fileId}` : '') ||
+    convertGoogleDriveLink(result.fileUrl)
+
   if (!directLink) {
     throw new Error('Google Drive upload did not return a valid file URL.')
   }
@@ -120,14 +143,14 @@ export async function uploadToGoogleDrive(file, scriptUrl = DEFAULT_GDRIVE_WEBHO
 
 /**
  * Universal Image Upload Handler:
- * 1. Tries Google Drive if Web App URL is configured
+ * 1. Tries Google Drive (serverless proxy + direct)
  * 2. Tries Supabase Storage if configured
  * 3. Falls back to compressed local Data URL
  */
 export async function uploadImageToStorage(file, folder = 'general', maxDim = 1200) {
   if (!file) return null
 
-  // 1. Check if Google Drive Webhook URL is in environment, settings or default
+  // 1. Check if Google Drive Webhook URL is configured
   const gdriveScriptUrl =
     import.meta.env.VITE_GOOGLE_DRIVE_UPLOAD_URL ||
     localStorage.getItem('vv_gdrive_upload_url') ||

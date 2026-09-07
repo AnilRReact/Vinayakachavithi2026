@@ -137,7 +137,7 @@ export function MediaUploadSection({ add }) {
   }
 
   return (
-    <Card title="Upload Photo & Video Memories (ఫోటోలు & వీడియోల నమోదు)">
+    <Card title="Upload Photo & Video Memories">
       <div className="media-mode-tabs">
         <button
           type="button"
@@ -191,7 +191,7 @@ export function MediaUploadSection({ add }) {
 
           <div className="form-row-grid">
             <div className="form-group">
-              <label>Caption / Memory Title (వివరణ)</label>
+              <label>Caption / Memory Title</label>
               <input
                 value={photoCaption}
                 onChange={(e) => setPhotoCaption(e.target.value)}
@@ -199,7 +199,7 @@ export function MediaUploadSection({ add }) {
               />
             </div>
             <div className="form-group">
-              <label>Date (తేదీ)</label>
+              <label>Date</label>
               <input
                 type="date"
                 value={photoDate}
@@ -248,7 +248,7 @@ export function MediaUploadSection({ add }) {
 
           <div className="form-row-grid">
             <div className="form-group">
-              <label>Video Caption / Description (వివరణ)</label>
+              <label>Video Caption / Description</label>
               <input
                 value={videoCaption}
                 onChange={(e) => setVideoCaption(e.target.value)}
@@ -256,7 +256,7 @@ export function MediaUploadSection({ add }) {
               />
             </div>
             <div className="form-group">
-              <label>Date (తేదీ)</label>
+              <label>Date</label>
               <input
                 type="date"
                 value={videoDate}

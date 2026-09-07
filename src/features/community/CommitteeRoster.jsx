@@ -6,6 +6,18 @@ import { uploadImageToStorage } from '../../lib/storage'
 import { getCommitteeInviteText, openWhatsAppMessage } from '../../lib/notifications'
 import { useToast } from '../../context/ToastContext'
 
+const POPULAR_ROLES = [
+  'President',
+  'Vice President',
+  'General Secretary',
+  'Treasurer',
+  'Joint Secretary',
+  'Pooja Coordinator',
+  'Youth President',
+  'Volunteer Lead',
+  'Advisory Member'
+]
+
 export function CommitteeRoster({
   members = [],
   settings = {},
@@ -59,9 +71,14 @@ export function CommitteeRoster({
   }
 
   const handleSaveAdd = async (e) => {
-    e.preventDefault()
-    if (!name.trim() || !role.trim()) {
-      toast.error('Please enter member name and role.')
+    if (e) e.preventDefault()
+    const cleanName = (name || '').trim()
+    const cleanRole = (role || '').trim()
+    const cleanPhone = (phone || '').trim()
+    const cleanNotes = (notes || '').trim()
+
+    if (!cleanName || !cleanRole) {
+      toast.error('Please enter member name and committee role.')
       return
     }
 
@@ -71,33 +88,54 @@ export function CommitteeRoster({
       if (photoFile) {
         try {
           photoUrl = await uploadImageToStorage(photoFile, 'committee', 600)
-        } catch {
+        } catch (uploadErr) {
+          console.warn('Photo upload fallback to preview:', uploadErr)
           photoUrl = photoPreview
         }
       }
 
-      const err = await add('committee_members', {
-        name: name.trim(),
-        role: role.trim(),
-        phone: phone.trim(),
-        notes: notes.trim(),
+      const payload = {
+        name: cleanName,
+        role: cleanRole,
+        phone: cleanPhone,
+        notes: cleanNotes,
         photo_url: photoUrl
-      })
+      }
+
+      const err = await add('committee_members', payload)
 
       if (err) {
         toast.error(err.message || 'Could not add member.')
       } else {
-        toast.success(`Appointed ${name} as ${role}!`)
+        toast.success(`🎉 Appointed ${cleanName} as ${cleanRole}!`)
+        setName('')
+        setRole('')
+        setPhone('')
+        setNotes('')
+        setPhotoFile(null)
+        setPhotoPreview('')
         setIsAddModalOpen(false)
       }
+    } catch (err) {
+      toast.error(err.message || 'Failed to appoint member.')
     } finally {
       setIsSaving(false)
     }
   }
 
   const handleSaveEdit = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     if (!editingMember) return
+
+    const cleanName = (name || '').trim()
+    const cleanRole = (role || '').trim()
+    const cleanPhone = (phone || '').trim()
+    const cleanNotes = (notes || '').trim()
+
+    if (!cleanName || !cleanRole) {
+      toast.error('Name and Role are required.')
+      return
+    }
 
     setIsSaving(true)
     try {
@@ -111,19 +149,21 @@ export function CommitteeRoster({
       }
 
       const err = await update('committee_members', editingMember.id, {
-        name: name.trim(),
-        role: role.trim(),
-        phone: phone.trim(),
-        notes: notes.trim(),
+        name: cleanName,
+        role: cleanRole,
+        phone: cleanPhone,
+        notes: cleanNotes,
         photo_url: photoUrl
       })
 
       if (err) {
         toast.error(err.message || 'Could not update member.')
       } else {
-        toast.success(`Updated ${name}'s profile.`)
+        toast.success(`Updated ${cleanName}'s profile.`)
         setEditingMember(null)
       }
+    } catch (err) {
+      toast.error(err.message || 'Failed to update member.')
     } finally {
       setIsSaving(false)
     }
@@ -162,7 +202,7 @@ export function CommitteeRoster({
                   <img src={m.photo_url} alt={m.name} className="avatar-img" />
                 ) : (
                   <span className="avatar-placeholder">
-                    {m.name.charAt(0).toUpperCase()}
+                    {(m.name || 'M').charAt(0).toUpperCase()}
                   </span>
                 )}
               </div>
@@ -178,14 +218,16 @@ export function CommitteeRoster({
               </div>
 
               <div className="committee-card-actions">
-                <button
-                  type="button"
-                  className="committee-action-btn wa"
-                  onClick={() => handleSendWhatsApp(m)}
-                  title="Send WhatsApp appointment notice"
-                >
-                  📲 WhatsApp
-                </button>
+                {m.phone && (
+                  <button
+                    type="button"
+                    className="committee-action-btn wa"
+                    onClick={() => handleSendWhatsApp(m)}
+                    title="Send WhatsApp appointment notice"
+                  >
+                    📲 WhatsApp
+                  </button>
+                )}
                 <button
                   type="button"
                   className="committee-action-btn id"
@@ -229,14 +271,14 @@ export function CommitteeRoster({
         </div>
 
         {!members.length && (
-          <Empty text="No committee members added yet. Click 'Add Member' above to appoint members." />
+          <Empty text="No committee members added yet. Click 'Add Member' above to appoint office bearers." />
         )}
       </Card>
 
       {/* Add Member Modal Popup (Opens cleanly when clicking Add Member) */}
       {isAddModalOpen && (
         <Modal
-          title="Add Committee Member"
+          title="Appoint Committee Member"
           onClose={() => setIsAddModalOpen(false)}
         >
           <form onSubmit={handleSaveAdd} className="member-form">
@@ -246,18 +288,42 @@ export function CommitteeRoster({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Ramesh Kumar"
+                autoFocus
                 required
               />
             </div>
+
             <div className="form-group">
               <label>Committee Role *</label>
               <input
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                placeholder="e.g. President, Vice President, Treasurer, Secretary"
+                placeholder="e.g. President, Vice President, Treasurer"
                 required
               />
+              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                {POPULAR_ROLES.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    className="role-chip"
+                    style={{
+                      fontSize: '0.74rem',
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      border: '1px solid #fde68a',
+                      background: role === r ? '#fef08a' : '#fffbeb',
+                      cursor: 'pointer',
+                      fontWeight: role === r ? '700' : '500'
+                    }}
+                    onClick={() => setRole(r)}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
             </div>
+
             <div className="form-group">
               <label>Mobile / WhatsApp Number</label>
               <input
@@ -266,27 +332,31 @@ export function CommitteeRoster({
                 placeholder="e.g. 9876543210"
               />
             </div>
+
             <div className="form-group">
-              <label>Responsibilities / Notes</label>
+              <label>Responsibilities / Notes (Optional)</label>
               <input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. Stage arrangement, Pooja coordinator"
+                placeholder="e.g. Stage arrangement, Aarti coordinator"
               />
             </div>
+
             <div className="form-group">
               <label>Profile Photo (Optional)</label>
               <input type="file" accept="image/*" onChange={handlePhotoSelect} />
               {photoPreview && (
-                <div style={{ marginTop: '8px' }}>
+                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <img
                     src={photoPreview}
                     alt="Preview"
-                    style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+                    style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #d97706' }}
                   />
+                  <small style={{ color: '#15803d', fontWeight: '600' }}>✓ Photo selected</small>
                 </div>
               )}
             </div>
+
             <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
               <Button type="submit" disabled={isSaving}>
                 {isSaving ? 'Saving…' : 'Appoint Member'}
@@ -314,6 +384,7 @@ export function CommitteeRoster({
                 required
               />
             </div>
+
             <div className="form-group">
               <label>Role *</label>
               <input
@@ -321,7 +392,29 @@ export function CommitteeRoster({
                 onChange={(e) => setRole(e.target.value)}
                 required
               />
+              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                {POPULAR_ROLES.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    className="role-chip"
+                    style={{
+                      fontSize: '0.74rem',
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      border: '1px solid #fde68a',
+                      background: role === r ? '#fef08a' : '#fffbeb',
+                      cursor: 'pointer',
+                      fontWeight: role === r ? '700' : '500'
+                    }}
+                    onClick={() => setRole(r)}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
             </div>
+
             <div className="form-group">
               <label>Mobile / WhatsApp Number</label>
               <input
@@ -329,6 +422,7 @@ export function CommitteeRoster({
                 onChange={(e) => setPhone(e.target.value)}
               />
             </div>
+
             <div className="form-group">
               <label>Responsibilities / Notes</label>
               <input
@@ -336,6 +430,7 @@ export function CommitteeRoster({
                 onChange={(e) => setNotes(e.target.value)}
               />
             </div>
+
             <div className="form-group">
               <label>Update Photo</label>
               <input type="file" accept="image/*" onChange={handlePhotoSelect} />
@@ -349,6 +444,7 @@ export function CommitteeRoster({
                 </div>
               )}
             </div>
+
             <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
               <Button type="submit" disabled={isSaving}>
                 {isSaving ? 'Updating…' : 'Save Changes'}

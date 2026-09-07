@@ -101,7 +101,7 @@ export function MediaGalleryGrid({
 
   return (
     <>
-      <Card title="Photo & Video Gallery (చిత్రశాల)">
+      <Card title="Photo & Video Gallery">
         {/* Filter Chips */}
         <div className="gallery-filter-chips">
           <button
@@ -138,7 +138,7 @@ export function MediaGalleryGrid({
         <div className="gallery-year-groups">
           {groupsByYear.map(([year, yearItems]) => (
             <div key={year} className="year-section">
-              <h4 className="year-header">📅 {year} Utsavam Highlights ({yearItems.length})</h4>
+              <h4 className="year-header">📅 {year} Festival Memories ({yearItems.length})</h4>
               <div className="gallery-grid">
                 {yearItems.map((item) => {
                   const ytThumb = item.type === 'video' ? getYoutubeThumbnail(item.url) : null
