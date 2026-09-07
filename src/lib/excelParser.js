@@ -615,3 +615,171 @@ export async function exportTableToExcel(dataArray = [], segmentKey = 'donations
   return true
 }
 
+/**
+ * Generates and downloads the Comprehensive Master Multi-Tab Festival Excel Workbook (.xlsx)
+ * Containing executive summaries, financial tables, volunteer rosters, schedules, and assets.
+ */
+export async function exportMasterFestivalWorkbook(portalData = {}, villageName = 'Sri Vinayaka Vedika 2026') {
+  const donations = portalData.donations || []
+  const expenses = portalData.expenses || []
+  const prasadSponsors = portalData.prasad_sponsors || []
+  const committee = portalData.committee_members || []
+  const volunteers = portalData.volunteers || []
+  const bidItems = portalData.bid_items || []
+  const purchases = portalData.purchases || []
+  const activities = portalData.activities || []
+  const awards = portalData.awards || []
+
+  const totalDonations = donations.reduce((sum, d) => sum + Number(d.amount || 0), 0)
+  const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0)
+  const netBalance = totalDonations - totalExpenses
+  const totalAssetsWorth = purchases.filter((p) => p.reusable).reduce((sum, p) => sum + Number(p.cost || 0), 0)
+
+  // 1. Executive Summary Sheet
+  const summaryRows = [
+    { 'Festival Financial & Operations Report': 'Sri Vinayaka Utsavam 2026 - Executive Audit Report', 'Value / Metric': '' },
+    { 'Festival Financial & Operations Report': 'Village / Pandal Name:', 'Value / Metric': villageName },
+    { 'Festival Financial & Operations Report': 'Report Generated At:', 'Value / Metric': new Date().toLocaleString() },
+    { 'Festival Financial & Operations Report': '----------------------------------------', 'Value / Metric': '------------------------' },
+    { 'Festival Financial & Operations Report': '💰 Total Collections (Chanda / Donations):', 'Value / Metric': `₹ ${totalDonations.toLocaleString()}` },
+    { 'Festival Financial & Operations Report': '💸 Total Expenditure (Expenses Spent):', 'Value / Metric': `₹ ${totalExpenses.toLocaleString()}` },
+    { 'Festival Financial & Operations Report': '💎 Net Treasury Balance Remaining:', 'Value / Metric': `₹ ${netBalance.toLocaleString()}` },
+    { 'Festival Financial & Operations Report': '👥 Total Devotee Donors Count:', 'Value / Metric': donations.length },
+    { 'Festival Financial & Operations Report': '🍯 Total Prasad Sponsors Count:', 'Value / Metric': prasadSponsors.length },
+    { 'Festival Financial & Operations Report': '🏷️ Permanent Reusable Assets Worth:', 'Value / Metric': `₹ ${totalAssetsWorth.toLocaleString()}` },
+    { 'Festival Financial & Operations Report': '🎖️ Active Committee Members:', 'Value / Metric': committee.length },
+    { 'Festival Financial & Operations Report': '🛡️ Registered Seva Volunteers:', 'Value / Metric': volunteers.length },
+    { 'Festival Financial & Operations Report': '🪔 Scheduled Pooja Programs:', 'Value / Metric': activities.length },
+    { 'Festival Financial & Operations Report': '🏆 Awards & Honors Conferred:', 'Value / Metric': awards.length },
+    { 'Festival Financial & Operations Report': '----------------------------------------', 'Value / Metric': '------------------------' },
+    { 'Festival Financial & Operations Report': 'Status:', 'Value / Metric': netBalance >= 0 ? 'Surplus (Positive Balance)' : 'Deficit' }
+  ]
+
+  // 2. Donations Sheet
+  const donationRows = donations.map((d, idx) => ({
+    'S.No': idx + 1,
+    'Date': d.date || '',
+    'Contributor / Donor Name': d.donor_name || d.name || 'Anonymous',
+    'Amount (₹)': Number(d.amount || 0),
+    'Phone / WhatsApp': d.phone || d.mobile || '',
+    'Payment Mode': d.payment_mode || 'Cash',
+    'Gotram / Dedication Note': d.note || '',
+    'Featured on Overview': d.pinned ? 'Yes' : 'No'
+  }))
+
+  // 3. Expenses Sheet
+  const expenseRows = expenses.map((e, idx) => ({
+    'S.No': idx + 1,
+    'Date': e.date || '',
+    'Expense Category': e.category || 'General',
+    'Amount Spent (₹)': Number(e.amount || 0),
+    'Paid To / Vendor': e.paid_to || '',
+    'Payment Mode': e.payment_mode || 'Cash',
+    'Bill / Voucher Notes': e.note || ''
+  }))
+
+  // 4. Prasad Sponsors Sheet
+  const prasadRows = prasadSponsors.map((p, idx) => ({
+    'S.No': idx + 1,
+    'Date': p.date || '',
+    'Sponsor Name / Devotee Family': p.sponsor_name || '',
+    'Prasadam / Food Item': p.item || '',
+    'Phone / WhatsApp': p.phone || '',
+    'Gotram / Special Notes': p.note || ''
+  }))
+
+  // 5. Committee Members Sheet
+  const committeeRows = committee.map((m, idx) => ({
+    'S.No': idx + 1,
+    'Member Name': m.name || '',
+    'Official Designation': m.role || '',
+    'Phone / Contact': m.phone || '',
+    'Blood Group': m.blood_group || '',
+    'Village / Colony': m.village || ''
+  }))
+
+  // 6. Volunteers Sheet
+  const volunteerRows = volunteers.map((v, idx) => ({
+    'S.No': idx + 1,
+    'Volunteer Name': v.name || '',
+    'Assigned Seva Duty': v.duty || '',
+    'Duty Date / Shift': v.date || '',
+    'Phone / Contact': v.contact || v.phone || '',
+    'Notes': v.note || ''
+  }))
+
+  // 7. Auction Bids Sheet
+  const bidRows = bidItems.map((b, idx) => ({
+    'S.No': idx + 1,
+    'Auction Item Name': b.item_name || '',
+    'Starting Bid (₹)': Number(b.starting_bid || 0),
+    'Winning / Current Bid (₹)': Number(b.current_bid || b.starting_bid || 0),
+    'Winning Bidder': b.current_bidder || 'No bids yet',
+    'Status': b.status === 'closed' ? 'Closed' : 'Open',
+    'Description': b.description || ''
+  }))
+
+  // 8. Reusable Assets Sheet
+  const assetRows = purchases.map((a, idx) => ({
+    'S.No': idx + 1,
+    'Asset / Item Name': a.item || '',
+    'Category': a.category || '',
+    'Cost (₹)': Number(a.cost || 0),
+    'Purchase Year': a.year || '',
+    'Permanent Reusable Asset': a.reusable ? 'Yes' : 'No',
+    'Storage Location / Condition': a.condition_note || ''
+  }))
+
+  // 9. Pooja Schedule Sheet
+  const scheduleRows = activities.map((s, idx) => ({
+    'S.No': idx + 1,
+    'Date': s.date || '',
+    'Time': s.start_time || '',
+    'Pooja Program Title': s.title || '',
+    'Venue / Location': s.location || '',
+    'Description / Priest Notes': s.description || ''
+  }))
+
+  // 10. Awards Sheet
+  const awardRows = awards.map((w, idx) => ({
+    'S.No': idx + 1,
+    'Year': w.year || '',
+    'Award / Category': w.title || '',
+    'Recipient Name / Team': w.recipient || '',
+    'Citation / Special Notes': w.note || ''
+  }))
+
+  try {
+    const XLSX = await import('xlsx').catch(() => null)
+    if (XLSX) {
+      const workbook = XLSX.utils.book_new()
+
+      const addSheet = (name, rows) => {
+        const ws = XLSX.utils.json_to_sheet(rows.length ? rows : [{ 'Note': 'No records available in this section.' }])
+        XLSX.utils.book_append_sheet(workbook, ws, name.slice(0, 31))
+      }
+
+      addSheet('1_Executive_Summary', summaryRows)
+      addSheet('2_Donations_Chanda', donationRows)
+      addSheet('3_Expenses_Spent', expenseRows)
+      addSheet('4_Prasad_Sponsors', prasadRows)
+      addSheet('5_Committee_Roster', committeeRows)
+      addSheet('6_Seva_Volunteers', volunteerRows)
+      addSheet('7_Laddu_Auction_Bids', bidRows)
+      addSheet('8_Permanent_Assets', assetRows)
+      addSheet('9_Pooja_Schedule', scheduleRows)
+      addSheet('10_Awards_Honors', awardRows)
+
+      const safeName = villageName.replace(/[^a-zA-Z0-9]/g, '_')
+      const fileName = `${safeName}_Complete_Festival_Workbook_2026.xlsx`
+      XLSX.writeFile(workbook, fileName)
+      return true
+    }
+  } catch (err) {
+    console.error('Master Excel export error:', err)
+  }
+
+  // Fallback to donations export if XLSX library fails
+  return exportTableToExcel(donations, 'donations', 'Festival_Report_2026.csv')
+}
+

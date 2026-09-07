@@ -20,6 +20,7 @@ import { Memories } from './features/memories/Memories'
 import { Music } from './features/music/Music'
 import { Help } from './features/help/Help'
 import { Settings } from './features/settings/Settings'
+import { ReportsSection } from './features/reports/ReportsSection'
 
 const TABS = [
   ['Overview', 'overview', '⌂'],
@@ -29,7 +30,8 @@ const TABS = [
   ['Recognition', 'recognition', '✦'],
   ['Memories', 'memories', '▧'],
   ['Music', 'music', '♫'],
-  ['Help', 'help', '?']
+  ['Help', 'help', '?'],
+  ['Reports & Analytics', 'reports', '📊']
 ]
 
 function AppContent() {
@@ -132,6 +134,8 @@ function AppContent() {
         )
       case 'Help':
         return <Help data={data} />
+      case 'Reports & Analytics':
+        return <ReportsSection data={data} admin={isAdmin} />
       case 'Settings':
         return isAdmin ? (
           <Settings

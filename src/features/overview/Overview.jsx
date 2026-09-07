@@ -412,6 +412,15 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
           <span className="pill-icon">📷</span>
           <span>Festival Memories</span>
         </button>
+
+        <button
+          type="button"
+          className="quick-shortcut-pill emerald"
+          onClick={() => onNavigate && onNavigate('Reports & Analytics')}
+        >
+          <span className="pill-icon">📊</span>
+          <span>Reports & Excel</span>
+        </button>
       </div>
 
       <div className="stats">

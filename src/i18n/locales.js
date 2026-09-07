@@ -13,6 +13,7 @@ export const messages = {
     memories: 'Memories',
     music: 'Music',
     help: 'Help',
+    reports: 'Reports & Analytics',
     settings: 'Settings',
     footer: 'Built with devotion for our village celebration. 🪔',
     admin_unlocked: 'Admin Unlocked',
