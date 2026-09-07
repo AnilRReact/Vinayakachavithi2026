@@ -127,6 +127,225 @@ button {
   font-weight: 600;
 }
 
+/* ==========================================================================
+   3-LINES HAMBURGER MENU BUTTON & SLIDE-OUT NAVIGATION DRAWER
+   ========================================================================== */
+
+.mobile-menu-toggle-btn {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1.5px solid #d97706;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.mobile-menu-toggle-btn:hover {
+  background: #fef3c7;
+  border-color: #b45309;
+  transform: scale(1.05);
+}
+
+.hamburger-line {
+  display: block;
+  width: 20px;
+  height: 2.5px;
+  background: #7c2414;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+
+/* Slide Drawer Overlay */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 10, 8, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  animation: drawerFadeIn 0.25s ease-out;
+}
+
+@keyframes drawerFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Slide-out Drawer Panel */
+.slide-nav-drawer {
+  width: 310px;
+  max-width: 85vw;
+  height: 100vh;
+  background: #fffcf7;
+  border-right: 2.5px solid #d97706;
+  box-shadow: 6px 0 30px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  animation: drawerSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+}
+
+@keyframes drawerSlideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #240504 0%, #440c08 100%);
+  color: #ffffff;
+  border-bottom: 2px solid #fbbf24;
+}
+
+.drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark-small {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a82e18 0%, #681507 100%);
+  border: 1.5px solid #fbbf24;
+  color: #fef08a;
+  display: grid;
+  place-items: center;
+  font-family: 'Yatra One', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.drawer-brand b {
+  display: block;
+  font-size: 1.05rem;
+  color: #ffffff;
+  font-family: 'Cinzel', serif;
+  line-height: 1.2;
+}
+
+.drawer-brand small {
+  display: block;
+  font-size: 0.72rem;
+  color: #fde047;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.drawer-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-size: 1rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drawer-close-btn:hover {
+  background: #dc2626;
+  border-color: #ef4444;
+}
+
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 12px;
+  flex: 1;
+}
+
+.drawer-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1.5px solid #e7dfd5;
+  color: #374151;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  width: 100%;
+}
+
+.drawer-nav-btn:hover {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #7c2414;
+  transform: translateX(4px);
+}
+
+.drawer-nav-btn.active {
+  background: linear-gradient(135deg, #a82e18 0%, #701c0d 100%);
+  color: #ffffff;
+  border-color: #701c0d;
+  box-shadow: 0 4px 12px rgba(168, 46, 24, 0.3);
+}
+
+.drawer-nav-btn.settings {
+  margin-top: 8px;
+  border-top: 2px dashed #f59e0b;
+}
+
+.drawer-nav-icon {
+  font-size: 1.25rem;
+  display: grid;
+  place-items: center;
+  width: 24px;
+}
+
+.drawer-nav-label {
+  flex: 1;
+}
+
+.drawer-active-dot {
+  color: #fde047;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.drawer-footer {
+  padding: 14px 16px;
+  background: #fdfaf3;
+  border-top: 1.5px solid #e7dfd5;
+  text-align: center;
+}
+
+.drawer-footer p {
+  margin: 0 0 2px;
+  font-size: 0.85rem;
+  color: #7c2414;
+}
+
+.drawer-footer small {
+  font-size: 0.72rem;
+  color: #78716c;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -904,40 +1123,257 @@ main {
   transform: translateY(-1px);
 }
 
-/* Stats Row */
-.stats {
+/* First Time Setup Banner */
+.first-time-setup-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1.5px solid #f59e0b;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.12);
+}
+
+.setup-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.setup-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.setup-banner-content h3 {
+  margin: 0 0 2px;
+  color: #78350f;
+  font-size: 1.05rem;
+}
+
+.setup-banner-content p {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.86rem;
+}
+
+/* ==========================================================================
+   FEATURED PATRONS & PINNED DONORS SHOWCASE
+   ========================================================================== */
+
+.pinned-donors-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 1px;
-  margin: 20px 0;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(73, 55, 39, 0.05);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
 }
 
-.stat {
-  padding: 16px 14px;
-  background: var(--paper);
-  text-align: left;
+.pinned-donor-card {
+  background: #ffffff;
+  border: 1.5px solid #fed7aa;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.stat b {
+.pinned-donor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(217, 119, 6, 0.16);
+  border-color: #f59e0b;
+}
+
+.pinned-donor-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pinned-donor-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pinned-star-icon {
+  color: #f59e0b;
+  font-size: 1.2rem;
+}
+
+.pinned-donor-info b {
+  font-size: 1rem;
+  color: #262626;
   display: block;
-  font-size: 1.4rem;
-  color: var(--red);
-  line-height: 1.15;
 }
 
-.stat span {
-  display: block;
-  color: var(--muted);
-  font-size: 0.76rem;
+.pinned-donor-amount {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #15803d;
+  font-family: 'Cinzel', serif;
+  white-space: nowrap;
+}
+
+.pinned-donor-note {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #57534e;
+  font-style: italic;
+  background: #fffbeb;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border-left: 3px solid #f59e0b;
+}
+
+.pinned-donor-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px dashed #e7dfd5;
+  padding-top: 8px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.pinned-donor-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pinned-empty-box {
+  background: #fffbeb;
+  border: 1.5px dashed #fcd34d;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+/* ==========================================================================
+   NOTICES & ANNOUNCEMENTS
+   ========================================================================== */
+
+.notices-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.notice {
+  background: #ffffff;
+  border: 1.5px solid #e7dfd5;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.notice.pinned {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+}
+
+.notice-content {
+  flex: 1;
+}
+
+.notice-content p {
+  margin: 0 0 4px;
+  font-size: 0.94rem;
+  color: #292524;
+  line-height: 1.4;
+}
+
+.notice-content small {
+  color: #78716c;
+  font-size: 0.78rem;
+}
+
+.pin-badge {
+  display: inline-block;
+  background: #f59e0b;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+}
+
+.notice-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   PANDAL TIMINGS & EMERGENCY CONTACTS
+   ========================================================================== */
+
+.pandal-timings {
+  margin: 0;
+  font-size: 0.96rem;
+  color: #44403c;
+  line-height: 1.6;
+  background: #fdfaf3;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border-left: 4px solid #d97706;
+}
+
+.pandal-timings b {
+  color: #881e0f;
+}
+
+.contacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.contact-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #ffffff;
+  border: 1.5px solid #e7dfd5;
+  border-radius: 10px;
+  padding: 10px 14px;
+  text-decoration: none;
+  color: #292524;
+  font-size: 0.88rem;
   font-weight: 600;
-  margin-top: 4px;
+  transition: all 0.2s ease;
+}
+
+.contact-card:hover {
+  border-color: #15803d;
+  background: #f0fdf4;
+  transform: translateY(-2px);
+}
+
+.contact-card b {
+  color: #15803d;
+  font-size: 0.92rem;
 }
 
 /* Cards & Layout */
@@ -5975,10 +6411,69 @@ table {
     max-width: 100vw !important;
     box-sizing: border-box !important;
   }
+
+  /* 4. Overview Colorful Jewel Stats Grid on Tablets & Mobiles */
+  .stats {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin: 14px 0 18px !important;
+    width: 100% !important;
+  }
+
+  .stats > .stat:last-child:nth-child(odd) {
+    grid-column: span 2 !important;
+  }
+
+  .stat {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 12px 10px !important;
+    border-radius: 12px !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .stat-icon-badge {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    border-radius: 10px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .stat-icon-symbol {
+    font-size: 1.35rem !important;
+  }
+
+  .stat-content {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .stat-value {
+    font-size: 1.15rem !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  .stat-label {
+    font-size: 0.68rem !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  .two {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
 }
 
 @media (max-width: 640px) {
-  /* 4. Topbar Header Optimization on Small Phones */
+  /* 5. Topbar Header Optimization on Small Phones */
   .topbar {
     padding: 10px 12px !important;
     gap: 8px !important;
@@ -6034,7 +6529,7 @@ table {
     padding: 0 8px !important;
   }
 
-  /* 5. Hero 2026 Showcase on Mobile Phones */
+  /* 6. Hero 2026 Showcase on Mobile Phones */
   .hero-2026-showcase {
     padding: 16px 12px !important;
     margin-bottom: 14px !important;
@@ -6057,51 +6552,143 @@ table {
   }
 
   .hero-title {
-    font-size: 1.4rem !important;
+    font-size: 1.45rem !important;
     line-height: 1.2 !important;
+    word-break: normal !important;
+    white-space: normal !important;
   }
 
-  .hero-quick-stats,
-  .quick-countdown-bar {
-    flex-wrap: wrap !important;
+  .hero-subtitle {
+    font-size: 0.88rem !important;
+    margin-bottom: 10px !important;
+    word-break: normal !important;
+    white-space: normal !important;
+  }
+
+  /* 7. Live Countdown on Mobile */
+  .live-countdown-card {
+    padding: 12px 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .countdown-timer {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
     gap: 6px !important;
-    justify-content: center !important;
+    width: 100% !important;
   }
 
-  /* 6. Cards & Containers on Mobile */
+  .timer-separator {
+    display: none !important;
+  }
+
+  .timer-unit {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 6px 3px !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .timer-unit b {
+    font-size: 1.25rem !important;
+  }
+
+  .timer-unit span {
+    font-size: 0.58rem !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .countdown-date-info {
+    flex-direction: column !important;
+    gap: 6px !important;
+    align-items: center !important;
+    text-align: center !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* 8. Overview Quick Action Shortcuts on Mobile */
+  .overview-quick-shortcuts {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    overflow-x: visible !important;
+    margin-bottom: 14px !important;
+    width: 100% !important;
+  }
+
+  .overview-quick-shortcuts > .quick-shortcut-pill:last-child:nth-child(odd) {
+    grid-column: span 2 !important;
+  }
+
+  .quick-shortcut-pill {
+    width: 100% !important;
+    justify-content: center !important;
+    font-size: 0.78rem !important;
+    padding: 9px 8px !important;
+    white-space: normal !important;
+    text-align: center !important;
+    border-radius: 10px !important;
+  }
+
+  .quick-shortcut-pill .pill-icon {
+    font-size: 1.05rem !important;
+  }
+
+  /* 9. Cards & Layout Containers on Mobile */
   .card {
     padding: 16px 12px !important;
     border-radius: 14px !important;
     margin-bottom: 14px !important;
   }
 
-  .card-header {
+  .card-head {
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 10px !important;
     margin-bottom: 12px !important;
   }
 
-  .card-title {
+  .card h2 {
     font-size: 1.12rem !important;
   }
 
-  .card-action {
+  .first-time-setup-banner {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 12px !important;
+  }
+
+  .setup-banner-content {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  .pinned-donors-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .notice {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .notice-admin-actions {
     width: 100% !important;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 6px !important;
+    border-top: 1px dashed #e7dfd5 !important;
+    padding-top: 8px !important;
+    justify-content: flex-start !important;
   }
 
-  .card-action button,
-  .card-action .button {
-    flex: 1 1 auto !important;
-    justify-content: center !important;
-    font-size: 0.8rem !important;
-    padding: 6px 10px !important;
+  .contacts {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
   }
 
-  /* 7. Committee ID Cards on Mobile Phones */
+  /* 10. Committee ID Cards on Mobile Phones */
   .id-card-grid {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
@@ -6149,20 +6736,7 @@ table {
     padding: 5px 6px !important;
   }
 
-  /* 8. Summary Bars, Stats, and Records List on Mobile */
-  .stats-grid,
-  .overview-stats,
-  .money-summary-bar {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
-  }
-
-  .stat-card,
-  .summary-item {
-    padding: 10px 8px !important;
-    border-radius: 10px !important;
-  }
-
+  /* 11. Records List on Mobile */
   .records-list {
     display: flex !important;
     flex-direction: column !important;
@@ -6200,12 +6774,12 @@ table {
     font-size: 0.74rem !important;
   }
 
-  /* 9. Forms & Modals Touch Optimization */
+  /* 12. Forms & Modals Touch Optimization */
   .modal-overlay {
     padding: 10px !important;
   }
 
-  .modal {
+  .modal-content {
     width: 95vw !important;
     max-width: 95vw !important;
     max-height: 88vh !important;
@@ -6233,7 +6807,7 @@ table {
     justify-content: center !important;
   }
 
-  /* 10. Music Player & Media Gallery on Mobile */
+  /* 13. Music Player & Media Gallery on Mobile */
   .media-mode-tabs,
   .media-tabs {
     overflow-x: auto !important;
