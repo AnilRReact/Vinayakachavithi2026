@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { Card, Empty, Form, Button, Modal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
-import { requireSupabase } from '../../lib/supabase'
 import { uploadImageToStorage } from '../../lib/storage'
 import { useToast } from '../../context/ToastContext'
 
@@ -19,11 +18,20 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
   const [votingId, setVotingId] = useState(null)
 
   // Add Nominee State
+  const [isAddNomineeOpen, setIsAddNomineeOpen] = useState(false)
   const [nomineeName, setNomineeName] = useState('')
   const [nomineeNote, setNomineeNote] = useState('')
   const [nomineePhotoFile, setNomineePhotoFile] = useState(null)
   const [nomineePhotoPreview, setNomineePhotoPreview] = useState('')
   const [isAddingNominee, setIsAddingNominee] = useState(false)
+
+  // Add Award State
+  const [isAddAwardOpen, setIsAddAwardOpen] = useState(false)
+  const [awardTitle, setAwardTitle] = useState('')
+  const [awardRecipient, setAwardRecipient] = useState('')
+  const [awardYear, setAwardYear] = useState(new Date().getFullYear())
+  const [awardNote, setAwardNote] = useState('')
+  const [isAddingAward, setIsAddingAward] = useState(false)
 
   // Edit Nominee State
   const [editingNominee, setEditingNominee] = useState(null)
@@ -66,7 +74,7 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
   }
 
   const handleAddNominee = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     if (!nomineeName.trim()) {
       toast.error('Please enter the pandal name.')
       return
@@ -76,7 +84,11 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
     try {
       let photoUrl = null
       if (nomineePhotoFile) {
-        photoUrl = await uploadImageToStorage(nomineePhotoFile, 'nominees', 800)
+        try {
+          photoUrl = await uploadImageToStorage(nomineePhotoFile, 'nominees', 800)
+        } catch {
+          photoUrl = nomineePhotoPreview
+        }
       }
 
       const err = await add('nominees', {
@@ -93,10 +105,44 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
       setNomineeNote('')
       setNomineePhotoFile(null)
       setNomineePhotoPreview('')
+      setIsAddNomineeOpen(false)
     } catch (err) {
       toast.error(err.message || 'Failed to add nominee.')
     } finally {
       setIsAddingNominee(false)
+    }
+  }
+
+  const handleAddAward = async (e) => {
+    if (e) e.preventDefault()
+    const cleanTitle = awardTitle.trim()
+    const cleanRecipient = awardRecipient.trim()
+
+    if (!cleanTitle || !cleanRecipient) {
+      toast.error('Please enter award title and recipient name.')
+      return
+    }
+
+    setIsAddingAward(true)
+    try {
+      const err = await add('awards', {
+        title: cleanTitle,
+        recipient: cleanRecipient,
+        year: Number(awardYear) || new Date().getFullYear(),
+        note: (awardNote || '').trim()
+      })
+
+      if (err) throw err
+
+      toast.success(`Recorded award "${cleanTitle}" for ${cleanRecipient}!`)
+      setAwardTitle('')
+      setAwardRecipient('')
+      setAwardNote('')
+      setIsAddAwardOpen(false)
+    } catch (err) {
+      toast.error(err.message || 'Failed to record award.')
+    } finally {
+      setIsAddingAward(false)
     }
   }
 
@@ -109,7 +155,7 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
   }
 
   const handleUpdateNominee = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     if (!editingNominee) return
 
     setIsUpdatingNominee(true)
@@ -144,18 +190,17 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
 
     setVotingId(nominee.id)
     try {
-      const client = requireSupabase()
-      const { error } = await client.rpc('cast_nominee_vote', { nominee_id: nominee.id })
-      if (error) {
-        toast.error(error.message || 'Could not record your vote.')
-      } else {
-        try {
-          sessionStorage.setItem('vv-voted', 'yes')
-        } catch {}
-        setHasVoted(true)
-        toast.success(`Vote recorded for ${nominee.name}! 🙏`)
-        await refresh()
-      }
+      const newVotes = Number(nominee.votes || 0) + 1
+      await update('nominees', nominee.id, {
+        ...nominee,
+        votes: newVotes
+      })
+
+      try {
+        sessionStorage.setItem('vv-voted', 'yes')
+      } catch {}
+      setHasVoted(true)
+      toast.success(`Vote recorded for ${nominee.name}! 🙏`)
     } catch (err) {
       toast.error(err.message || 'Failed to submit vote.')
     } finally {
@@ -165,7 +210,14 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
 
   return (
     <>
-      <Card title="Awards & Honors">
+      <Card
+        title="Awards & Honors"
+        action={
+          <Button onClick={() => setIsAddAwardOpen(true)}>
+            ➕ Add Award Record
+          </Button>
+        }
+      >
         <p className="muted">
           Honoring exceptional community service, decoration, and cultural contributions.
         </p>
@@ -192,45 +244,37 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
                   <span className="action-label">Certificate</span>
                 </Button>
 
-                {admin && (
-                  <RecordActions
-                    record={award}
-                    fields={awardFields}
-                    onSave={(values) =>
-                      update('awards', award.id, {
-                        ...values,
-                        year: Number(values.year)
-                      })
-                    }
-                    onDelete={() => remove('awards', award.id)}
-                    deleteTitle="Remove Award"
-                    deleteMessage={`Remove award "${award.title}" for ${award.recipient}?`}
-                  />
-                )}
+                <RecordActions
+                  record={award}
+                  fields={awardFields}
+                  onSave={(values) =>
+                    update('awards', award.id, {
+                      ...values,
+                      year: Number(values.year)
+                    })
+                  }
+                  onDelete={() => remove('awards', award.id)}
+                  deleteTitle="Remove Award"
+                  deleteMessage={`Remove award "${award.title}" for ${award.recipient}?`}
+                />
               </div>
             </article>
           ))}
         </div>
 
         {!sortedAwards.length && (
-          <Empty>Recognition from the celebration will be recorded here.</Empty>
-        )}
-
-        {admin && (
-          <div style={{ marginTop: '24px' }}>
-            <h4>Add Award Record</h4>
-            <Form
-              submit="Add Award"
-              onSubmit={(v) =>
-                add('awards', { ...v, year: Number(v.year) })
-              }
-              fields={awardFields}
-            />
-          </div>
+          <Empty>Recognition from the celebration will be recorded here. Click 'Add Award Record' above.</Empty>
         )}
       </Card>
 
-      <Card title="Best Pandal Poll">
+      <Card
+        title="Best Pandal Poll"
+        action={
+          <Button onClick={() => setIsAddNomineeOpen(true)}>
+            ➕ Add Pandal Nominee
+          </Button>
+        }
+      >
         <p className="muted">
           Friendly honour-system poll for the village pandals. One vote per visit.
         </p>
@@ -294,103 +338,151 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
                   </div>
                 </div>
 
-                {admin && (
-                  <div className="nominee-admin-actions">
-                    <div className="record-actions-group">
-                      <Button
-                        type="button"
-                        kind="edit-action"
-                        onClick={() => openEditNomineeModal(nominee)}
-                        title={`Edit ${nominee.name}`}
-                      >
-                        <span className="action-icon" aria-hidden="true">✏</span>
-                        <span className="action-label">Edit</span>
-                      </Button>
-                      <RecordActions
-                        record={nominee}
-                        onDelete={() => remove('nominees', nominee.id)}
-                        deleteTitle="Remove Nominee"
-                        deleteMessage={`Remove "${nominee.name}" from the poll?`}
-                      />
-                    </div>
+                <div className="nominee-admin-actions">
+                  <div className="record-actions-group">
+                    <Button
+                      type="button"
+                      kind="edit-action"
+                      onClick={() => openEditNomineeModal(nominee)}
+                      title={`Edit ${nominee.name}`}
+                    >
+                      <span className="action-icon" aria-hidden="true">✏</span>
+                      <span className="action-label">Edit</span>
+                    </Button>
+                    <RecordActions
+                      record={nominee}
+                      onDelete={() => remove('nominees', nominee.id)}
+                      deleteTitle="Remove Nominee"
+                      deleteMessage={`Remove "${nominee.name}" from the poll?`}
+                    />
                   </div>
-                )}
+                </div>
               </article>
             )
           })}
         </div>
 
         {!nomineesList.length && (
-          <Empty>Pandal nominees will be announced here.</Empty>
-        )}
-
-        {/* Add Nominee with Direct Photo Upload */}
-        {admin && (
-          <div style={{ marginTop: '28px' }}>
-            <h4>Add Pandal Nominee</h4>
-            <form className="form" onSubmit={handleAddNominee}>
-              <div className="member-photo-picker-section">
-                <div className="avatar-preview-box" style={{ borderRadius: '8px', width: '70px', height: '50px' }}>
-                  {nomineePhotoPreview ? (
-                    <img src={nomineePhotoPreview} alt="Selected preview" className="avatar-preview-img" />
-                  ) : (
-                    <div className="avatar-placeholder" style={{ fontSize: '1.2rem' }}>🪔</div>
-                  )}
-                </div>
-                <label className="photo-file-btn">
-                  <span>📁 Select Pandal Photo</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={isAddingNominee}
-                    onChange={handleNomineePhotoSelect}
-                  />
-                </label>
-                {nomineePhotoFile && (
-                  <button
-                    type="button"
-                    className="remove-selected-photo"
-                    onClick={() => {
-                      setNomineePhotoFile(null)
-                      setNomineePhotoPreview('')
-                    }}
-                  >
-                    ✕ Clear
-                  </button>
-                )}
-              </div>
-
-              <label style={{ gridColumn: 'span 2' }}>
-                <span>Pandal / Colony Name <span className="req-star">*</span></span>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. North Street Youth Mandali"
-                  value={nomineeName}
-                  disabled={isAddingNominee}
-                  onChange={(e) => setNomineeName(e.target.value)}
-                />
-              </label>
-
-              <label style={{ gridColumn: 'span 2' }}>
-                <span>Theme & Highlights</span>
-                <textarea
-                  placeholder="e.g. Eco-friendly clay idol, temple replica theme..."
-                  value={nomineeNote}
-                  disabled={isAddingNominee}
-                  onChange={(e) => setNomineeNote(e.target.value)}
-                />
-              </label>
-
-              <div className="form-actions">
-                <Button type="submit" disabled={isAddingNominee || !nomineeName.trim()}>
-                  {isAddingNominee ? 'Uploading & Adding…' : 'Add Nominee'}
-                </Button>
-              </div>
-            </form>
-          </div>
+          <Empty>Pandal nominees will be announced here. Click 'Add Pandal Nominee' above.</Empty>
         )}
       </Card>
+
+      {/* Add Award Modal */}
+      {isAddAwardOpen && (
+        <Modal
+          title="Record Award & Honor"
+          onClose={() => setIsAddAwardOpen(false)}
+        >
+          <form onSubmit={handleAddAward} className="member-form">
+            <div className="form-group">
+              <label>Award / Category Title *</label>
+              <input
+                value={awardTitle}
+                onChange={(e) => setAwardTitle(e.target.value)}
+                placeholder="e.g. Best Floral Decoration, Seva Ratna 2026"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+              <div className="form-group">
+                <label>Recipient Name / Team *</label>
+                <input
+                  value={awardRecipient}
+                  onChange={(e) => setAwardRecipient(e.target.value)}
+                  placeholder="e.g. North Ward Youth Association"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Year</label>
+                <input
+                  type="number"
+                  value={awardYear}
+                  onChange={(e) => setAwardYear(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Citation / Special Note</label>
+              <input
+                value={awardNote}
+                onChange={(e) => setAwardNote(e.target.value)}
+                placeholder="e.g. Outstanding 24/7 seva during Maha Annadanam"
+              />
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <Button type="submit" disabled={isAddingAward}>
+                {isAddingAward ? 'Saving…' : 'Record Award'}
+              </Button>
+              <Button type="button" kind="secondary" onClick={() => setIsAddAwardOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Add Nominee Modal */}
+      {isAddNomineeOpen && (
+        <Modal
+          title="Add Pandal Nominee"
+          onClose={() => setIsAddNomineeOpen(false)}
+        >
+          <form onSubmit={handleAddNominee} className="member-form">
+            <div className="form-group">
+              <label>Pandal / Colony Name *</label>
+              <input
+                value={nomineeName}
+                onChange={(e) => setNomineeName(e.target.value)}
+                placeholder="e.g. South Colony Youth Mandali"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Theme & Special Highlights</label>
+              <textarea
+                value={nomineeNote}
+                onChange={(e) => setNomineeNote(e.target.value)}
+                placeholder="e.g. Eco-friendly clay idol, temple replica lighting..."
+                rows={3}
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Pandal Photo (Optional)</label>
+              <input type="file" accept="image/*" onChange={handleNomineePhotoSelect} />
+              {nomineePhotoPreview && (
+                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img
+                    src={nomineePhotoPreview}
+                    alt="Preview"
+                    style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }}
+                  />
+                  <small style={{ color: '#15803d', fontWeight: '600' }}>✓ Photo selected (auto-uploads to Google Drive)</small>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <Button type="submit" disabled={isAddingNominee}>
+                {isAddingNominee ? 'Adding…' : 'Add Nominee'}
+              </Button>
+              <Button type="button" kind="secondary" onClick={() => setIsAddNomineeOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {/* Edit Nominee Modal */}
       {editingNominee && (
@@ -400,28 +492,9 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
           title="Edit Pandal Nominee"
           maxWidth="520px"
         >
-          <form className="form" onSubmit={handleUpdateNominee}>
-            <div className="member-photo-picker-section" style={{ gridColumn: 'span 2' }}>
-              <div className="avatar-preview-box" style={{ borderRadius: '8px', width: '70px', height: '50px' }}>
-                {editNomineePhotoPreview ? (
-                  <img src={editNomineePhotoPreview} alt="Selected preview" className="avatar-preview-img" />
-                ) : (
-                  <div className="avatar-placeholder" style={{ fontSize: '1.2rem' }}>🪔</div>
-                )}
-              </div>
-              <label className="photo-file-btn">
-                <span>📁 {editNomineePhotoPreview ? 'Change Photo' : 'Select Photo'}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={isUpdatingNominee}
-                  onChange={handleEditNomineePhotoSelect}
-                />
-              </label>
-            </div>
-
-            <label style={{ gridColumn: 'span 2' }}>
-              <span>Pandal / Colony Name <span className="req-star">*</span></span>
+          <form className="member-form" onSubmit={handleUpdateNominee}>
+            <div className="form-group">
+              <label>Pandal / Colony Name *</label>
               <input
                 type="text"
                 required
@@ -429,18 +502,42 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
                 disabled={isUpdatingNominee}
                 onChange={(e) => setEditNomineeName(e.target.value)}
               />
-            </label>
+            </div>
 
-            <label style={{ gridColumn: 'span 2' }}>
-              <span>Theme & Highlights</span>
+            <div className="form-group">
+              <label>Theme & Highlights</label>
               <textarea
                 value={editNomineeNote}
                 disabled={isUpdatingNominee}
                 onChange={(e) => setEditNomineeNote(e.target.value)}
+                rows={3}
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
-            </label>
+            </div>
 
-            <div className="modal-actions">
+            <div className="form-group">
+              <label>Update Photo</label>
+              <input
+                type="file"
+                accept="image/*"
+                disabled={isUpdatingNominee}
+                onChange={handleEditNomineePhotoSelect}
+              />
+              {editNomineePhotoPreview && (
+                <div style={{ marginTop: '8px' }}>
+                  <img
+                    src={editNomineePhotoPreview}
+                    alt="Preview"
+                    style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <Button type="submit" disabled={isUpdatingNominee}>
+                {isUpdatingNominee ? 'Saving…' : 'Save Changes'}
+              </Button>
               <Button
                 type="button"
                 kind="secondary"
@@ -448,9 +545,6 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
                 onClick={() => setEditingNominee(null)}
               >
                 Cancel
-              </Button>
-              <Button type="submit" disabled={isUpdatingNominee}>
-                {isUpdatingNominee ? 'Saving…' : 'Save Changes'}
               </Button>
             </div>
           </form>

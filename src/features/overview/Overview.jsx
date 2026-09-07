@@ -281,7 +281,7 @@ export function Overview({ data, admin, add, update, remove, onNavigate }) {
 
           {/* Hero Content & Live Countdown */}
           <div className="hero-content-col">
-            <p className="eyebrow">🌿 ॐ శ్రీ గణేశాయ నమః 🌿</p>
+            <p className="eyebrow">🌿 Om Sri Ganeshaya Namaha 🌿</p>
             <h1 className="hero-title">{settings.village_name || 'Vinayaka Vedika'}</h1>
             <p className="hero-subtitle">{settings.tagline || 'Our village celebration, in one place.'}</p>
 

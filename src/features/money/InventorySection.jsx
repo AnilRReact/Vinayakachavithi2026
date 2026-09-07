@@ -1,8 +1,18 @@
-import React, { useMemo } from 'react'
-import { Card, Empty, Form } from '../../components/ui'
+import React, { useState, useMemo } from 'react'
+import { Card, Empty, Form, Button, Modal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { currency } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
+
+const ASSET_CATEGORIES = [
+  'Pooja Utensils & Brassware',
+  'Audio & Sound Equipment',
+  'Focus & LED Lighting',
+  'Stage & Frame Structures',
+  'Cooking Cauldrons & Big Vessels',
+  'Banners & Display Boards',
+  'Decorative Props & Fabric'
+]
 
 export function InventorySection({
   purchases = [],
@@ -12,6 +22,16 @@ export function InventorySection({
   remove
 }) {
   const { toast } = useToast()
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
+  // Add form states
+  const [item, setItem] = useState('')
+  const [category, setCategory] = useState('')
+  const [cost, setCost] = useState('')
+  const [year, setYear] = useState(new Date().getFullYear())
+  const [reusable, setReusable] = useState(true)
+  const [conditionNote, setConditionNote] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   const reusablePurchases = useMemo(
     () => purchases.filter((p) => p.reusable),
@@ -23,10 +43,10 @@ export function InventorySection({
   )
 
   const purchasesByYear = useMemo(() => {
-    const groups = purchases.reduce((acc, item) => {
-      const year = item.year || new Date().getFullYear()
-      acc[year] = acc[year] || []
-      acc[year].push(item)
+    const groups = purchases.reduce((acc, p) => {
+      const yr = p.year || new Date().getFullYear()
+      acc[yr] = acc[yr] || []
+      acc[yr].push(p)
       return acc
     }, {})
     return Object.entries(groups).sort(([a], [b]) => String(b).localeCompare(String(a)))
@@ -41,17 +61,47 @@ export function InventorySection({
     { name: 'condition_note', label: 'Condition / Storage Location', placeholder: 'e.g. Good condition, stored in temple locker' }
   ]
 
-  const handleAddPurchase = async (values) => {
-    const payload = {
-      ...values,
-      cost: Number(values.cost),
-      year: Number(values.year)
+  const handleOpenAdd = () => {
+    setItem('')
+    setCategory('')
+    setCost('')
+    setYear(new Date().getFullYear())
+    setReusable(true)
+    setConditionNote('')
+    setIsAddModalOpen(true)
+  }
+
+  const handleSaveAdd = async (e) => {
+    if (e) e.preventDefault()
+    const cleanItem = (item || '').trim()
+    const cleanCat = (category || '').trim()
+    const numCost = Number(cost)
+
+    if (!cleanItem || !cleanCat || isNaN(numCost)) {
+      toast.error('Please enter item name, category, and cost.')
+      return
     }
-    const err = await add('purchases', payload)
-    if (err) {
-      toast.error(err.message || 'Could not record inventory purchase.')
-    } else {
-      toast.success(`Added ${payload.item} to temple inventory.`)
+
+    setIsSaving(true)
+    try {
+      const payload = {
+        item: cleanItem,
+        category: cleanCat,
+        cost: numCost,
+        year: Number(year) || new Date().getFullYear(),
+        reusable,
+        condition_note: (conditionNote || '').trim()
+      }
+
+      const err = await add('purchases', payload)
+      if (err) throw err
+
+      toast.success(`Added ${cleanItem} to temple inventory.`)
+      setIsAddModalOpen(false)
+    } catch (err) {
+      toast.error(err.message || 'Could not record inventory item.')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -60,17 +110,22 @@ export function InventorySection({
       <Card
         title="Reusable Inventory & Assets"
         action={
-          reusablePurchases.length > 0 && (
-            <span className="inventory-badge">
-              🏷️ Reusable Asset Worth: <b>{currency.format(reusableWorth)}</b>
-            </span>
-          )
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <Button onClick={handleOpenAdd}>
+              ➕ Add Asset
+            </Button>
+            {reusablePurchases.length > 0 && (
+              <span className="inventory-badge">
+                🏷️ Reusable Worth: <b>{currency.format(reusableWorth)}</b>
+              </span>
+            )}
+          </div>
         }
       >
         <div className="purchases-by-year">
-          {purchasesByYear.map(([year, items]) => (
-            <div key={year} className="year-group">
-              <h4 className="year-heading">📅 Year {year} Purchases ({items.length} items)</h4>
+          {purchasesByYear.map(([yr, items]) => (
+            <div key={yr} className="year-group">
+              <h4 className="year-heading">📅 Year {yr} Purchases ({items.length} items)</h4>
               <div className="records-list">
                 {items.map((p) => (
                   <article className="record-item" key={p.id}>
@@ -90,22 +145,20 @@ export function InventorySection({
                       </small>
                     </div>
 
-                    {admin && (
-                      <RecordActions
-                        record={p}
-                        fields={purchaseFields}
-                        onSave={(values) =>
-                          update('purchases', p.id, {
-                            ...values,
-                            cost: Number(values.cost),
-                            year: Number(values.year)
-                          })
-                        }
-                        onDelete={() => remove('purchases', p.id)}
-                        deleteTitle="Delete Inventory Item"
-                        deleteMessage={`Delete ${p.item}?`}
-                      />
-                    )}
+                    <RecordActions
+                      record={p}
+                      fields={purchaseFields}
+                      onSave={(values) =>
+                        update('purchases', p.id, {
+                          ...values,
+                          cost: Number(values.cost),
+                          year: Number(values.year)
+                        })
+                      }
+                      onDelete={() => remove('purchases', p.id)}
+                      deleteTitle="Delete Inventory Item"
+                      deleteMessage={`Delete ${p.item}?`}
+                    />
                   </article>
                 ))}
               </div>
@@ -114,20 +167,116 @@ export function InventorySection({
         </div>
 
         {!purchases.length && (
-          <Empty text="No permanent assets or reusable inventory recorded yet." />
+          <Empty text="No permanent assets or reusable inventory recorded yet. Click 'Add Asset' above." />
         )}
       </Card>
 
-      {admin && (
-        <Card title="Add Asset / Reusable Inventory">
-          <Form
-            fields={purchaseFields}
-            onSubmit={handleAddPurchase}
-            submitLabel="Add to Inventory"
-          />
-        </Card>
+      {/* Add Inventory Modal */}
+      {isAddModalOpen && (
+        <Modal
+          title="Add Reusable Asset / Inventory Item"
+          onClose={() => setIsAddModalOpen(false)}
+        >
+          <form onSubmit={handleSaveAdd} className="member-form">
+            <div className="form-group">
+              <label>Asset / Item Name *</label>
+              <input
+                value={item}
+                onChange={(e) => setItem(e.target.value)}
+                placeholder="e.g. Brass Pooja Aarti Plate, LED Floodlights"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Category *</label>
+              <input
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="e.g. Pooja Utensils"
+                required
+              />
+              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                {ASSET_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    className="role-chip"
+                    style={{
+                      fontSize: '0.74rem',
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      border: '1px solid #fed7aa',
+                      background: category === cat ? '#ffedd5' : '#fff7ed',
+                      cursor: 'pointer',
+                      fontWeight: category === cat ? '700' : '500'
+                    }}
+                    onClick={() => setCategory(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-group">
+                <label>Cost (₹) *</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={cost}
+                  onChange={(e) => setCost(e.target.value)}
+                  placeholder="e.g. 2500"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Purchase Year</label>
+                <input
+                  type="number"
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Condition / Storage Location</label>
+              <input
+                value={conditionNote}
+                onChange={(e) => setConditionNote(e.target.value)}
+                placeholder="e.g. Temple Store Locker, Room 2"
+              />
+            </div>
+
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="checkbox"
+                id="reusable-check"
+                checked={reusable}
+                onChange={(e) => setReusable(e.target.checked)}
+                style={{ width: '18px', height: '18px' }}
+              />
+              <label htmlFor="reusable-check" style={{ margin: 0, cursor: 'pointer', fontWeight: '600' }}>
+                ✓ Permanent reusable asset (carried over to future years)
+              </label>
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Adding…' : 'Add to Inventory'}
+              </Button>
+              <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
     </>
   )
 }
-

@@ -1,10 +1,21 @@
 import React, { useState } from 'react'
-import { Card, Empty, Form, Button } from '../../components/ui'
+import { Card, Empty, Form, Button, Modal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { fmtDate, today } from '../../lib/formatters'
 import { openDonationWhatsAppReceipt } from '../../lib/whatsapp'
 import { useToast } from '../../context/ToastContext'
+
+const PRASAD_PRESETS = [
+  'Maha Laddu Prasadam',
+  'Pulihora (Tamarind Rice)',
+  'Chakra Pongali (Sweet Rice)',
+  'Sundal / Boiled Chickpeas',
+  'Kudumulu & Undrallu',
+  'Special Annadanam (Lunch/Dinner)',
+  'Fruits & Dry Fruits Basket',
+  'Panchamrutham & Milk Seva'
+]
 
 export function PrasadSponsorsSection({
   prasadSponsors = [],
@@ -17,6 +28,15 @@ export function PrasadSponsorsSection({
 }) {
   const { toast } = useToast()
   const [selectedSponsor, setSelectedSponsor] = useState(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
+  // Add form states
+  const [sponsorName, setSponsorName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [date, setDate] = useState(today())
+  const [item, setItem] = useState('')
+  const [note, setNote] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   const sponsorFields = [
     { name: 'sponsor_name', label: 'Sponsor Name / Family', required: true, placeholder: 'e.g. Srikanth & Family' },
@@ -26,12 +46,44 @@ export function PrasadSponsorsSection({
     { name: 'note', label: 'Gotram / Dedication Note', placeholder: 'Optional dedication' }
   ]
 
-  const handleAddSponsor = async (values) => {
-    const err = await add('prasad_sponsors', values)
-    if (err) {
+  const handleOpenAdd = () => {
+    setSponsorName('')
+    setPhone('')
+    setDate(today())
+    setItem('')
+    setNote('')
+    setIsAddModalOpen(true)
+  }
+
+  const handleSaveAdd = async (e) => {
+    if (e) e.preventDefault()
+    const cleanName = (sponsorName || '').trim()
+    const cleanItem = (item || '').trim()
+
+    if (!cleanName || !cleanItem) {
+      toast.error('Please enter sponsor name and prasad item.')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const payload = {
+        sponsor_name: cleanName,
+        phone: (phone || '').trim(),
+        date: date || today(),
+        item: cleanItem,
+        note: (note || '').trim()
+      }
+
+      const err = await add('prasad_sponsors', payload)
+      if (err) throw err
+
+      toast.success(`🙏 Recorded Prasad sponsorship by ${cleanName}`)
+      setIsAddModalOpen(false)
+    } catch (err) {
       toast.error(err.message || 'Could not record prasad sponsor.')
-    } else {
-      toast.success(`🙏 Recorded Prasad sponsorship by ${values.sponsor_name}`)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -43,7 +95,7 @@ export function PrasadSponsorsSection({
       paymentMode: 'Maha Prasadam Sponsorship',
       gotram: sp.note,
       date: fmtDate(sp.date),
-      villageName: settings.festival_title || 'శ్రీ వరసిద్ధి వినాయక ఉత్సవ సమితి 2026'
+      villageName: settings.village_name || 'Sri Varasiddhi Vinayaka Utsava Samithi 2026'
     })
   }
 
@@ -52,15 +104,18 @@ export function PrasadSponsorsSection({
       <Card
         title="Maha Prasadam & Seva Sponsors"
         action={
-          admin && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button onClick={handleOpenAdd}>
+              ➕ Sponsor Prasadam
+            </Button>
             <Button
               kind="secondary"
-              onClick={() => onOpenExcelImport('prasad_sponsors')}
+              onClick={() => onOpenExcelImport && onOpenExcelImport('prasad_sponsors')}
               title="Upload Excel or CSV file to extract and import prasad sponsors"
             >
               📊 Bulk Excel Import
             </Button>
-          )
+          </div>
         }
       >
         <div className="records-list">
@@ -98,34 +153,113 @@ export function PrasadSponsorsSection({
                   <span className="action-label">Blessing Card</span>
                 </Button>
 
-                {admin && (
-                  <RecordActions
-                    record={sp}
-                    fields={sponsorFields}
-                    onSave={(values) => update('prasad_sponsors', sp.id, values)}
-                    onDelete={() => remove('prasad_sponsors', sp.id)}
-                    deleteTitle="Delete Prasad Sponsor"
-                    deleteMessage={`Delete sponsorship by ${sp.sponsor_name}?`}
-                  />
-                )}
+                <RecordActions
+                  record={sp}
+                  fields={sponsorFields}
+                  onSave={(values) => update('prasad_sponsors', sp.id, values)}
+                  onDelete={() => remove('prasad_sponsors', sp.id)}
+                  deleteTitle="Delete Prasad Sponsor"
+                  deleteMessage={`Delete sponsorship by ${sp.sponsor_name}?`}
+                />
               </div>
             </article>
           ))}
         </div>
 
         {!prasadSponsors.length && (
-          <Empty text="No Maha Prasadam sponsors recorded yet." />
+          <Empty text="No Maha Prasadam sponsors recorded yet. Click 'Sponsor Prasadam' above." />
         )}
       </Card>
 
-      {admin && (
-        <Card title="Record Prasad Sponsorship">
-          <Form
-            fields={sponsorFields}
-            onSubmit={handleAddSponsor}
-            submitLabel="Record Sponsor"
-          />
-        </Card>
+      {/* Add Prasad Sponsor Modal */}
+      {isAddModalOpen && (
+        <Modal
+          title="Record Maha Prasadam Sponsor"
+          onClose={() => setIsAddModalOpen(false)}
+        >
+          <form onSubmit={handleSaveAdd} className="member-form">
+            <div className="form-group">
+              <label>Sponsor Name / Devotee Family *</label>
+              <input
+                value={sponsorName}
+                onChange={(e) => setSponsorName(e.target.value)}
+                placeholder="e.g. Srikanth & Family"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Prasadam / Food Item Sponsored *</label>
+              <input
+                value={item}
+                onChange={(e) => setItem(e.target.value)}
+                placeholder="e.g. Maha Laddu, Pulihora, Fruits"
+                required
+              />
+              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                {PRASAD_PRESETS.map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className="role-chip"
+                    style={{
+                      fontSize: '0.74rem',
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      border: '1px solid #fde68a',
+                      background: item === p ? '#fef08a' : '#fffbeb',
+                      cursor: 'pointer',
+                      fontWeight: item === p ? '700' : '500'
+                    }}
+                    onClick={() => setItem(p)}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-group">
+                <label>Mobile / WhatsApp</label>
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. 9876543210"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Date of Seva</label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Gotram / Special Notes (Optional)</label>
+              <input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="e.g. Kashyapa Gotram, In Memory of Grandfather"
+              />
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Recording…' : 'Record Sponsorship'}
+              </Button>
+              <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
 
       {selectedSponsor && (
@@ -144,4 +278,3 @@ export function PrasadSponsorsSection({
     </>
   )
 }
-

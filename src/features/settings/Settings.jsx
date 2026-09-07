@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, Form, Button } from '../../components/ui'
 import { ExcelImportModal } from '../../components/ExcelImportModal'
 import { SEGMENT_CONFIGS, downloadSampleTemplate, exportTableToExcel } from '../../lib/excelParser'
-import { requireSupabase } from '../../lib/supabase'
+import { usePasscode } from '../../hooks/usePasscode'
 import { today } from '../../lib/formatters'
 import { useToast } from '../../context/ToastContext'
 
@@ -159,6 +159,7 @@ function GoogleDriveSettingsCard({ settings }) {
 
 function PasscodeSettings() {
   const { toast } = useToast()
+  const auth = usePasscode()
   const [passcode, setPasscode] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -172,11 +173,8 @@ function PasscodeSettings() {
 
     setBusy(true)
     try {
-      const client = requireSupabase()
-      const { error } = await client.rpc('set_admin_passcode', {
-        new_passcode: passcode.trim()
-      })
-      if (error) throw error
+      const err = await auth.setPasscode(passcode.trim())
+      if (err) throw err
       toast.success('Admin passcode updated successfully!')
       setPasscode('')
     } catch (err) {

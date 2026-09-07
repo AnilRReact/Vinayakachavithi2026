@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Card, Form, Button } from '../../components/ui'
+import { Card, Button, Modal } from '../../components/ui'
 import { RecordActions } from '../../components/RecordActions'
 import { ReceiptTemplateModal } from '../../components/ReceiptTemplateModal'
 import { ProcessionTracker } from './ProcessionTracker'
@@ -9,6 +9,17 @@ import { useToast } from '../../context/ToastContext'
 export function Schedule({ data, admin, add, update, remove }) {
   const { toast } = useToast()
   const [selectedActivityForCard, setSelectedActivityForCard] = useState(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
+  // Form states
+  const [title, setTitle] = useState('')
+  const [date, setDate] = useState(today())
+  const [startTime, setStartTime] = useState('07:30')
+  const [endTime, setEndTime] = useState('09:30')
+  const [location, setLocation] = useState('Main Village Pandal Stage')
+  const [description, setDescription] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+
   const settings = data.settings?.[0] || {}
   const activities = data.activities || []
 
@@ -36,8 +47,8 @@ export function Schedule({ data, admin, add, update, remove }) {
     })
   }, [activities])
 
-  const stamp = (date, time) => {
-    return `${date.replaceAll('-', '')}T${(time || '00:00').replace(':', '')}00`
+  const stamp = (d, t) => {
+    return `${d.replaceAll('-', '')}T${(t || '00:00').replace(':', '')}00`
   }
 
   const googleLink = (a) => {
@@ -87,6 +98,48 @@ export function Schedule({ data, admin, add, update, remove }) {
     }
   }
 
+  const handleOpenAdd = () => {
+    setTitle('')
+    setDate(today())
+    setStartTime('07:30')
+    setEndTime('09:30')
+    setLocation('Main Village Pandal Stage')
+    setDescription('')
+    setIsAddModalOpen(true)
+  }
+
+  const handleSaveAdd = async (e) => {
+    if (e) e.preventDefault()
+    const cleanTitle = (title || '').trim()
+
+    if (!cleanTitle) {
+      toast.error('Please enter the event / pooja name.')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const payload = {
+        title: cleanTitle,
+        date: date || today(),
+        start_time: startTime || '07:30',
+        end_time: endTime || '09:30',
+        location: (location || '').trim(),
+        description: (description || '').trim()
+      }
+
+      const err = await add('activities', payload)
+      if (err) throw err
+
+      toast.success(`Added "${cleanTitle}" to festival schedule!`)
+      setIsAddModalOpen(false)
+    } catch (err) {
+      toast.error(err.message || 'Could not add event to schedule.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <>
       {/* Shobha Yatra & Nimajjanam Route Tracker */}
@@ -96,7 +149,14 @@ export function Schedule({ data, admin, add, update, remove }) {
         onUpdateSettings={(v) => settings.id && update('settings', settings.id, v)}
       />
 
-      <Card title="Pandal Schedule & Daily Timings">
+      <Card
+        title="Pandal Schedule & Daily Timings"
+        action={
+          <Button onClick={handleOpenAdd}>
+            ➕ Add Event / Pooja
+          </Button>
+        }
+      >
         {settings.daily_schedule_note ? (
           <div className="schedule-pandal-note">
             <b>Daily Schedule & Pandal Instructions:</b>
@@ -171,16 +231,14 @@ export function Schedule({ data, admin, add, update, remove }) {
                         </button>
                       </div>
 
-                      {admin && (
-                        <RecordActions
-                          record={activity}
-                          fields={activityFields}
-                          onSave={(values) => update('activities', activity.id, values)}
-                          onDelete={() => remove('activities', activity.id)}
-                          deleteTitle="Remove Activity"
-                          deleteMessage={`Are you sure you want to remove "${activity.title}"?`}
-                        />
-                      )}
+                      <RecordActions
+                        record={activity}
+                        fields={activityFields}
+                        onSave={(values) => update('activities', activity.id, values)}
+                        onDelete={() => remove('activities', activity.id)}
+                        deleteTitle="Remove Activity"
+                        deleteMessage={`Are you sure you want to remove "${activity.title}"?`}
+                      />
                     </div>
                   </article>
                 ))}
@@ -194,14 +252,84 @@ export function Schedule({ data, admin, add, update, remove }) {
         </div>
       </Card>
 
-      {admin && (
-        <Card title="Add Event / Activity">
-          <Form
-            submit="Add to Schedule"
-            onSubmit={(v) => add('activities', v)}
-            fields={activityFields}
-          />
-        </Card>
+      {/* Add Event Modal */}
+      {isAddModalOpen && (
+        <Modal
+          title="Add Pooja / Festival Event"
+          onClose={() => setIsAddModalOpen(false)}
+        >
+          <form onSubmit={handleSaveAdd} className="member-form">
+            <div className="form-group">
+              <label>Pooja / Event Title *</label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Sri Maha Ganapathi Homam & Abhishekham"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+              <div className="form-group">
+                <label>Event Date *</label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Start Time</label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>End Time</label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Location / Venue</label>
+              <input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Main Village Pandal Stage"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Description & Ritual Details</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Special kumkuma archana, prasadam distribution, chief guest arrival..."
+                rows={3}
+                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+
+            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Adding…' : 'Add to Schedule'}
+              </Button>
+              <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
       )}
 
       {/* Universal Pooja & Event Invitation Card Modal */}

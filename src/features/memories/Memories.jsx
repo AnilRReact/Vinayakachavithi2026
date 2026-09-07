@@ -8,6 +8,7 @@ import { today } from '../../lib/formatters'
 export function Memories({ data, admin, add, update, remove }) {
   const galleryItems = data.gallery_items || []
   const [selectedLightboxItem, setSelectedLightboxItem] = useState(null)
+  const [showUploadDrawer, setShowUploadDrawer] = useState(true)
 
   // Dedicated Immersion & Shobha Yatra highlights
   const immersionItems = useMemo(() => {
@@ -48,7 +49,7 @@ export function Memories({ data, admin, add, update, remove }) {
       <NimajjanamCarousel items={immersionItems} />
 
       {/* 2. Media Upload Form (Google Drive Cloud Routing) */}
-      {admin && <MediaUploadSection add={add} />}
+      <MediaUploadSection add={add} />
 
       {/* 3. Photo & Video Gallery Grid */}
       <MediaGalleryGrid

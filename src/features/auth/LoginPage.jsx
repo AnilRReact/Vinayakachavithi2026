@@ -113,13 +113,13 @@ export function LoginPage({ auth, settings = {}, onBack, onLoginSuccess }) {
             </div>
 
             <div className="glass-ganesh-text">
-              <p className="glass-mantra">🌿 ॐ శ్రీ గణేశాయ నమః 🌿</p>
+              <p className="glass-mantra">🌿 Om Sri Ganeshaya Namaha 🌿</p>
               <h2 className="glass-ganesh-title">{villageName}</h2>
               <p className="glass-ganesh-subtitle">
                 Vinayaka Chavithi Committee Management Portal
               </p>
               <div className="glass-shloka">
-                <span>“వక్రతుండ మహాకాయ సూర్యకోటి సమప్రభ । నిర్విఘ్నం కురు మే దేవ సర్వకార్యేషు సర్వదా ॥”</span>
+                <span>“Vakratunda Mahakaya Suryakoti Samaprabha | Nirvighnam Kuru Me Deva Sarvakaryeshu Sarvada ||”</span>
               </div>
             </div>
           </div>

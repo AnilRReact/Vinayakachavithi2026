@@ -18,6 +18,8 @@ const POPULAR_ROLES = [
   'Advisory Member'
 ]
 
+const BLOOD_GROUPS = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-']
+
 export function CommitteeRoster({
   members = [],
   settings = {},
@@ -27,7 +29,7 @@ export function CommitteeRoster({
   remove
 }) {
   const { toast } = useToast()
-  const villageName = settings.village_name || 'Vinayaka Vedika'
+  const villageName = settings.village_name || 'Vinayaka Vedika 2026'
 
   const [selectedMemberForId, setSelectedMemberForId] = useState(null)
   const [selectedTemplateItem, setSelectedTemplateItem] = useState(null)
@@ -38,6 +40,8 @@ export function CommitteeRoster({
   const [name, setName] = useState('')
   const [role, setRole] = useState('')
   const [phone, setPhone] = useState('')
+  const [bloodGroup, setBloodGroup] = useState('')
+  const [area, setArea] = useState('')
   const [notes, setNotes] = useState('')
   const [photoFile, setPhotoFile] = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
@@ -54,6 +58,8 @@ export function CommitteeRoster({
     setName('')
     setRole('')
     setPhone('')
+    setBloodGroup('')
+    setArea('')
     setNotes('')
     setPhotoFile(null)
     setPhotoPreview('')
@@ -65,6 +71,8 @@ export function CommitteeRoster({
     setName(m.name || '')
     setRole(m.role || '')
     setPhone(m.phone || '')
+    setBloodGroup(m.blood_group || '')
+    setArea(m.area || '')
     setNotes(m.notes || '')
     setPhotoPreview(m.photo_url || '')
     setPhotoFile(null)
@@ -76,6 +84,8 @@ export function CommitteeRoster({
     const cleanRole = (role || '').trim()
     const cleanPhone = (phone || '').trim()
     const cleanNotes = (notes || '').trim()
+    const cleanBlood = (bloodGroup || '').trim()
+    const cleanArea = (area || '').trim()
 
     if (!cleanName || !cleanRole) {
       toast.error('Please enter member name and committee role.')
@@ -98,6 +108,8 @@ export function CommitteeRoster({
         name: cleanName,
         role: cleanRole,
         phone: cleanPhone,
+        blood_group: cleanBlood,
+        area: cleanArea,
         notes: cleanNotes,
         photo_url: photoUrl
       }
@@ -111,6 +123,8 @@ export function CommitteeRoster({
         setName('')
         setRole('')
         setPhone('')
+        setBloodGroup('')
+        setArea('')
         setNotes('')
         setPhotoFile(null)
         setPhotoPreview('')
@@ -131,6 +145,8 @@ export function CommitteeRoster({
     const cleanRole = (role || '').trim()
     const cleanPhone = (phone || '').trim()
     const cleanNotes = (notes || '').trim()
+    const cleanBlood = (bloodGroup || '').trim()
+    const cleanArea = (area || '').trim()
 
     if (!cleanName || !cleanRole) {
       toast.error('Name and Role are required.')
@@ -152,6 +168,8 @@ export function CommitteeRoster({
         name: cleanName,
         role: cleanRole,
         phone: cleanPhone,
+        blood_group: cleanBlood,
+        area: cleanArea,
         notes: cleanNotes,
         photo_url: photoUrl
       })
@@ -187,11 +205,9 @@ export function CommitteeRoster({
       <Card
         title="Committee Office Bearers"
         action={
-          admin && (
-            <Button onClick={handleOpenAdd}>
-              ➕ Add Member
-            </Button>
-          )
+          <Button onClick={handleOpenAdd}>
+            ➕ Add Member
+          </Button>
         }
       >
         <div className="committee-grid">
@@ -214,6 +230,18 @@ export function CommitteeRoster({
                     📞 {m.phone}
                   </a>
                 )}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+                  {m.blood_group && (
+                    <span style={{ fontSize: '0.72rem', background: '#fee2e2', color: '#b91c1c', padding: '1px 6px', borderRadius: '4px', fontWeight: '700' }}>
+                      🩸 {m.blood_group}
+                    </span>
+                  )}
+                  {m.area && (
+                    <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: '600' }}>
+                      📍 {m.area}
+                    </span>
+                  )}
+                </div>
                 {m.notes && <small className="committee-notes">{m.notes}</small>}
               </div>
 
@@ -245,26 +273,24 @@ export function CommitteeRoster({
                   📜 Certificate
                 </button>
 
-                {admin && (
-                  <div className="committee-admin-group">
-                    <button
-                      type="button"
-                      className="committee-action-icon"
-                      onClick={() => handleOpenEdit(m)}
-                      title="Edit Member"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      type="button"
-                      className="committee-action-icon"
-                      onClick={() => handleDelete(m)}
-                      title="Delete Member"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                )}
+                <div className="committee-admin-group">
+                  <button
+                    type="button"
+                    className="committee-action-icon"
+                    onClick={() => handleOpenEdit(m)}
+                    title="Edit Member"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    className="committee-action-icon"
+                    onClick={() => handleDelete(m)}
+                    title="Delete Member"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             </article>
           ))}
@@ -324,12 +350,33 @@ export function CommitteeRoster({
               </div>
             </div>
 
+            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-group">
+                <label>Mobile / WhatsApp Number</label>
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. 9876543210"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Blood Group</label>
+                <select value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)}>
+                  <option value="">Select (Optional)</option>
+                  {BLOOD_GROUPS.map((bg) => (
+                    <option key={bg} value={bg}>{bg}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="form-group">
-              <label>Mobile / WhatsApp Number</label>
+              <label>Ward / Colony / Street</label>
               <input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. 9876543210"
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                placeholder="e.g. Main Road, Ward 4"
               />
             </div>
 
@@ -338,7 +385,7 @@ export function CommitteeRoster({
               <input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g. Stage arrangement, Aarti coordinator"
+                placeholder="e.g. Stage arrangement, Pooja coordinator"
               />
             </div>
 
@@ -352,7 +399,7 @@ export function CommitteeRoster({
                     alt="Preview"
                     style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #d97706' }}
                   />
-                  <small style={{ color: '#15803d', fontWeight: '600' }}>✓ Photo selected</small>
+                  <small style={{ color: '#15803d', fontWeight: '600' }}>✓ Photo selected (auto-uploads to Google Drive)</small>
                 </div>
               )}
             </div>
@@ -415,11 +462,31 @@ export function CommitteeRoster({
               </div>
             </div>
 
+            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="form-group">
+                <label>Mobile / WhatsApp Number</label>
+                <input
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Blood Group</label>
+                <select value={bloodGroup} onChange={(e) => setBloodGroup(e.target.value)}>
+                  <option value="">Select (Optional)</option>
+                  {BLOOD_GROUPS.map((bg) => (
+                    <option key={bg} value={bg}>{bg}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="form-group">
-              <label>Mobile / WhatsApp Number</label>
+              <label>Ward / Colony / Street</label>
               <input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
               />
             </div>
 
