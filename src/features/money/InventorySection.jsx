@@ -174,12 +174,15 @@ export function InventorySection({
       {/* Add Inventory Modal */}
       {isAddModalOpen && (
         <Modal
-          title="Add Reusable Asset / Inventory Item"
+          title="Add Reusable Asset / Permanent Inventory"
           onClose={() => setIsAddModalOpen(false)}
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
-              <label>Asset / Item Name *</label>
+              <label className="form-label">
+                <span>🏷️ Asset / Item Name</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={item}
                 onChange={(e) => setItem(e.target.value)}
@@ -190,28 +193,22 @@ export function InventorySection({
             </div>
 
             <div className="form-group">
-              <label>Category *</label>
+              <label className="form-label">
+                <span>📦 Category</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 placeholder="e.g. Pooja Utensils"
                 required
               />
-              <div className="role-preset-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+              <div className="role-preset-chips">
                 {ASSET_CATEGORIES.map((cat) => (
                   <button
                     key={cat}
                     type="button"
-                    className="role-chip"
-                    style={{
-                      fontSize: '0.74rem',
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      border: '1px solid #fed7aa',
-                      background: category === cat ? '#ffedd5' : '#fff7ed',
-                      cursor: 'pointer',
-                      fontWeight: category === cat ? '700' : '500'
-                    }}
+                    className={`role-chip ${category === cat ? 'selected' : ''}`}
                     onClick={() => setCategory(cat)}
                   >
                     {cat}
@@ -220,9 +217,12 @@ export function InventorySection({
               </div>
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Cost (₹) *</label>
+                <label className="form-label">
+                  <span>💸 Cost / Value (₹)</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -234,7 +234,10 @@ export function InventorySection({
               </div>
 
               <div className="form-group">
-                <label>Purchase Year</label>
+                <label className="form-label">
+                  <span>📅 Purchase Year</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="number"
                   value={year}
@@ -245,7 +248,9 @@ export function InventorySection({
             </div>
 
             <div className="form-group">
-              <label>Condition / Storage Location</label>
+              <label className="form-label">
+                <span>📍 Condition / Storage Location</span>
+              </label>
               <input
                 value={conditionNote}
                 onChange={(e) => setConditionNote(e.target.value)}
@@ -253,25 +258,37 @@ export function InventorySection({
               />
             </div>
 
-            <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              className="form-group"
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: '10px',
+                background: '#f0fdf4',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                border: '1px solid #bbf7d0'
+              }}
+            >
               <input
                 type="checkbox"
                 id="reusable-check"
                 checked={reusable}
                 onChange={(e) => setReusable(e.target.checked)}
-                style={{ width: '18px', height: '18px' }}
+                style={{ width: '18px', height: '18px', margin: 0 }}
               />
-              <label htmlFor="reusable-check" style={{ margin: 0, cursor: 'pointer', fontWeight: '600' }}>
+              <label htmlFor="reusable-check" style={{ margin: 0, cursor: 'pointer', fontWeight: '600', color: '#166534', fontSize: '0.88rem' }}>
                 ✓ Permanent reusable asset (carried over to future years)
               </label>
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? 'Adding…' : 'Add to Inventory'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Adding…' : 'Add to Inventory'}
               </Button>
             </div>
           </form>

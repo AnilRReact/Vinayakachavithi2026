@@ -191,7 +191,9 @@ export function MediaUploadSection({ add }) {
 
           <div className="form-row-grid">
             <div className="form-group">
-              <label>Caption / Memory Title</label>
+              <label className="form-label">
+                <span>📝 Caption / Memory Title</span>
+              </label>
               <input
                 value={photoCaption}
                 onChange={(e) => setPhotoCaption(e.target.value)}
@@ -199,7 +201,9 @@ export function MediaUploadSection({ add }) {
               />
             </div>
             <div className="form-group">
-              <label>Date</label>
+              <label className="form-label">
+                <span>📅 Date</span>
+              </label>
               <input
                 type="date"
                 value={photoDate}
@@ -248,7 +252,9 @@ export function MediaUploadSection({ add }) {
 
           <div className="form-row-grid">
             <div className="form-group">
-              <label>Video Caption / Description</label>
+              <label className="form-label">
+                <span>🎬 Video Caption / Description</span>
+              </label>
               <input
                 value={videoCaption}
                 onChange={(e) => setVideoCaption(e.target.value)}
@@ -256,7 +262,9 @@ export function MediaUploadSection({ add }) {
               />
             </div>
             <div className="form-group">
-              <label>Date</label>
+              <label className="form-label">
+                <span>📅 Date</span>
+              </label>
               <input
                 type="date"
                 value={videoDate}
@@ -275,7 +283,10 @@ export function MediaUploadSection({ add }) {
       {mediaMode === 'link' && (
         <form onSubmit={handleSaveLink} className="media-upload-form">
           <div className="form-group">
-            <label>YouTube / Web Video URL *</label>
+            <label className="form-label">
+              <span>🔗 YouTube / Web Video URL</span>
+              <span className="req-star">*</span>
+            </label>
             <input
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
@@ -286,7 +297,9 @@ export function MediaUploadSection({ add }) {
 
           <div className="form-row-grid">
             <div className="form-group">
-              <label>Video Caption</label>
+              <label className="form-label">
+                <span>🎬 Video Caption</span>
+              </label>
               <input
                 value={linkCaption}
                 onChange={(e) => setLinkCaption(e.target.value)}
@@ -294,7 +307,9 @@ export function MediaUploadSection({ add }) {
               />
             </div>
             <div className="form-group">
-              <label>Date</label>
+              <label className="form-label">
+                <span>📅 Date</span>
+              </label>
               <input
                 type="date"
                 value={linkDate}

@@ -134,12 +134,13 @@ export function VolunteerManager({
                   onClick={() => handleSendDutyWhatsApp(vol)}
                   title="Send 1-Click WhatsApp duty reminder to volunteer"
                 >
-                  📲 <span>Duty Alert</span>
+                  <span className="action-icon">📲</span>
+                  <span className="action-label">WhatsApp</span>
                 </button>
 
                 <button
                   type="button"
-                  className="committee-action-btn id"
+                  className="btn-formal-receipt"
                   onClick={() =>
                     setSelectedVolunteerForId({
                       name: vol.name,
@@ -149,7 +150,8 @@ export function VolunteerManager({
                   }
                   title="Generate Volunteer ID Card"
                 >
-                  🪪 ID Card
+                  <span className="action-icon">🪪</span>
+                  <span className="action-label">ID Card</span>
                 </button>
 
                 <Button

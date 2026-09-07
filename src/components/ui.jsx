@@ -26,6 +26,22 @@ export function Button({ children, kind = 'primary', className = '', ...props })
   )
 }
 
+function getFormIcon(name, type) {
+  const n = String(name || '').toLowerCase()
+  if (type === 'date') return '📅'
+  if (type === 'time') return '🕒'
+  if (type === 'number') return '💰'
+  if (n.includes('phone') || n.includes('mobile')) return '📱'
+  if (n.includes('name') || n.includes('donor') || n.includes('sponsor') || n.includes('doctor') || n.includes('coord')) return '👤'
+  if (n.includes('upi') || n.includes('payment') || n.includes('receipt')) return '💳'
+  if (n.includes('address') || n.includes('location') || n.includes('destination') || n.includes('start')) return '📍'
+  if (n.includes('map') || n.includes('url')) return '🗺️'
+  if (n.includes('tagline') || n.includes('slogan')) return '✨'
+  if (n.includes('idol')) return '🪔'
+  if (n.includes('note') || n.includes('notice') || n.includes('instruction') || n.includes('desc')) return '📝'
+  return '🏷️'
+}
+
 export function Form({ fields, onSubmit, submit = 'Save', className = '' }) {
   const getInitialValues = () =>
     Object.fromEntries(
@@ -63,68 +79,101 @@ export function Form({ fields, onSubmit, submit = 'Save', className = '' }) {
   }
 
   return (
-    <form className={`form ${className}`.trim()} onSubmit={submitForm}>
-      {fields.map((field) => (
-        <label key={field.name} className={field.type === 'checkbox' ? 'check' : ''}>
-          <span>
-            {field.label}
-            {field.required && <span className="req-star" aria-hidden="true"> *</span>}
-          </span>
-          {field.type === 'textarea' ? (
-            <textarea
-              required={field.required}
-              placeholder={field.placeholder}
-              value={values[field.name]}
-              disabled={busy}
-              onChange={(e) => setValues({ ...values, [field.name]: e.target.value })}
-            />
-          ) : field.type === 'select' ? (
-            <select
-              required={field.required}
-              value={values[field.name]}
-              disabled={busy}
-              onChange={(e) => setValues({ ...values, [field.name]: e.target.value })}
+    <form className={`member-form ${className}`.trim()} onSubmit={submitForm}>
+      {fields.map((field) => {
+        const isCheck = field.type === 'checkbox'
+        if (isCheck) {
+          return (
+            <div
+              key={field.name}
+              className="form-group"
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: '10px',
+                background: '#fffbeb',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                border: '1px solid #fef08a'
+              }}
             >
-              {field.options.map((option) =>
-                typeof option === 'object' ? (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ) : (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                )
-              )}
-            </select>
-          ) : field.type === 'checkbox' ? (
-            <input
-              type="checkbox"
-              checked={Boolean(values[field.name])}
-              disabled={busy}
-              onChange={(e) => setValues({ ...values, [field.name]: e.target.checked })}
-            />
-          ) : (
-            <input
-              required={field.required}
-              type={field.type || 'text'}
-              placeholder={field.placeholder}
-              value={values[field.name]}
-              min={field.min}
-              max={field.max}
-              step={field.step}
-              disabled={busy}
-              onChange={(e) => setValues({ ...values, [field.name]: e.target.value })}
-            />
-          )}
-        </label>
-      ))}
+              <input
+                type="checkbox"
+                id={`form-field-${field.name}`}
+                checked={Boolean(values[field.name])}
+                disabled={busy}
+                onChange={(e) => setValues({ ...values, [field.name]: e.target.checked })}
+                style={{ width: '18px', height: '18px', margin: 0 }}
+              />
+              <label
+                htmlFor={`form-field-${field.name}`}
+                style={{ margin: 0, cursor: 'pointer', fontWeight: '600', color: '#92400e', fontSize: '0.88rem' }}
+              >
+                {field.label}
+              </label>
+            </div>
+          )
+        }
+
+        return (
+          <div key={field.name} className="form-group">
+            <label className="form-label">
+              <span>
+                {getFormIcon(field.name, field.type)} {field.label}
+              </span>
+              {field.required && <span className="req-star" aria-hidden="true">*</span>}
+            </label>
+            {field.type === 'textarea' ? (
+              <textarea
+                required={field.required}
+                placeholder={field.placeholder}
+                value={values[field.name] ?? ''}
+                disabled={busy}
+                rows={3}
+                onChange={(e) => setValues({ ...values, [field.name]: e.target.value })}
+              />
+            ) : field.type === 'select' ? (
+              <select
+                required={field.required}
+                value={values[field.name] ?? ''}
+                disabled={busy}
+                onChange={(e) => setValues({ ...values, [field.name]: e.target.value })}
+              >
+                {field.options.map((option) =>
+                  typeof option === 'object' ? (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ) : (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  )
+                )}
+              </select>
+            ) : (
+              <input
+                required={field.required}
+                type={field.type || 'text'}
+                placeholder={field.placeholder}
+                value={values[field.name] ?? ''}
+                min={field.min}
+                max={field.max}
+                step={field.step}
+                disabled={busy}
+                onChange={(e) => setValues({ ...values, [field.name]: e.target.value })}
+              />
+            )}
+          </div>
+        )
+      })}
       {error && (
-        <div className="form-error" role="alert">
+        <div className="form-error" role="alert" style={{ background: '#fef2f2', color: '#dc2626', padding: '8px 12px', borderRadius: '8px', border: '1px solid #fecaca', fontSize: '0.85rem' }}>
           ⚠ {error}
         </div>
       )}
-      <div className="form-actions">
+      <div className="form-actions" style={{ marginTop: '12px' }}>
         <Button type="submit" disabled={busy}>
           {busy ? 'Saving…' : submit}
         </Button>

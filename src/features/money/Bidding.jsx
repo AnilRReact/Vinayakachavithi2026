@@ -274,12 +274,15 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
       {/* Add Auction Item Modal */}
       {isAddModalOpen && (
         <Modal
-          title="Add New Auction Item"
+          title="Add New Auction Item / Laddu"
           onClose={() => setIsAddModalOpen(false)}
         >
           <form onSubmit={handleSaveAddItem} className="member-form">
             <div className="form-group">
-              <label>Item Name / Description *</label>
+              <label className="form-label">
+                <span>🏷️ Item Name / Description</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
@@ -290,7 +293,10 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
             </div>
 
             <div className="form-group">
-              <label>Starting Bid (₹) *</label>
+              <label className="form-label">
+                <span>💰 Starting Bid Amount (₹)</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 type="number"
                 min="1"
@@ -299,25 +305,38 @@ export function Bidding({ data, admin, add, update, remove, recordBid, closeBid 
                 placeholder="e.g. 5000"
                 required
               />
+              <div className="role-preset-chips">
+                {[1116, 2116, 5116, 10001, 25000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    className={`role-chip ${Number(startingBid) === amt ? 'selected' : ''}`}
+                    onClick={() => setStartingBid(String(amt))}
+                  >
+                    ₹{amt.toLocaleString()}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="form-group">
-              <label>Details & Sponsor Notes</label>
+              <label className="form-label">
+                <span>📝 Details & Sponsor Notes</span>
+              </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Prepared with pure ghee and dry fruits, sponsored by Reddy family..."
                 rows={3}
-                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isSavingItem}>
-                {isSavingItem ? 'Adding…' : 'Add Auction Item'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isSavingItem}>
+                {isSavingItem ? 'Adding…' : 'Add Auction Item'}
               </Button>
             </div>
           </form>

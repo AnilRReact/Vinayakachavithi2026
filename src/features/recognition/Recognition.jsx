@@ -370,12 +370,15 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
       {/* Add Award Modal */}
       {isAddAwardOpen && (
         <Modal
-          title="Record Award & Honor"
+          title="Record Award & Devotional Honor"
           onClose={() => setIsAddAwardOpen(false)}
         >
           <form onSubmit={handleAddAward} className="member-form">
             <div className="form-group">
-              <label>Award / Category Title *</label>
+              <label className="form-label">
+                <span>🏆 Award / Category Title</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={awardTitle}
                 onChange={(e) => setAwardTitle(e.target.value)}
@@ -385,9 +388,12 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
               />
             </div>
 
-            <div className="form-row-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+            <div className="form-row-grid">
               <div className="form-group">
-                <label>Recipient Name / Team *</label>
+                <label className="form-label">
+                  <span>👤 Recipient Name / Team</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   value={awardRecipient}
                   onChange={(e) => setAwardRecipient(e.target.value)}
@@ -397,7 +403,10 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
               </div>
 
               <div className="form-group">
-                <label>Year</label>
+                <label className="form-label">
+                  <span>📅 Year</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="number"
                   value={awardYear}
@@ -408,7 +417,9 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
             </div>
 
             <div className="form-group">
-              <label>Citation / Special Note</label>
+              <label className="form-label">
+                <span>📝 Citation / Special Note</span>
+              </label>
               <input
                 value={awardNote}
                 onChange={(e) => setAwardNote(e.target.value)}
@@ -416,12 +427,12 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
               />
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isAddingAward}>
-                {isAddingAward ? 'Saving…' : 'Record Award'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddAwardOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isAddingAward}>
+                {isAddingAward ? 'Saving…' : 'Record Award'}
               </Button>
             </div>
           </form>
@@ -431,12 +442,15 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
       {/* Add Nominee Modal */}
       {isAddNomineeOpen && (
         <Modal
-          title="Add Pandal Nominee"
+          title="Add Pandal / Mandali Nominee"
           onClose={() => setIsAddNomineeOpen(false)}
         >
           <form onSubmit={handleAddNominee} className="member-form">
             <div className="form-group">
-              <label>Pandal / Colony Name *</label>
+              <label className="form-label">
+                <span>🪔 Pandal / Colony Name</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={nomineeName}
                 onChange={(e) => setNomineeName(e.target.value)}
@@ -447,37 +461,72 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
             </div>
 
             <div className="form-group">
-              <label>Theme & Special Highlights</label>
+              <label className="form-label">
+                <span>✨ Theme & Special Highlights</span>
+              </label>
               <textarea
                 value={nomineeNote}
                 onChange={(e) => setNomineeNote(e.target.value)}
                 placeholder="e.g. Eco-friendly clay idol, temple replica lighting..."
                 rows={3}
-                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
 
             <div className="form-group">
-              <label>Pandal Photo (Optional)</label>
-              <input type="file" accept="image/*" onChange={handleNomineePhotoSelect} />
-              {nomineePhotoPreview && (
-                <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <img
-                    src={nomineePhotoPreview}
-                    alt="Preview"
-                    style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }}
-                  />
-                  <small style={{ color: '#15803d', fontWeight: '600' }}>✓ Photo selected (auto-uploads to Google Drive)</small>
-                </div>
-              )}
+              <label className="form-label">
+                <span>📷 Pandal Photo (Auto-synced to Google Drive)</span>
+              </label>
+              <div className="custom-photo-uploader">
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="nominee-photo-input"
+                  onChange={handleNomineePhotoSelect}
+                  className="photo-input-hidden"
+                />
+                <label htmlFor="nominee-photo-input" className="photo-upload-label">
+                  {nomineePhotoPreview ? (
+                    <div className="photo-preview-box">
+                      <img
+                        src={nomineePhotoPreview}
+                        alt="Preview"
+                        className="photo-preview-avatar"
+                        style={{ borderRadius: '8px' }}
+                      />
+                      <div className="photo-preview-meta">
+                        <b>Photo selected</b>
+                        <small>Auto-uploads to Google Drive</small>
+                      </div>
+                      <button
+                        type="button"
+                        className="photo-remove-btn"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setNomineePhotoFile(null)
+                          setNomineePhotoPreview('')
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="photo-upload-placeholder">
+                      <span className="upload-icon">📷</span>
+                      <b>Choose Pandal Photo</b>
+                      <small>PNG, JPG up to 10MB</small>
+                    </div>
+                  )}
+                </label>
+              </div>
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isAddingNominee}>
-                {isAddingNominee ? 'Adding…' : 'Add Nominee'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setIsAddNomineeOpen(false)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isAddingNominee}>
+                {isAddingNominee ? 'Adding…' : 'Add Nominee'}
               </Button>
             </div>
           </form>
@@ -494,7 +543,10 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
         >
           <form className="member-form" onSubmit={handleUpdateNominee}>
             <div className="form-group">
-              <label>Pandal / Colony Name *</label>
+              <label className="form-label">
+                <span>🪔 Pandal / Colony Name</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 type="text"
                 required
@@ -505,39 +557,55 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
             </div>
 
             <div className="form-group">
-              <label>Theme & Highlights</label>
+              <label className="form-label">
+                <span>✨ Theme & Highlights</span>
+              </label>
               <textarea
                 value={editNomineeNote}
                 disabled={isUpdatingNominee}
                 onChange={(e) => setEditNomineeNote(e.target.value)}
                 rows={3}
-                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
               />
             </div>
 
             <div className="form-group">
-              <label>Update Photo</label>
-              <input
-                type="file"
-                accept="image/*"
-                disabled={isUpdatingNominee}
-                onChange={handleEditNomineePhotoSelect}
-              />
-              {editNomineePhotoPreview && (
-                <div style={{ marginTop: '8px' }}>
-                  <img
-                    src={editNomineePhotoPreview}
-                    alt="Preview"
-                    style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }}
-                  />
-                </div>
-              )}
+              <label className="form-label">
+                <span>📷 Update Photo (Google Drive)</span>
+              </label>
+              <div className="custom-photo-uploader">
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="edit-nominee-photo-input"
+                  disabled={isUpdatingNominee}
+                  onChange={handleEditNomineePhotoSelect}
+                  className="photo-input-hidden"
+                />
+                <label htmlFor="edit-nominee-photo-input" className="photo-upload-label">
+                  {editNomineePhotoPreview ? (
+                    <div className="photo-preview-box">
+                      <img
+                        src={editNomineePhotoPreview}
+                        alt="Preview"
+                        className="photo-preview-avatar"
+                        style={{ borderRadius: '8px' }}
+                      />
+                      <div className="photo-preview-meta">
+                        <b>Photo selected</b>
+                        <small>Click to choose another photo</small>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="photo-upload-placeholder">
+                      <span className="upload-icon">📷</span>
+                      <b>Choose New Photo</b>
+                    </div>
+                  )}
+                </label>
+              </div>
             </div>
 
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-              <Button type="submit" disabled={isUpdatingNominee}>
-                {isUpdatingNominee ? 'Saving…' : 'Save Changes'}
-              </Button>
+            <div className="modal-actions">
               <Button
                 type="button"
                 kind="secondary"
@@ -545,6 +613,9 @@ export function Recognition({ data, admin, add, update, remove, refresh }) {
                 onClick={() => setEditingNominee(null)}
               >
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isUpdatingNominee}>
+                {isUpdatingNominee ? 'Saving…' : 'Save Changes'}
               </Button>
             </div>
           </form>

@@ -291,7 +291,8 @@ export function DonationsSection({
                     onClick={() => handleSendWhatsApp(d)}
                     title="Send WhatsApp instant receipt to donor"
                   >
-                    📲 <span>WhatsApp</span>
+                    <span className="action-icon">📲</span>
+                    <span className="action-label">WhatsApp</span>
                   </button>
 
                   {/* 1-Click Official Printable Receipt with QR */}
@@ -307,7 +308,8 @@ export function DonationsSection({
                     }
                     title="Open official printable temple receipt with QR code"
                   >
-                    🖨️ <span>Print Receipt</span>
+                    <span className="action-icon">🖨️</span>
+                    <span className="action-label">Receipt</span>
                   </button>
 
                   {/* Festive Golden Card */}

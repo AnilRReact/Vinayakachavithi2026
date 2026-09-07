@@ -433,20 +433,24 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
           {/* Add New Stop Form */}
           <form
             onSubmit={handleAddNewStop}
+            className="member-form"
             style={{
               background: '#fdf8f0',
-              border: '1px solid #e2d2ba',
-              padding: '14px',
-              borderRadius: '10px',
+              border: '1.5px solid #fed7aa',
+              padding: '16px',
+              borderRadius: '12px',
               marginBottom: '18px'
             }}
           >
-            <h4 style={{ margin: '0 0 10px', color: '#7c2414', fontSize: '0.95rem' }}>
+            <h4 style={{ margin: '0 0 12px', color: '#7c2414', fontSize: '1rem', fontWeight: '700' }}>
               ➕ Add New Village Stop / Landmark
             </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <label>
-                <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>Stop Name *</span>
+            <div className="form-row-grid">
+              <div className="form-group">
+                <label className="form-label">
+                  <span>📍 Stop / Street Name</span>
+                  <span className="req-star">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -454,45 +458,55 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                 />
-              </label>
-              <label>
-                <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>Landmark / Area</span>
+              </div>
+              <div className="form-group">
+                <label className="form-label">
+                  <span>🏛️ Landmark / Area</span>
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. Opp. Rama Temple, North Gate"
                   value={newLandmark}
                   onChange={(e) => setNewLandmark(e.target.value)}
                 />
-              </label>
-              <label>
-                <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>Expected Time</span>
+              </div>
+            </div>
+
+            <div className="form-row-grid">
+              <div className="form-group">
+                <label className="form-label">
+                  <span>🕒 Expected Time / ETA</span>
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. 06:30 PM"
                   value={newTime}
                   onChange={(e) => setNewTime(e.target.value)}
                 />
-              </label>
-              <label>
-                <span style={{ fontSize: '0.78rem', fontWeight: '700' }}>Special Activity / Note</span>
+              </div>
+              <div className="form-group">
+                <label className="form-label">
+                  <span>🪔 Special Activity / Note</span>
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. Prasadam point, Aarti & Dappu"
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                 />
-              </label>
+              </div>
             </div>
-            <div style={{ marginTop: '10px', textAlign: 'right' }}>
+
+            <div style={{ textAlign: 'right', marginTop: '4px' }}>
               <Button type="submit" size="small">
-                ➕ Add to Route
+                ➕ Add to Route List
               </Button>
             </div>
           </form>
 
           {/* Existing Stops List with Inline Editing & Reordering */}
           <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#443328' }}>
+            <h4 style={{ margin: 0, fontSize: '0.92rem', color: '#443328', fontWeight: '700' }}>
               Current Route Stops ({draftStops.length}):
             </h4>
             {draftStops.map((stop, idx) => (
@@ -501,33 +515,34 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
                 style={{
                   background: '#ffffff',
                   border: '1px solid #e0d5c4',
-                  borderRadius: '8px',
-                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  padding: '12px 14px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '6px'
+                  gap: '8px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontWeight: '800', color: '#7c2414', fontSize: '0.85rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                    <span style={{ fontWeight: '800', color: '#7c2414', fontSize: '0.9rem', width: '26px' }}>
                       #{idx + 1}
                     </span>
                     <input
                       type="text"
                       value={stop.title}
-                      style={{ fontWeight: '700', fontSize: '0.9rem', padding: '4px 8px' }}
+                      style={{ fontWeight: '700', fontSize: '0.92rem', padding: '6px 10px' }}
                       placeholder="Stop Title"
                       onChange={(e) => handleDraftChange(stop.id, 'title', e.target.value)}
                     />
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <button
                       type="button"
                       disabled={idx === 0}
                       onClick={() => handleMoveStop(idx, -1)}
-                      style={{ padding: '2px 6px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}
+                      style={{ padding: '4px 8px', fontSize: '0.82rem', cursor: 'pointer', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc' }}
                       title="Move Up"
                     >
                       ⬆️
@@ -536,7 +551,7 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
                       type="button"
                       disabled={idx === draftStops.length - 1}
                       onClick={() => handleMoveStop(idx, 1)}
-                      style={{ padding: '2px 6px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #ccc' }}
+                      style={{ padding: '4px 8px', fontSize: '0.82rem', cursor: 'pointer', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc' }}
                       title="Move Down"
                     >
                       ⬇️
@@ -544,7 +559,7 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
                     <button
                       type="button"
                       onClick={() => handleDeleteStop(stop.id)}
-                      style={{ padding: '2px 6px', fontSize: '0.8rem', cursor: 'pointer', borderRadius: '4px', border: '1px solid #f87171', background: '#fef2f2', color: '#dc2626' }}
+                      style={{ padding: '4px 8px', fontSize: '0.82rem', cursor: 'pointer', borderRadius: '6px', border: '1px solid #fca5a5', background: '#fef2f2', color: '#dc2626' }}
                       title="Delete Stop"
                     >
                       🗑️
@@ -552,19 +567,19 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '6px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px', gap: '8px' }}>
                   <input
                     type="text"
                     value={stop.landmark}
-                    placeholder="Landmark"
-                    style={{ fontSize: '0.82rem', padding: '3px 8px' }}
+                    placeholder="🏛️ Landmark"
+                    style={{ fontSize: '0.86rem', padding: '6px 10px' }}
                     onChange={(e) => handleDraftChange(stop.id, 'landmark', e.target.value)}
                   />
                   <input
                     type="text"
                     value={stop.time}
-                    placeholder="Time / ETA"
-                    style={{ fontSize: '0.82rem', padding: '3px 8px' }}
+                    placeholder="🕒 Time / ETA"
+                    style={{ fontSize: '0.86rem', padding: '6px 10px' }}
                     onChange={(e) => handleDraftChange(stop.id, 'time', e.target.value)}
                   />
                 </div>
@@ -572,15 +587,15 @@ export function ProcessionTracker({ settings = {}, admin = false, onUpdateSettin
                 <input
                   type="text"
                   value={stop.note}
-                  placeholder="Notes / Activity (optional)"
-                  style={{ fontSize: '0.8rem', padding: '3px 8px' }}
+                  placeholder="📝 Notes / Activity (optional)"
+                  style={{ fontSize: '0.84rem', padding: '6px 10px' }}
                   onChange={(e) => handleDraftChange(stop.id, 'note', e.target.value)}
                 />
               </div>
             ))}
           </div>
 
-          <div className="modal-actions" style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+          <div className="modal-actions" style={{ marginTop: '18px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
             <Button
               type="button"
               kind="secondary"

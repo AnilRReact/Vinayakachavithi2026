@@ -140,7 +140,8 @@ export function PrasadSponsorsSection({
                   onClick={() => handleWhatsApp(sp)}
                   title="Send WhatsApp acknowledgment to sponsor"
                 >
-                  📲 <span>WhatsApp</span>
+                  <span className="action-icon">📲</span>
+                  <span className="action-label">WhatsApp</span>
                 </button>
 
                 <Button

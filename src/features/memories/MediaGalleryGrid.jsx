@@ -233,15 +233,22 @@ export function MediaGalleryGrid({
         <Modal title="Edit Memory Details" onClose={() => setEditingItem(null)}>
           <form onSubmit={handleSaveEdit} className="member-form">
             <div className="form-group">
-              <label>Caption / Title *</label>
+              <label className="form-label">
+                <span>📝 Caption / Title</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 value={editCaption}
                 onChange={(e) => setEditCaption(e.target.value)}
+                autoFocus
                 required
               />
             </div>
             <div className="form-group">
-              <label>Date *</label>
+              <label className="form-label">
+                <span>📅 Date</span>
+                <span className="req-star">*</span>
+              </label>
               <input
                 type="date"
                 value={editDate}
@@ -249,12 +256,12 @@ export function MediaGalleryGrid({
                 required
               />
             </div>
-            <div className="modal-actions" style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
-              <Button type="submit" disabled={isUpdating}>
-                {isUpdating ? 'Saving…' : 'Save Changes'}
-              </Button>
+            <div className="modal-actions">
               <Button type="button" kind="secondary" onClick={() => setEditingItem(null)}>
                 Cancel
+              </Button>
+              <Button type="submit" disabled={isUpdating}>
+                {isUpdating ? 'Saving…' : 'Save Changes'}
               </Button>
             </div>
           </form>
