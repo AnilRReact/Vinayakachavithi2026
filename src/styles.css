@@ -5583,6 +5583,318 @@ table {
   font-size: 0.95rem;
 }
 
+/* =========================================================
+   OFFICIAL COMMITTEE ID CARD UI
+========================================================= */
+.id-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 22px;
+  margin-top: 14px;
+}
+
+.official-id-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1.5px solid #fde68a;
+  box-shadow: 0 8px 24px rgba(124, 36, 20, 0.07), 0 2px 6px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.official-id-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(124, 36, 20, 0.13), 0 4px 10px rgba(0, 0, 0, 0.05);
+  border-color: #f59e0b;
+}
+
+/* Lanyard Slot and Header */
+.id-card-top-header {
+  width: 100%;
+  background: linear-gradient(135deg, #7c2414 0%, #b45309 100%);
+  padding: 10px 12px 28px;
+  text-align: center;
+  position: relative;
+  color: #ffffff;
+}
+
+.id-lanyard-slot {
+  width: 36px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 999px;
+  margin: 0 auto 6px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.id-card-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.id-card-org-title {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: #fef08a;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.id-card-badge-type {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 1px 7px;
+  border-radius: 4px;
+  color: #ffffff;
+}
+
+/* Photo Frame */
+.id-card-photo-wrapper {
+  margin-top: -24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+}
+
+.id-card-portrait-img {
+  width: 90px;
+  height: 90px;
+  max-width: 90px !important;
+  max-height: 90px !important;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3.5px solid #d97706;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
+  display: block;
+}
+
+.id-card-portrait-fallback {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3.5px solid #d97706;
+  background: linear-gradient(135deg, #d97706 0%, #7c2414 100%);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
+}
+
+.id-card-pass-number {
+  margin-top: -8px;
+  background: #1e293b;
+  color: #f8fafc;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1.5px solid #ffffff;
+  letter-spacing: 0.4px;
+}
+
+/* Card Body */
+.id-card-body {
+  width: 100%;
+  padding: 8px 16px 12px;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.id-card-name {
+  margin: 4px 0 3px;
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  line-height: 1.25;
+}
+
+.id-card-role-chip {
+  display: inline-block;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+  letter-spacing: 0.2px;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.15);
+}
+
+.id-card-details-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 6px;
+  width: 100%;
+}
+
+.id-card-info-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.id-card-info-item.phone {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+.id-card-info-item.phone:hover {
+  background: #e2e8f0;
+  color: #7c2414;
+}
+
+.id-card-info-item.blood {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  font-weight: 800;
+}
+
+.id-card-info-item.area {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.id-card-notes-box {
+  background: #fffbeb;
+  border: 1px dashed #fde68a;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.74rem;
+  color: #78350f;
+  margin-top: 3px;
+  width: 100%;
+  line-height: 1.3;
+}
+
+/* Card Actions */
+.id-card-footer-actions {
+  width: 100%;
+  padding: 8px 12px 12px;
+  background: #fafaf9;
+  border-top: 1px solid #f0f0ee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.id-btn-wa {
+  background: #16a34a;
+  color: #ffffff;
+  border: 0;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: background 0.15s ease;
+}
+
+.id-btn-wa:hover {
+  background: #15803d;
+}
+
+.id-btn-badge {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.id-btn-badge:hover {
+  background: #fde68a;
+  border-color: #f59e0b;
+}
+
+.id-btn-cert {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.id-btn-cert:hover {
+  background: #e5e7eb;
+}
+
+.id-btn-admin-group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 2px;
+}
+
+.id-icon-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.id-icon-btn.edit:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.id-icon-btn.delete:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+
 
 
 

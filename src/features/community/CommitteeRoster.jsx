@@ -210,46 +210,71 @@ export function CommitteeRoster({
           </Button>
         }
       >
-        <div className="committee-grid">
-          {members.map((m) => (
-            <article className="committee-card" key={m.id}>
-              <div className="committee-avatar">
-                {m.photo_url ? (
-                  <img src={m.photo_url} alt={m.name} className="avatar-img" />
-                ) : (
-                  <span className="avatar-placeholder">
-                    {(m.name || 'M').charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <div className="committee-info">
-                <h4 className="committee-name">{m.name}</h4>
-                <span className="committee-role-badge">{m.role}</span>
-                {m.phone && (
-                  <a href={`tel:${m.phone}`} className="committee-phone">
-                    📞 {m.phone}
-                  </a>
-                )}
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
-                  {m.blood_group && (
-                    <span style={{ fontSize: '0.72rem', background: '#fee2e2', color: '#b91c1c', padding: '1px 6px', borderRadius: '4px', fontWeight: '700' }}>
-                      🩸 {m.blood_group}
-                    </span>
-                  )}
-                  {m.area && (
-                    <span style={{ fontSize: '0.72rem', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: '600' }}>
-                      📍 {m.area}
-                    </span>
-                  )}
+        <div className="id-card-grid">
+          {members.map((m, idx) => (
+            <article className="official-id-card" key={m.id}>
+              {/* Top Lanyard Slot & ID Header Banner */}
+              <div className="id-card-top-header">
+                <div className="id-lanyard-slot" />
+                <div className="id-card-banner">
+                  <span className="id-card-org-title">ॐ {villageName}</span>
+                  <span className="id-card-badge-type">OFFICIAL SEVAK PASS</span>
                 </div>
-                {m.notes && <small className="committee-notes">{m.notes}</small>}
               </div>
 
-              <div className="committee-card-actions">
+              {/* ID Portrait Photo with Golden Double Ring */}
+              <div className="id-card-photo-wrapper">
+                {m.photo_url ? (
+                  <img src={m.photo_url} alt={m.name} className="id-card-portrait-img" />
+                ) : (
+                  <div className="id-card-portrait-fallback">
+                    <span>{(m.name || 'M').charAt(0).toUpperCase()}</span>
+                  </div>
+                )}
+                <div className="id-card-pass-number">
+                  PASS #{String(idx + 1).padStart(3, '0')}
+                </div>
+              </div>
+
+              {/* Identity Info */}
+              <div className="id-card-body">
+                <h3 className="id-card-name">{m.name}</h3>
+                <div className="id-card-role-chip">{m.role}</div>
+
+                <div className="id-card-details-grid">
+                  {m.phone && (
+                    <a href={`tel:${m.phone}`} className="id-card-info-item phone">
+                      <span className="id-info-icon">📞</span>
+                      <span className="id-info-val">{m.phone}</span>
+                    </a>
+                  )}
+                  {m.blood_group && (
+                    <div className="id-card-info-item blood">
+                      <span className="id-info-icon">🩸</span>
+                      <span className="id-info-val">{m.blood_group}</span>
+                    </div>
+                  )}
+                  {m.area && (
+                    <div className="id-card-info-item area">
+                      <span className="id-info-icon">📍</span>
+                      <span className="id-info-val">{m.area}</span>
+                    </div>
+                  )}
+                </div>
+
+                {m.notes && (
+                  <div className="id-card-notes-box">
+                    📝 {m.notes}
+                  </div>
+                )}
+              </div>
+
+              {/* ID Card Action Bar */}
+              <div className="id-card-footer-actions">
                 {m.phone && (
                   <button
                     type="button"
-                    className="committee-action-btn wa"
+                    className="id-btn-wa"
                     onClick={() => handleSendWhatsApp(m)}
                     title="Send WhatsApp appointment notice"
                   >
@@ -258,7 +283,7 @@ export function CommitteeRoster({
                 )}
                 <button
                   type="button"
-                  className="committee-action-btn id"
+                  className="id-btn-badge"
                   onClick={() => setSelectedMemberForId(m)}
                   title="Generate Official Committee ID Card"
                 >
@@ -266,17 +291,17 @@ export function CommitteeRoster({
                 </button>
                 <button
                   type="button"
-                  className="committee-action-btn id"
+                  className="id-btn-cert"
                   onClick={() => setSelectedTemplateItem(m)}
                   title="Generate Sevak Certificate"
                 >
                   📜 Certificate
                 </button>
 
-                <div className="committee-admin-group">
+                <div className="id-btn-admin-group">
                   <button
                     type="button"
-                    className="committee-action-icon"
+                    className="id-icon-btn edit"
                     onClick={() => handleOpenEdit(m)}
                     title="Edit Member"
                   >
@@ -284,7 +309,7 @@ export function CommitteeRoster({
                   </button>
                   <button
                     type="button"
-                    className="committee-action-icon"
+                    className="id-icon-btn delete"
                     onClick={() => handleDelete(m)}
                     title="Delete Member"
                   >
