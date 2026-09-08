@@ -8769,6 +8769,63 @@ table {
   font-size: 0.72rem;
 }
 
+/* ==========================================================================
+   PRASADAM SPONSOR BADGES & STYLING
+   ========================================================================== */
+
+.prasad-sponsor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1.5px solid #f59e0b;
+  color: #92400e;
+  font-size: 0.76rem;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.2);
+}
+
+.prasad-sponsor-badge b {
+  color: #78350f;
+  font-weight: 800;
+}
+
+.badge-prasad {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #f59e0b !important;
+  font-weight: 700 !important;
+}
+
+.prasad-amount {
+  color: #b45309 !important;
+  font-weight: 800;
+}
+
+.sponsor-donor-row {
+  border-left: 4px solid #f59e0b !important;
+  background: linear-gradient(90deg, #fffdfa 0%, #ffffff 100%) !important;
+}
+
+.sponsor-donor-row:hover {
+  background: #fffbeb !important;
+}
+
+.prasad-sponsor-toggle-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid #fde68a;
+  background: #fffdf5;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.08);
+  transition: all 0.2s ease;
+}
+
+.prasad-sponsor-toggle-card:hover {
+  border-color: #f59e0b;
+}
+
 /* Mobile Responsiveness Overhaul */
 @media (max-width: 768px) {
   .auth-member-card {
@@ -8800,6 +8857,15 @@ table {
   .auth-mode-tab {
     padding: 8px 10px;
     font-size: 0.82rem;
+  }
+
+  .prasad-sponsor-badge {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+  }
+
+  .prasad-sponsor-toggle-card {
+    padding: 10px 12px;
   }
 }
 

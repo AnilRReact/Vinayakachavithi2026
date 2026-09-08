@@ -11,6 +11,16 @@ import { useToast } from '../../context/ToastContext'
 
 const QUICK_AMOUNTS = [501, 1116, 2116, 5116, 10001, 25000]
 
+const PRASAD_PRESETS = [
+  'Maha Annadanam (అన్నదానం)',
+  '108 Modaks & Dry Fruit Laddu (మోదకాలు)',
+  'Pulihora Prasadam (పులిహోర)',
+  'Chakra Pongali (చక్కెర పొంగలి)',
+  'Fruits Basket & Flowers (పండ్లు / పూలు)',
+  'Milk & Panchamrutham (పంచామృతం)',
+  'Evening Sundal / Boiled Chickpeas'
+]
+
 export function DonationsSection({
   donations = [],
   settings = {},
@@ -38,6 +48,8 @@ export function DonationsSection({
   const [note, setNote] = useState('')
   const [paymentMode, setPaymentMode] = useState('Cash')
   const [pinned, setPinned] = useState(false)
+  const [isPrasadSponsor, setIsPrasadSponsor] = useState(false)
+  const [prasadItem, setPrasadItem] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
   // Top contributions
@@ -52,10 +64,12 @@ export function DonationsSection({
     let list = donations.filter((d) => {
       const matchSearch =
         (d.donor_name || d.name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (d.prasad_item || '').toLowerCase().includes(search.toLowerCase()) ||
         (d.note || '').toLowerCase().includes(search.toLowerCase()) ||
         (d.phone || '').includes(search)
       if (!matchSearch) return false
 
+      if (filterTier === 'SPONSOR') return Boolean(d.is_prasad_sponsor || d.prasad_item)
       if (filterTier === 'VIP') return Number(d.amount || 0) >= 5000
       if (filterTier === 'PATRON') return Number(d.amount || 0) >= 2000 && Number(d.amount || 0) < 5000
       if (filterTier === 'SUPPORTER') return Number(d.amount || 0) < 2000
@@ -96,6 +110,8 @@ export function DonationsSection({
     setNote('')
     setPaymentMode('Cash')
     setPinned(false)
+    setIsPrasadSponsor(false)
+    setPrasadItem('')
     setIsAddModalOpen(true)
   }
 
@@ -103,6 +119,7 @@ export function DonationsSection({
     if (e) e.preventDefault()
     const cleanName = (donorName || '').trim()
     const numAmount = Number(amount)
+    const cleanPrasadItem = isPrasadSponsor ? (prasadItem.trim() || 'Maha Prasadam') : ''
 
     if (!cleanName || !numAmount || numAmount <= 0) {
       toast.error('Please enter donor name and valid contribution amount.')
@@ -118,13 +135,34 @@ export function DonationsSection({
         date: date || today(),
         note: (note || '').trim(),
         payment_mode: paymentMode,
-        pinned
+        pinned,
+        is_prasad_sponsor: Boolean(isPrasadSponsor),
+        prasad_item: cleanPrasadItem
       }
 
       const err = await add('donations', payload)
       if (err) throw err
 
-      toast.success(`🙏 Recorded donation of ₹${numAmount} by ${cleanName}`)
+      // If marked as Prasad Sponsor, also automatically add to prasad_sponsors table!
+      if (isPrasadSponsor) {
+        try {
+          await add('prasad_sponsors', {
+            sponsor_name: cleanName,
+            item: cleanPrasadItem,
+            date: date || today(),
+            phone: (phone || '').trim(),
+            amount: numAmount,
+            note: (note || '').trim()
+          })
+        } catch {}
+      }
+
+      toast.success(
+        isPrasadSponsor
+          ? `🙏 Recorded ₹${numAmount.toLocaleString()} Prasadam sponsorship (${cleanPrasadItem}) by ${cleanName}!`
+          : `🙏 Recorded donation of ₹${numAmount.toLocaleString()} by ${cleanName}`
+      )
+
       syncNewDonation(payload)
       setIsAddModalOpen(false)
     } catch (err) {
@@ -172,6 +210,8 @@ export function DonationsSection({
     { name: 'amount', label: 'Amount (₹)', type: 'number', min: '1', required: true, placeholder: '1116' },
     { name: 'phone', label: 'WhatsApp / Mobile Number', placeholder: 'e.g. 9876543210' },
     { name: 'date', label: 'Contribution Date', type: 'date', default: today(), required: true },
+    { name: 'is_prasad_sponsor', label: 'Is Prasadam / Food Sponsor', type: 'checkbox' },
+    { name: 'prasad_item', label: 'Prasadam Item Sponsored', placeholder: 'e.g. Maha Annadanam, 108 Laddu' },
     { name: 'note', label: 'Gotram / Special Note', placeholder: 'Optional dedication' },
     { name: 'payment_mode', label: 'Payment Mode', type: 'select', options: ['Cash', 'UPI', 'PhonePe', 'GPay', 'Paytm', 'Bank Transfer'], default: 'Cash' },
     { name: 'pinned', label: 'Pin to Overview Showcase', type: 'checkbox' }
@@ -180,9 +220,9 @@ export function DonationsSection({
   return (
     <>
       <Card
-        title="Donations & Contributions"
+        title="Donations & Contributions (చందా / విరాళాలు)"
         action={
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
             <Button onClick={handleOpenAdd}>
               ➕ Record Contribution
             </Button>
@@ -220,7 +260,7 @@ export function DonationsSection({
         <div className="filter-bar">
           <input
             value={search}
-            placeholder="Search by name, phone or notes..."
+            placeholder="Search by name, sponsor item, phone or notes..."
             onChange={(e) => setSearch(e.target.value)}
           />
           <select value={sort} onChange={(e) => setSort(e.target.value)}>
@@ -228,7 +268,8 @@ export function DonationsSection({
             <option value="amount">Sort: Highest amount</option>
           </select>
           <select value={filterTier} onChange={(e) => setFilterTier(e.target.value)}>
-            <option value="ALL">All Donations</option>
+            <option value="ALL">All Contributions</option>
+            <option value="SPONSOR">🍯 Prasadam Sponsors (స్పాన్సర్లు)</option>
             <option value="VIP">VIP (₹5,000+)</option>
             <option value="PATRON">Patron (₹2,000–₹4,999)</option>
             <option value="SUPPORTER">Supporter (&lt; ₹2,000)</option>
@@ -264,14 +305,20 @@ export function DonationsSection({
           {filteredDonations.map((d) => {
             const donorNameStr = d.donor_name || d.name || 'Anonymous'
             const isUnlocked = admin || authorized
+            const isSponsor = Boolean(d.is_prasad_sponsor || d.prasad_item)
 
             return (
-              <article className={`record-item ${d.pinned ? 'pinned-donor-row' : ''}`} key={d.id}>
+              <article className={`record-item ${d.pinned ? 'pinned-donor-row' : ''} ${isSponsor ? 'sponsor-donor-row' : ''}`} key={d.id}>
                 <div className="record-main">
                   <div className="record-title-row">
                     <b>{donorNameStr}</b>
                     {d.pinned && (
                       <span className="pinned-badge-chip">📌 Pinned to Overview</span>
+                    )}
+                    {isSponsor && (
+                      <span className="prasad-sponsor-badge">
+                        🍯 Prasadam Sponsor: <b>{d.prasad_item || 'Annadanam Seva'}</b>
+                      </span>
                     )}
                     <span className={`badge ${tier(d.amount).toLowerCase()}`}>
                       {tier(d.amount)}
@@ -428,6 +475,7 @@ export function DonationsSection({
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="e.g. 1116"
                 required
+                inputMode="numeric"
               />
               <div className="role-preset-chips">
                 {QUICK_AMOUNTS.map((amt) => (
@@ -443,6 +491,53 @@ export function DonationsSection({
               </div>
             </div>
 
+            {/* Prasadam / Food Sponsorship Toggle */}
+            <div className="prasad-sponsor-toggle-card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="is-prasad-sponsor-check"
+                  checked={isPrasadSponsor}
+                  onChange={(e) => setIsPrasadSponsor(e.target.checked)}
+                  style={{ width: '18px', height: '18px', margin: 0, cursor: 'pointer' }}
+                />
+                <label htmlFor="is-prasad-sponsor-check" style={{ margin: 0, cursor: 'pointer', fontWeight: '700', color: '#78350f', fontSize: '0.9rem' }}>
+                  🍯 This donation is for Prasadam / Annadanam Sponsorship (ప్రసాదం స్పాన్సర్)
+                </label>
+              </div>
+
+              {isPrasadSponsor && (
+                <div style={{ marginTop: '10px' }}>
+                  <label className="form-label" style={{ fontSize: '0.82rem', color: '#92400e' }}>
+                    <span>Prasadam / Food Item Sponsored</span>
+                    <span className="req-star">*</span>
+                  </label>
+                  <input
+                    value={prasadItem}
+                    onChange={(e) => setPrasadItem(e.target.value)}
+                    placeholder="e.g. Maha Annadanam, 108 Modaks, Pulihora"
+                    required={isPrasadSponsor}
+                    style={{ background: '#ffffff' }}
+                  />
+                  <div className="role-preset-chips mini" style={{ marginTop: '6px' }}>
+                    {PRASAD_PRESETS.map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        className={`role-chip mini ${prasadItem === p ? 'selected' : ''}`}
+                        onClick={() => setPrasadItem(p)}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                  <small style={{ display: 'block', marginTop: '4px', color: '#15803d', fontWeight: '600' }}>
+                    ✓ This amount will be added to Total Collections and also listed in Prasadam Sponsors!
+                  </small>
+                </div>
+              )}
+            </div>
+
             <div className="form-row-grid">
               <div className="form-group">
                 <label className="form-label">
@@ -453,6 +548,7 @@ export function DonationsSection({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 9876543210"
+                  inputMode="tel"
                 />
               </div>
 
@@ -520,24 +616,6 @@ export function DonationsSection({
             </div>
           </form>
         </Modal>
-      )}
-
-      {/* Festive Appreciation Card Modal */}
-      {cardDonation && (
-        <ReceiptTemplateModal
-          donation={cardDonation}
-          settings={settings}
-          onClose={() => setCardDonation(null)}
-        />
-      )}
-
-      {/* Official Printable Receipt Modal with QR */}
-      {officialReceiptDonation && (
-        <OfficialReceiptModal
-          donation={officialReceiptDonation}
-          settings={settings}
-          onClose={() => setOfficialReceiptDonation(null)}
-        />
       )}
     </>
   )

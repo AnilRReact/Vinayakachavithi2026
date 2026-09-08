@@ -18,14 +18,6 @@ const EXPENSE_CATEGORIES = [
   'General & Miscellaneous'
 ]
 
-const COMMON_PAYERS = [
-  'Committee Treasury Fund',
-  'Sri Anil Kumar (Treasurer)',
-  'Sri President Garu',
-  'Sri Secretary Garu',
-  'Youth Seva Samithi'
-]
-
 export function ExpensesSection({
   expenses = [],
   admin = false,
@@ -41,7 +33,7 @@ export function ExpensesSection({
   const [selectedCategory, setSelectedCategory] = useState('ALL')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
-  // Form states
+  // Form states - All initialized to empty string (no hardcoded/forced defaults)
   const [category, setCategory] = useState('')
   const [amount, setAmount] = useState('')
   const [paidBy, setPaidBy] = useState('')
@@ -80,7 +72,7 @@ export function ExpensesSection({
   const handleOpenAdd = () => {
     setCategory('')
     setAmount('')
-    setPaidBy('Committee Treasury Fund')
+    setPaidBy('')
     setPaidTo('')
     setDate(today())
     setPaymentMode('Cash')
@@ -92,11 +84,11 @@ export function ExpensesSection({
     if (e) e.preventDefault()
     const cleanCat = (category || '').trim()
     const numAmount = Number(amount)
-    const cleanPaidBy = (paidBy || 'Committee Treasury Fund').trim()
+    const cleanPaidBy = (paidBy || '').trim()
     const cleanPaidTo = (paidTo || '').trim()
 
-    if (!cleanCat || !numAmount || numAmount <= 0 || !cleanPaidTo) {
-      toast.error('Please enter expense category, vendor name, and valid amount.')
+    if (!cleanCat || !numAmount || numAmount <= 0) {
+      toast.error('Please enter expense category and valid amount.')
       return
     }
 
@@ -128,8 +120,8 @@ export function ExpensesSection({
   const expenseFields = [
     { name: 'category', label: 'Expense Category', required: true, placeholder: 'e.g. Tent & Lighting, Flowers, Prasadam, Sound' },
     { name: 'amount', label: 'Amount Spent (₹)', type: 'number', min: '1', required: true, placeholder: '5000' },
-    { name: 'paid_by', label: 'Paid By / Spent By (Person / Fund)', required: true, placeholder: 'e.g. Sri Anil Kumar (Treasurer) / Committee Fund' },
-    { name: 'paid_to', label: 'Paid To (Vendor / Shop / Receiver)', required: true, placeholder: 'e.g. Sri Balaji Sound System' },
+    { name: 'paid_by', label: 'Paid By / Spent By (Optional)', placeholder: 'Who paid this expense' },
+    { name: 'paid_to', label: 'Paid To (Vendor / Shop / Receiver - Optional)', placeholder: 'Vendor or shop name' },
     { name: 'date', label: 'Payment Date', type: 'date', default: today(), required: true },
     { name: 'payment_mode', label: 'Payment Method', type: 'select', options: ['Cash', 'UPI', 'PhonePe', 'GPay', 'Bank Transfer'], default: 'Cash' },
     { name: 'note', label: 'Bill / Voucher / Notes', placeholder: 'Optional bill or receipt notes' }
@@ -190,7 +182,7 @@ export function ExpensesSection({
         <div className="filter-bar">
           <input
             value={expenseSearch}
-            placeholder="Search by payer, vendor, or category..."
+            placeholder="Search by category, payer, vendor or notes..."
             onChange={(e) => setExpenseSearch(e.target.value)}
           />
           {categories.length > 2 && (
@@ -218,14 +210,20 @@ export function ExpensesSection({
                   </strong>
                 </div>
 
-                <div className="expense-payer-vendor-row">
-                  <span className="payer-badge">
-                    <span className="badge-lbl">👤 Paid By:</span> <b>{exp.paid_by || 'Committee Fund'}</b>
-                  </span>
-                  <span className="vendor-badge">
-                    <span className="badge-lbl">🏪 Paid To:</span> <b>{exp.paid_to || 'Vendor'}</b>
-                  </span>
-                </div>
+                {(exp.paid_by || exp.paid_to) && (
+                  <div className="expense-payer-vendor-row">
+                    {exp.paid_by && (
+                      <span className="payer-badge">
+                        <span className="badge-lbl">👤 Paid By:</span> <b>{exp.paid_by}</b>
+                      </span>
+                    )}
+                    {exp.paid_to && (
+                      <span className="vendor-badge">
+                        <span className="badge-lbl">🏪 Paid To:</span> <b>{exp.paid_to}</b>
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 <small className="record-meta">
                   📅 {fmtDate(exp.date)}
@@ -316,41 +314,25 @@ export function ExpensesSection({
 
               <div className="form-group">
                 <label className="form-label">
-                  <span>👤 Paid By / Spent By (Who paid the money)</span>
-                  <span className="req-star">*</span>
+                  <span>👤 Paid By / Spent By (Optional)</span>
                 </label>
                 <input
                   value={paidBy}
                   onChange={(e) => setPaidBy(e.target.value)}
-                  placeholder="e.g. Sri Anil Kumar / Committee Fund"
-                  required
+                  placeholder="e.g. Srikanth / Committee Fund (leave blank if not needed)"
                 />
-                <div className="role-preset-chips mini" style={{ marginTop: '4px' }}>
-                  {COMMON_PAYERS.map((payer) => (
-                    <button
-                      key={payer}
-                      type="button"
-                      className={`role-chip mini ${paidBy === payer ? 'selected' : ''}`}
-                      onClick={() => setPaidBy(payer)}
-                    >
-                      {payer}
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
 
             <div className="form-row-grid">
               <div className="form-group">
                 <label className="form-label">
-                  <span>🏪 Paid To (Vendor / Shop / Receiver)</span>
-                  <span className="req-star">*</span>
+                  <span>🏪 Paid To (Vendor / Shop / Receiver - Optional)</span>
                 </label>
                 <input
                   value={paidTo}
                   onChange={(e) => setPaidTo(e.target.value)}
-                  placeholder="e.g. Sri Balaji Tent House"
-                  required
+                  placeholder="e.g. Sri Balaji Tent House (leave blank if not needed)"
                 />
               </div>
 

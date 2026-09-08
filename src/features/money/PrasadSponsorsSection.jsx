@@ -7,12 +7,12 @@ import { openDonationWhatsAppReceipt } from '../../lib/whatsapp'
 import { useToast } from '../../context/ToastContext'
 
 const PRASAD_PRESETS = [
-  'Maha Laddu Prasadam',
+  'Maha Annadanam (అన్నదానం)',
+  '108 Modaks & Dry Fruit Laddu',
   'Pulihora (Tamarind Rice)',
   'Chakra Pongali (Sweet Rice)',
   'Sundal / Boiled Chickpeas',
   'Kudumulu & Undrallu',
-  'Special Annadanam (Lunch/Dinner)',
   'Fruits & Dry Fruits Basket',
   'Panchamrutham & Milk Seva'
 ]
@@ -21,6 +21,7 @@ export function PrasadSponsorsSection({
   prasadSponsors = [],
   settings = {},
   admin = false,
+  authorized = false,
   add,
   update,
   remove,
@@ -32,6 +33,7 @@ export function PrasadSponsorsSection({
 
   // Add form states
   const [sponsorName, setSponsorName] = useState('')
+  const [amount, setAmount] = useState('')
   const [phone, setPhone] = useState('')
   const [date, setDate] = useState(today())
   const [item, setItem] = useState('')
@@ -40,14 +42,16 @@ export function PrasadSponsorsSection({
 
   const sponsorFields = [
     { name: 'sponsor_name', label: 'Sponsor Name / Family', required: true, placeholder: 'e.g. Srikanth & Family' },
+    { name: 'amount', label: 'Sponsorship Amount (₹ - Optional)', type: 'number', placeholder: 'e.g. 5000' },
     { name: 'phone', label: 'WhatsApp / Mobile Number', placeholder: 'e.g. 9876543210' },
     { name: 'date', label: 'Sponsorship Date', type: 'date', default: today(), required: true },
-    { name: 'item', label: 'Prasad / Item Sponsored', required: true, placeholder: 'e.g. Morning Maha Prasadam (Pulihora), Fruits' },
+    { name: 'item', label: 'Prasad / Item Sponsored', required: true, placeholder: 'e.g. Maha Annadanam, Fruits' },
     { name: 'note', label: 'Gotram / Dedication Note', placeholder: 'Optional dedication' }
   ]
 
   const handleOpenAdd = () => {
     setSponsorName('')
+    setAmount('')
     setPhone('')
     setDate(today())
     setItem('')
@@ -59,6 +63,7 @@ export function PrasadSponsorsSection({
     if (e) e.preventDefault()
     const cleanName = (sponsorName || '').trim()
     const cleanItem = (item || '').trim()
+    const numAmount = Number(amount) || 0
 
     if (!cleanName || !cleanItem) {
       toast.error('Please enter sponsor name and prasad item.')
@@ -69,6 +74,7 @@ export function PrasadSponsorsSection({
     try {
       const payload = {
         sponsor_name: cleanName,
+        amount: numAmount,
         phone: (phone || '').trim(),
         date: date || today(),
         item: cleanItem,
@@ -78,7 +84,27 @@ export function PrasadSponsorsSection({
       const err = await add('prasad_sponsors', payload)
       if (err) throw err
 
-      toast.success(`🙏 Recorded Prasad sponsorship by ${cleanName}`)
+      // If an amount was provided, also automatically save into donations so it counts in collections!
+      if (numAmount > 0) {
+        try {
+          await add('donations', {
+            donor_name: cleanName,
+            amount: numAmount,
+            phone: (phone || '').trim(),
+            date: date || today(),
+            note: note ? `Prasadam Sponsor (${cleanItem}): ${note}` : `Prasadam Sponsor (${cleanItem})`,
+            payment_mode: 'Cash / UPI',
+            is_prasad_sponsor: true,
+            prasad_item: cleanItem
+          })
+        } catch {}
+      }
+
+      toast.success(
+        numAmount > 0
+          ? `🙏 Recorded ₹${numAmount.toLocaleString()} Prasad sponsorship by ${cleanName} (Added to Collections)!`
+          : `🙏 Recorded Prasad sponsorship by ${cleanName}`
+      )
       setIsAddModalOpen(false)
     } catch (err) {
       toast.error(err.message || 'Could not record prasad sponsor.')
@@ -90,7 +116,7 @@ export function PrasadSponsorsSection({
   const handleWhatsApp = (sp) => {
     openDonationWhatsAppReceipt({
       donor: { name: sp.sponsor_name, phone: sp.phone },
-      amount: 'Prasad Seva',
+      amount: sp.amount ? `₹ ${Number(sp.amount).toLocaleString()} (${sp.item})` : sp.item,
       receiptNo: sp.id,
       paymentMode: 'Maha Prasadam Sponsorship',
       gotram: sp.note,
@@ -102,117 +128,166 @@ export function PrasadSponsorsSection({
   return (
     <>
       <Card
-        title="Maha Prasadam & Seva Sponsors"
+        title="Maha Prasadam & Seva Sponsors (ప్రసాద దాతలు)"
         action={
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <Button onClick={handleOpenAdd}>
               ➕ Sponsor Prasadam
             </Button>
-            <Button
-              kind="secondary"
-              onClick={() => onOpenExcelImport && onOpenExcelImport('prasad_sponsors')}
-              title="Upload Excel or CSV file to extract and import prasad sponsors"
-            >
-              📊 Bulk Excel Import
-            </Button>
+            {(admin || authorized) && (
+              <Button
+                kind="secondary"
+                onClick={() => onOpenExcelImport && onOpenExcelImport('prasad_sponsors')}
+                title="Upload Excel or CSV file to extract and import prasad sponsors"
+              >
+                📊 Bulk Excel Import
+              </Button>
+            )}
           </div>
         }
       >
         <div className="records-list">
           {prasadSponsors.map((sp) => (
-            <article className="record-item" key={sp.id}>
+            <article className="record-item sponsor-record-item" key={sp.id}>
               <div className="record-main">
                 <div className="record-title-row">
                   <b>{sp.sponsor_name}</b>
                   <span className="badge badge-prasad">🍯 {sp.item}</span>
+                  {Number(sp.amount || 0) > 0 && (
+                    <strong className="record-amount prasad-amount">
+                      ₹ {Number(sp.amount).toLocaleString()}
+                    </strong>
+                  )}
                 </div>
                 <small className="record-meta">
                   📅 {fmtDate(sp.date)}
-                  {sp.phone && ` · 📞 ${sp.phone}`}
-                  {sp.note && ` · 📝 ${sp.note}`}
+                  {(admin || authorized) ? (
+                    <>
+                      {sp.phone && ` · 📞 ${sp.phone}`}
+                      {sp.note && ` · 📝 ${sp.note}`}
+                    </>
+                  ) : (
+                    <span className="lock-protected-note"> · 🔒 Contact Protected</span>
+                  )}
                 </small>
               </div>
 
               <div className="record-actions-cell">
-                <button
-                  type="button"
-                  className="btn-wa-receipt"
-                  onClick={() => handleWhatsApp(sp)}
-                  title="Send WhatsApp acknowledgment to sponsor"
-                >
-                  <span className="action-icon">📲</span>
-                  <span className="action-label">WhatsApp</span>
-                </button>
+                {(admin || authorized) ? (
+                  <>
+                    <button
+                      type="button"
+                      className="btn-wa-receipt"
+                      onClick={() => handleWhatsApp(sp)}
+                      title="Send WhatsApp receipt to sponsor"
+                    >
+                      <span className="action-icon">📲</span>
+                      <span className="action-label">WhatsApp</span>
+                    </button>
 
-                <Button
-                  type="button"
-                  kind="receipt-action"
-                  onClick={() => setSelectedSponsor(sp)}
-                  title="View & download Prasad Sponsor Blessing Card"
-                >
-                  <span className="action-icon">📜</span>
-                  <span className="action-label">Blessing Card</span>
-                </Button>
+                    <Button
+                      type="button"
+                      kind="receipt-action"
+                      onClick={() =>
+                        setSelectedSponsor({
+                          donor_name: sp.sponsor_name,
+                          amount: sp.amount ? `₹ ${Number(sp.amount).toLocaleString()}` : sp.item,
+                          note: sp.note || `Prasadam Seva: ${sp.item}`,
+                          date: sp.date,
+                          phone: sp.phone
+                        })
+                      }
+                      title="View auspicious sponsor blessing card"
+                    >
+                      <span className="action-icon">🎨</span>
+                      <span className="action-label">Card</span>
+                    </Button>
 
-                <RecordActions
-                  record={sp}
-                  fields={sponsorFields}
-                  onSave={(values) => update('prasad_sponsors', sp.id, values)}
-                  onDelete={() => remove('prasad_sponsors', sp.id)}
-                  deleteTitle="Delete Prasad Sponsor"
-                  deleteMessage={`Delete sponsorship by ${sp.sponsor_name}?`}
-                />
+                    {admin && (
+                      <RecordActions
+                        record={sp}
+                        fields={sponsorFields}
+                        onSave={(values) =>
+                          update('prasad_sponsors', sp.id, {
+                            ...values,
+                            amount: Number(values.amount || 0)
+                          })
+                        }
+                        onDelete={() => remove('prasad_sponsors', sp.id)}
+                        deleteTitle="Delete Prasadam Sponsor"
+                        deleteMessage={`Delete sponsorship by ${sp.sponsor_name}?`}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <Button
+                    type="button"
+                    kind="receipt-action"
+                    onClick={() =>
+                      setSelectedSponsor({
+                        donor_name: sp.sponsor_name,
+                        amount: sp.amount ? `₹ ${Number(sp.amount).toLocaleString()}` : sp.item,
+                        note: sp.note || `Prasadam Seva: ${sp.item}`,
+                        date: sp.date
+                      })
+                    }
+                    title="View auspicious sponsor blessing card"
+                  >
+                    <span className="action-icon">🎨</span>
+                    <span className="action-label">Blessing Card</span>
+                  </Button>
+                )}
               </div>
             </article>
           ))}
         </div>
 
         {!prasadSponsors.length && (
-          <Empty text="No Maha Prasadam sponsors recorded yet. Click 'Sponsor Prasadam' above." />
+          <Empty text="No prasadam sponsors recorded yet. Click 'Sponsor Prasadam' above." />
         )}
       </Card>
 
-      {/* Add Prasad Sponsor Modal */}
+      {/* Add Prasadam Sponsor Modal */}
       {isAddModalOpen && (
         <Modal
-          title="Record Maha Prasadam Sponsor"
+          title="Sponsor Maha Prasadam / Annadanam"
           onClose={() => setIsAddModalOpen(false)}
         >
           <form onSubmit={handleSaveAdd} className="member-form">
             <div className="form-group">
               <label className="form-label">
-                <span>👤 Sponsor Name / Devotee Family</span>
+                <span>👤 Devotee / Sponsor Family Name</span>
                 <span className="req-star">*</span>
               </label>
               <input
+                required
+                placeholder="e.g. Srikanth & Family"
                 value={sponsorName}
                 onChange={(e) => setSponsorName(e.target.value)}
-                placeholder="e.g. Srikanth & Family"
                 autoFocus
-                required
               />
             </div>
 
             <div className="form-group">
               <label className="form-label">
-                <span>🍛 Prasadam / Food Item Sponsored</span>
+                <span>🍯 Prasadam / Food Item Sponsored</span>
                 <span className="req-star">*</span>
               </label>
               <input
+                required
+                placeholder="e.g. Maha Annadanam, 108 Modaks, Pulihora"
                 value={item}
                 onChange={(e) => setItem(e.target.value)}
-                placeholder="e.g. Maha Laddu, Pulihora, Fruits"
-                required
               />
               <div className="role-preset-chips">
-                {PRASAD_PRESETS.map((p) => (
+                {PRASAD_PRESETS.map((preset) => (
                   <button
-                    key={p}
+                    key={preset}
                     type="button"
-                    className={`role-chip ${item === p ? 'selected' : ''}`}
-                    onClick={() => setItem(p)}
+                    className={`role-chip ${item === preset ? 'selected' : ''}`}
+                    onClick={() => setItem(preset)}
                   >
-                    {p}
+                    {preset}
                   </button>
                 ))}
               </div>
@@ -221,39 +296,61 @@ export function PrasadSponsorsSection({
             <div className="form-row-grid">
               <div className="form-group">
                 <label className="form-label">
+                  <span>💰 Sponsorship Contribution Amount (₹ - Optional)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="e.g. 5000 (auto-adds to total collections)"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  inputMode="numeric"
+                />
+                {Number(amount) > 0 && (
+                  <small style={{ color: '#15803d', fontWeight: '600' }}>
+                    ✓ This ₹{Number(amount).toLocaleString()} will be automatically added to Total Collections!
+                  </small>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
                   <span>📱 Mobile / WhatsApp</span>
                 </label>
                 <input
                   type="tel"
+                  placeholder="e.g. 9876543210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 9876543210"
+                  inputMode="tel"
+                />
+              </div>
+            </div>
+
+            <div className="form-row-grid">
+              <div className="form-group">
+                <label className="form-label">
+                  <span>📅 Seva Date</span>
+                  <span className="req-star">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
                 />
               </div>
 
               <div className="form-group">
                 <label className="form-label">
-                  <span>📅 Date of Seva</span>
-                  <span className="req-star">*</span>
+                  <span>🪔 Gotram / Dedication Note</span>
                 </label>
                 <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
+                  placeholder="e.g. Kashyapa Gotram / Family Seva"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
                 />
               </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                <span>🪔 Gotram / Special Notes (Optional)</span>
-              </label>
-              <input
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. Kashyapa Gotram, In Memory of Grandfather"
-              />
             </div>
 
             <div className="modal-actions">
@@ -268,17 +365,14 @@ export function PrasadSponsorsSection({
         </Modal>
       )}
 
+      {/* Blessing Card Modal */}
       {selectedSponsor && (
         <ReceiptTemplateModal
-          donation={{
-            id: selectedSponsor.id,
-            donor_name: selectedSponsor.sponsor_name,
-            amount: 'Prasadam Seva',
-            date: selectedSponsor.date,
-            note: `${selectedSponsor.item}${selectedSponsor.note ? ` · ${selectedSponsor.note}` : ''}`
-          }}
-          settings={settings}
+          isOpen={Boolean(selectedSponsor)}
           onClose={() => setSelectedSponsor(null)}
+          donation={selectedSponsor}
+          settings={settings}
+          admin={admin}
         />
       )}
     </>

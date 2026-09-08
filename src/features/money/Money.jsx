@@ -124,6 +124,7 @@ export function Money({ data, admin, authorized = false, onOpenLogin, add, updat
           prasadSponsors={prasadSponsors}
           settings={settings}
           admin={admin}
+          authorized={authorized}
           add={add}
           update={update}
           remove={remove}
