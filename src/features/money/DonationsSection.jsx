@@ -15,6 +15,7 @@ export function DonationsSection({
   donations = [],
   settings = {},
   admin = false,
+  authorized = false,
   add,
   update,
   remove,
@@ -233,13 +234,15 @@ export function DonationsSection({
             <option value="SUPPORTER">Supporter (&lt; ₹2,000)</option>
           </select>
 
-          <Button
-            kind="secondary"
-            onClick={() => onOpenExcelImport && onOpenExcelImport('donations')}
-            title="Upload Excel or CSV file to extract and import donations in bulk"
-          >
-            📊 Bulk Excel Import
-          </Button>
+          {(admin || authorized) && (
+            <Button
+              kind="secondary"
+              onClick={() => onOpenExcelImport && onOpenExcelImport('donations')}
+              title="Upload Excel or CSV file to extract and import donations in bulk"
+            >
+              📊 Bulk Excel Import
+            </Button>
+          )}
         </div>
 
         {/* Top Contributors Banner */}
@@ -260,6 +263,8 @@ export function DonationsSection({
         <div className="records-list">
           {filteredDonations.map((d) => {
             const donorNameStr = d.donor_name || d.name || 'Anonymous'
+            const isUnlocked = admin || authorized
+
             return (
               <article className={`record-item ${d.pinned ? 'pinned-donor-row' : ''}`} key={d.id}>
                 <div className="record-main">
@@ -277,78 +282,102 @@ export function DonationsSection({
                   </div>
                   <small className="record-meta">
                     📅 {fmtDate(d.date)}
-                    {d.phone && ` · 📞 ${d.phone}`}
-                    {d.payment_mode && ` · 💳 ${d.payment_mode}`}
-                    {d.note && ` · 📝 ${d.note}`}
+                    {isUnlocked ? (
+                      <>
+                        {d.phone && ` · 📞 ${d.phone}`}
+                        {d.payment_mode && ` · 💳 ${d.payment_mode}`}
+                        {d.note && ` · 📝 ${d.note}`}
+                      </>
+                    ) : (
+                      <span className="lock-protected-note"> · 🔒 Contact & Notes Protected</span>
+                    )}
                   </small>
                 </div>
 
+                {/* Actions: Full tools for Authorized/Admin, Clean Devotee Card for Guests */}
                 <div className="record-actions-cell">
-                  {/* 1-Click WhatsApp Instant Receipt */}
-                  <button
-                    type="button"
-                    className="btn-wa-receipt"
-                    onClick={() => handleSendWhatsApp(d)}
-                    title="Send WhatsApp instant receipt to donor"
-                  >
-                    <span className="action-icon">📲</span>
-                    <span className="action-label">WhatsApp</span>
-                  </button>
+                  {isUnlocked ? (
+                    <>
+                      {/* 1-Click WhatsApp Instant Receipt */}
+                      <button
+                        type="button"
+                        className="btn-wa-receipt"
+                        onClick={() => handleSendWhatsApp(d)}
+                        title="Send WhatsApp instant receipt to donor"
+                      >
+                        <span className="action-icon">📲</span>
+                        <span className="action-label">WhatsApp</span>
+                      </button>
 
-                  {/* 1-Click Official Printable Receipt with QR */}
-                  <button
-                    type="button"
-                    className="btn-formal-receipt"
-                    onClick={() =>
-                      setOfficialReceiptDonation({
-                        ...d,
-                        name: donorNameStr,
-                        amount: d.amount
-                      })
-                    }
-                    title="Open official printable temple receipt with QR code"
-                  >
-                    <span className="action-icon">🖨️</span>
-                    <span className="action-label">Receipt</span>
-                  </button>
+                      {/* 1-Click Official Printable Receipt with QR */}
+                      <button
+                        type="button"
+                        className="btn-formal-receipt"
+                        onClick={() =>
+                          setOfficialReceiptDonation({
+                            ...d,
+                            name: donorNameStr,
+                            amount: d.amount
+                          })
+                        }
+                        title="Open official printable temple receipt with QR code"
+                      >
+                        <span className="action-icon">🖨️</span>
+                        <span className="action-label">Receipt</span>
+                      </button>
 
-                  {/* Festive Golden Card */}
-                  <Button
-                    type="button"
-                    kind="receipt-action"
-                    onClick={() => setCardDonation(d)}
-                    title="View & download golden donor appreciation card"
-                  >
-                    <span className="action-icon">🎨</span>
-                    <span className="action-label">Card</span>
-                  </Button>
+                      {/* Festive Golden Card */}
+                      <Button
+                        type="button"
+                        kind="receipt-action"
+                        onClick={() => setCardDonation(d)}
+                        title="View & download golden donor appreciation card"
+                      >
+                        <span className="action-icon">🎨</span>
+                        <span className="action-label">Card</span>
+                      </Button>
 
-                  <Button
-                    type="button"
-                    kind={d.pinned ? 'pinned-toggle-active' : 'pinned-toggle-btn'}
-                    onClick={() => handleTogglePin(d)}
-                    title={d.pinned ? 'Unpin from Overview' : 'Pin to Overview Showcase'}
-                  >
-                    <span className="action-icon">{d.pinned ? '📌' : '📍'}</span>
-                    <span className="action-label">{d.pinned ? 'Pinned' : 'Pin'}</span>
-                  </Button>
+                      <Button
+                        type="button"
+                        kind={d.pinned ? 'pinned-toggle-active' : 'pinned-toggle-btn'}
+                        onClick={() => handleTogglePin(d)}
+                        title={d.pinned ? 'Unpin from Overview' : 'Pin to Overview Showcase'}
+                      >
+                        <span className="action-icon">{d.pinned ? '📌' : '📍'}</span>
+                        <span className="action-label">{d.pinned ? 'Pinned' : 'Pin'}</span>
+                      </Button>
 
-                  <RecordActions
-                    record={d}
-                    fields={donationFields}
-                    onSave={(values) =>
-                      update('donations', d.id, {
-                        ...values,
-                        donor_name: values.donor_name || values.name,
-                        amount: Number(values.amount)
-                      })
-                    }
-                    onDelete={() => remove('donations', d.id)}
-                    deleteTitle="Delete Donation Record"
-                    deleteMessage={`Delete contribution of ${currency.format(
-                      d.amount
-                    )} by ${donorNameStr}?`}
-                  />
+                      {admin && (
+                        <RecordActions
+                          record={d}
+                          fields={donationFields}
+                          onSave={(values) =>
+                            update('donations', d.id, {
+                              ...values,
+                              donor_name: values.donor_name || values.name,
+                              amount: Number(values.amount)
+                            })
+                          }
+                          onDelete={() => remove('donations', d.id)}
+                          deleteTitle="Delete Donation Record"
+                          deleteMessage={`Delete contribution of ${currency.format(
+                            d.amount
+                          )} by ${donorNameStr}?`}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    /* Devotee View */
+                    <Button
+                      type="button"
+                      kind="receipt-action"
+                      onClick={() => setCardDonation(d)}
+                      title="View auspicious donor appreciation card"
+                    >
+                      <span className="action-icon">🎨</span>
+                      <span className="action-label">Blessing Card</span>
+                    </Button>
+                  )}
                 </div>
               </article>
             )

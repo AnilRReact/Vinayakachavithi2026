@@ -8329,6 +8329,481 @@ table {
   }
 }
 
+/* ==========================================================================
+   15. PRODUCTION-GRADE LOCK MODE & ROLE-BASED AUTHORIZATION STYLES
+   ========================================================================== */
+
+/* Topbar Lock Mode and Auth Badges */
+.auth-status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-badge.admin-master {
+  background: linear-gradient(135deg, #15803d 0%, #047857 100%);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.3);
+}
+
+.admin-badge.authorized-member {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+}
+
+.status-dot.green {
+  background: #4ade80;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.status-dot.blue {
+  background: #38bdf8;
+  box-shadow: 0 0 8px #0ea5e9;
+}
+
+.auth-header-lock-btn {
+  background: rgba(120, 113, 108, 0.12);
+  color: #57534e;
+  border: 1px solid #d6d3d1;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.auth-header-lock-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #b91c1c;
+}
+
+.auth-lock-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1.5px solid #d97706;
+  color: #92400e;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-lock-mode-badge:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  color: #ffffff;
+  border-color: #92400e;
+}
+
+.lock-action-text {
+  background: #d97706;
+  color: #ffffff;
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.auth-lock-mode-badge:hover .lock-action-text {
+  background: #ffffff;
+  color: #92400e;
+}
+
+/* Active Status Banners */
+.admin-active-status-bar.master-admin {
+  background: linear-gradient(90deg, #ecfdf5 0%, #dcfce7 100%);
+  border-left: 4px solid #16a34a;
+}
+
+.admin-active-status-bar.authorized-bar {
+  background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-left: 4px solid #0284c7;
+}
+
+/* Dual Mode Login Switcher */
+.auth-mode-tab-bar {
+  display: flex;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.auth-mode-tab {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.auth-mode-tab:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-mode-tab.active {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Locked Expenses Protective Banner */
+.locked-expenses-banner {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fefce8 100%);
+  border: 1.5px dashed #d97706;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.08);
+}
+
+.locked-shield-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fef08a;
+  border: 2px solid #d97706;
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+}
+
+.locked-content h3 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  color: #781d0e;
+  font-weight: 800;
+}
+
+.locked-content p {
+  margin: 0 auto;
+  font-size: 0.92rem;
+  color: #57534e;
+  max-width: 580px;
+  line-height: 1.5;
+}
+
+.locked-public-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #fde68a;
+  padding: 8px 18px;
+  border-radius: 999px;
+  margin-top: 6px;
+  font-size: 0.88rem;
+  color: #78350f;
+}
+
+.locked-public-stat b {
+  font-size: 1.2rem;
+  color: #b91c1c;
+}
+
+.unlock-portal-btn {
+  background: linear-gradient(135deg, #881e0f 0%, #a82e18 100%);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(136, 30, 15, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.unlock-portal-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(136, 30, 15, 0.4);
+}
+
+/* Expenses Paid By & Paid To Row Badges */
+.expense-payer-vendor-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.payer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+
+.vendor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+
+.badge-lbl {
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.lock-protected-note {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.lock-tag {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* Authorized Members Manager Grid */
+.authorized-members-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.auth-member-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease;
+}
+
+.auth-member-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.member-card-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #e0f2fe;
+  color: #0369a1;
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.member-name {
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.member-role-badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.member-phone {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.member-pin-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.pin-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.pin-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pin-display code {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #0f172a;
+}
+
+.pin-eye-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  font-size: 1rem;
+}
+
+.member-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.share-pin-wa-btn {
+  flex: 1;
+  background: #059669;
+  color: #ffffff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.regen-pin-btn {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.revoke-auth-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.role-chip.mini {
+  padding: 2px 8px;
+  font-size: 0.72rem;
+}
+
+/* Mobile Responsiveness Overhaul */
+@media (max-width: 768px) {
+  .auth-member-card {
+    padding: 12px;
+  }
+
+  .expense-payer-vendor-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .member-actions-row {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .share-pin-wa-btn,
+  .regen-pin-btn,
+  .revoke-auth-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .auth-mode-tab-bar {
+    margin-bottom: 14px;
+  }
+
+  .auth-mode-tab {
+    padding: 8px 10px;
+    font-size: 0.82rem;
+  }
+}
+
+
 
 
 

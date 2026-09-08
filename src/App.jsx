@@ -85,6 +85,8 @@ function AppContent() {
           <Money
             data={data}
             admin={isAdmin}
+            authorized={auth.authorized}
+            onOpenLogin={() => setIsLoginView(true)}
             add={add}
             update={update}
             remove={remove}
@@ -135,7 +137,14 @@ function AppContent() {
       case 'Help':
         return <Help data={data} />
       case 'Reports & Analytics':
-        return <ReportsSection data={data} admin={isAdmin} />
+        return (
+          <ReportsSection
+            data={data}
+            admin={isAdmin}
+            authorized={auth.authorized}
+            onOpenLogin={() => setIsLoginView(true)}
+          />
+        )
       case 'Settings':
         return isAdmin ? (
           <Settings
@@ -155,7 +164,7 @@ function AppContent() {
   }
 
   // If user clicked Sign In, show full-screen Glassmorphism Divine Login Page
-  if (isLoginView && !isAdmin) {
+  if (isLoginView && !isAdmin && !auth.authorized) {
     return (
       <LoginPage
         auth={auth}
@@ -163,7 +172,7 @@ function AppContent() {
         onBack={() => setIsLoginView(false)}
         onLoginSuccess={() => {
           setIsLoginView(false)
-          handleSelectTab('Overview')
+          handleSelectTab('Money')
         }}
       />
     )
@@ -205,6 +214,7 @@ function AppContent() {
           <AuthControl auth={auth} onOpenLogin={() => setIsLoginView(true)} />
         </div>
       </header>
+
 
       {/* Slide-Out Navigation Drawer (Opens smoothly when clicking 3 lines) */}
       {isDrawerOpen && (
@@ -308,11 +318,11 @@ function AppContent() {
             </div>
           ) : (
             <>
-              {isAdmin && (
-                <div className="admin-active-status-bar">
+              {isAdmin ? (
+                <div className="admin-active-status-bar master-admin">
                   <div className="admin-active-info">
-                    <span className="status-dot"></span>
-                    <b>🔓 Admin Mode Active</b> — <span>You have full permissions to add, edit, and delete records across all sections.</span>
+                    <span className="status-dot green"></span>
+                    <b>👑 Master Admin Active</b> — <span>Full administrative access to finances, settings, and authorizations.</span>
                   </div>
                   <div className="admin-active-actions">
                     <button
@@ -320,7 +330,7 @@ function AppContent() {
                       className="admin-bar-btn"
                       onClick={() => handleSelectTab('Settings')}
                     >
-                      ⚙️ Settings
+                      ⚙️ Settings & PINs
                     </button>
                     <button
                       type="button"
@@ -331,7 +341,23 @@ function AppContent() {
                     </button>
                   </div>
                 </div>
-              )}
+              ) : auth.authorized ? (
+                <div className="admin-active-status-bar authorized-bar">
+                  <div className="admin-active-info">
+                    <span className="status-dot blue"></span>
+                    <b>🛡️ Authorized Committee Access</b> — <span>Logged in as <b>{auth.currentUser?.name || 'Authorized Member'}</b> ({auth.currentUser?.designation || 'Auditor'}). Confidential financial ledgers unlocked.</span>
+                  </div>
+                  <div className="admin-active-actions">
+                    <button
+                      type="button"
+                      className="admin-bar-btn signout"
+                      onClick={() => auth.signOut()}
+                    >
+                      🔒 Lock Mode
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {renderActiveScreen()}
               <PushNotifications session={null} />
             </>

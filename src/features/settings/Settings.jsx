@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Card, Form, Button } from '../../components/ui'
+import { Card, Form, Button, Modal } from '../../components/ui'
 import { ExcelImportModal } from '../../components/ExcelImportModal'
 import { SEGMENT_CONFIGS, downloadSampleTemplate, exportTableToExcel } from '../../lib/excelParser'
 import { usePasscode } from '../../hooks/usePasscode'
@@ -181,9 +181,10 @@ export function Settings({ data, add, update, syncAllToCloud, refresh }) {
           <ExcelManagerCard data={data} onOpenImport={openExcelModal} />
         )}
 
-        {/* Category 7: Security & Backup */}
+        {/* Category 7: Security & Authorizations */}
         {activeCategory === 'security' && (
           <>
+            <AuthorizationManagerCard settings={settings} />
             <PasscodeSettings />
             <BackupButton data={data} />
           </>
@@ -474,6 +475,256 @@ function doPost(e) {
         </div>
       </details>
     </Card>
+  )
+}
+
+function AuthorizationManagerCard({ settings = {} }) {
+  const { toast } = useToast()
+  const auth = usePasscode()
+  const { authorizedMembers, addAuthorizedMember, removeAuthorizedMember, regenerateMemberPin } = auth
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [designation, setDesignation] = useState('Treasurer (కోశాధికారి)')
+  const [phone, setPhone] = useState('')
+  const [customPin, setCustomPin] = useState('')
+  const [visiblePins, setVisiblePins] = useState({})
+
+  const villageName = settings.village_name || 'Sri Vinayaka Vedika 2026'
+
+  const togglePinVisibility = (id) => {
+    setVisiblePins((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const handleOpenAdd = () => {
+    setName('')
+    setDesignation('Treasurer (కోశాధికారి)')
+    setPhone('')
+    setCustomPin(Math.floor(100000 + Math.random() * 900000).toString())
+    setIsAddModalOpen(true)
+  }
+
+  const handleSaveMember = (e) => {
+    e.preventDefault()
+    const cleanName = name.trim()
+    const cleanPhone = phone.replace(/[^0-9]/g, '')
+
+    if (!cleanName) {
+      toast.error('Please enter member name.')
+      return
+    }
+    if (!cleanPhone || cleanPhone.length < 10) {
+      toast.error('Please enter a valid 10-digit mobile number.')
+      return
+    }
+
+    const created = addAuthorizedMember({
+      name: cleanName,
+      designation: designation.trim(),
+      phone: cleanPhone,
+      pin: customPin || undefined
+    })
+
+    toast.success(`🎉 Authorized access granted for ${cleanName}!`)
+    setIsAddModalOpen(false)
+  }
+
+  const handleShareWhatsApp = (member) => {
+    const portalUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    const text = `🕉️ *${villageName.toUpperCase()} — COMMITTEE ACCESS* 🕉️\n` +
+      `Namaste *${member.name} Garu*,\n` +
+      `You have been granted *Authorized Access* for the festival management portal.\n\n` +
+      `📌 *Designation:* ${member.designation}\n` +
+      `📱 *Registered Mobile:* ${member.phone}\n` +
+      `🔢 *6-Digit Access PIN:* ${member.pin}\n\n` +
+      `🌐 *Portal Link:* ${portalUrl}\n\n` +
+      `Use your mobile number & PIN to view confidential expense vouchers and full financial statements. 🙏`
+
+    const url = `https://api.whatsapp.com/send?phone=91${member.phone}&text=${encodeURIComponent(text)}`
+    window.open(url, '_blank')
+  }
+
+  const handleRegenerate = (id, memberName) => {
+    const newPin = regenerateMemberPin(id)
+    toast.success(`Generated new 6-digit PIN (${newPin}) for ${memberName}.`)
+  }
+
+  const handleRevoke = (id, memberName) => {
+    if (window.confirm(`Revoke authorized committee access for ${memberName}?`)) {
+      removeAuthorizedMember(id)
+      toast.info(`Revoked access for ${memberName}.`)
+    }
+  }
+
+  return (
+    <>
+      <Card
+        title="🔒 Authorized Committee Members & PIN / OTP Manager"
+        action={
+          <Button onClick={handleOpenAdd}>
+            ➕ Add Authorized Member
+          </Button>
+        }
+      >
+        <p className="muted">
+          As Master Admin, you can assign 6-digit Access PINs / OTPs to specific committee members (e.g. President, Treasurer, General Secretary, Auditor) allowing them to view confidential expense transactions and full donor details.
+        </p>
+
+        <div className="authorized-members-list">
+          {authorizedMembers.map((member) => {
+            const isPinVisible = Boolean(visiblePins[member.id])
+            return (
+              <div className="auth-member-card" key={member.id}>
+                <div className="member-card-main">
+                  <div className="member-avatar">🛡️</div>
+                  <div className="member-info">
+                    <b className="member-name">{member.name}</b>
+                    <span className="member-role-badge">{member.designation}</span>
+                    <small className="member-phone">📞 {member.phone}</small>
+                  </div>
+                </div>
+
+                <div className="member-pin-block">
+                  <span className="pin-label">6-Digit PIN:</span>
+                  <div className="pin-display">
+                    <code>{isPinVisible ? member.pin : '••••••'}</code>
+                    <button
+                      type="button"
+                      className="pin-eye-btn"
+                      onClick={() => togglePinVisibility(member.id)}
+                      title={isPinVisible ? 'Hide PIN' : 'Show PIN'}
+                    >
+                      {isPinVisible ? '👁️‍🗨️' : '👁️'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="member-actions-row">
+                  <button
+                    type="button"
+                    className="share-pin-wa-btn"
+                    onClick={() => handleShareWhatsApp(member)}
+                    title="Send Access PIN to member on WhatsApp"
+                  >
+                    <span className="wa-icon">📲</span>
+                    <span>Send on WhatsApp</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="regen-pin-btn"
+                    onClick={() => handleRegenerate(member.id, member.name)}
+                    title="Generate new 6-digit PIN"
+                  >
+                    🔄 New PIN
+                  </button>
+
+                  <button
+                    type="button"
+                    className="revoke-auth-btn"
+                    onClick={() => handleRevoke(member.id, member.name)}
+                    title="Revoke access"
+                  >
+                    🗑️ Revoke
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </Card>
+
+      {/* Add Authorized Member Modal */}
+      {isAddModalOpen && (
+        <Modal
+          title="Add Authorized Committee Member"
+          onClose={() => setIsAddModalOpen(false)}
+        >
+          <form onSubmit={handleSaveMember} className="member-form">
+            <div className="form-group">
+              <label className="form-label">
+                <span>👤 Member Full Name</span>
+                <span className="req-star">*</span>
+              </label>
+              <input
+                required
+                placeholder="e.g. Sri K. Venkateswarlu Garu"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className="form-row-grid">
+              <div className="form-group">
+                <label className="form-label">
+                  <span>🎖️ Committee Role / Designation</span>
+                  <span className="req-star">*</span>
+                </label>
+                <input
+                  required
+                  placeholder="e.g. Treasurer / Auditor"
+                  value={designation}
+                  onChange={(e) => setDesignation(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <span>📱 10-Digit Mobile Number</span>
+                  <span className="req-star">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="e.g. 9848012345"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  inputMode="tel"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                <span>🔢 6-Digit Access PIN / OTP</span>
+                <span className="req-star">*</span>
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  required
+                  maxLength={6}
+                  placeholder="6-digit PIN"
+                  value={customPin}
+                  onChange={(e) => setCustomPin(e.target.value)}
+                  style={{ fontWeight: 'bold', letterSpacing: '0.2em' }}
+                  inputMode="numeric"
+                />
+                <Button
+                  type="button"
+                  kind="secondary"
+                  onClick={() => setCustomPin(Math.floor(100000 + Math.random() * 900000).toString())}
+                  title="Generate new random 6-digit PIN"
+                >
+                  🎲 Auto Generate
+                </Button>
+              </div>
+              <small className="muted">This PIN will be used by the member to unlock full financial transactions.</small>
+            </div>
+
+            <div className="modal-actions">
+              <Button type="button" kind="secondary" onClick={() => setIsAddModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Grant Authorization
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </>
   )
 }
 

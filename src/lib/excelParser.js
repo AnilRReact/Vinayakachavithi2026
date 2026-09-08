@@ -79,6 +79,11 @@ export const SEGMENT_CONFIGS = {
         aliases: ['category', 'cat', 'type', 'head', 'group', 'ఖర్చు_రకం', 'విభాగం']
       },
       {
+        name: 'paid_by',
+        label: 'Paid By / Spent By',
+        aliases: ['paid_by', 'spent_by', 'payer', 'paid_from', 'person_paid', 'ఖర్చుపెట్టినవారు', 'చెల్లించినవారు']
+      },
+      {
         name: 'paid_to',
         label: 'Paid To / Vendor',
         aliases: ['paid_to', 'vendor', 'shop', 'receiver', 'person', 'చెల్లించినది', 'షాపు_పేరు']
@@ -97,9 +102,9 @@ export const SEGMENT_CONFIGS = {
       }
     ],
     sampleData: [
-      { 'Item / Purpose': 'Grand Pandal Mandapam Tent Setup', 'Amount (₹)': 35000, 'Category': 'Mandapam & Tent', 'Paid To / Vendor': 'Sri Sai Tent House', 'Date': '2026-09-12', 'Is Reusable Asset (Yes/No)': 'No' },
-      { 'Item / Purpose': 'Brass Pooja Aarti Lamps (2 Sets)', 'Amount (₹)': 4500, 'Category': 'Pooja Materials', 'Paid To / Vendor': 'Lakshmi Metal Works', 'Date': '2026-09-13', 'Is Reusable Asset (Yes/No)': 'Yes' },
-      { 'Item / Purpose': 'Maha Prasadam Laddu & Rice Groceries', 'Amount (₹)': 18000, 'Category': 'Food & Prasadam', 'Paid To / Vendor': 'Balaji Kirana Stores', 'Date': '2026-09-14', 'Is Reusable Asset (Yes/No)': 'No' }
+      { 'Item / Purpose': 'Grand Pandal Mandapam Tent Setup', 'Amount (₹)': 35000, 'Category': 'Mandapam & Tent', 'Paid By / Spent By': 'Sri Anil Kumar (Treasurer)', 'Paid To / Vendor': 'Sri Sai Tent House', 'Date': '2026-09-12', 'Is Reusable Asset (Yes/No)': 'No' },
+      { 'Item / Purpose': 'Brass Pooja Aarti Lamps (2 Sets)', 'Amount (₹)': 4500, 'Category': 'Pooja Materials', 'Paid By / Spent By': 'Sri President Garu', 'Paid To / Vendor': 'Lakshmi Metal Works', 'Date': '2026-09-13', 'Is Reusable Asset (Yes/No)': 'Yes' },
+      { 'Item / Purpose': 'Maha Prasadam Laddu & Rice Groceries', 'Amount (₹)': 18000, 'Category': 'Food & Prasadam', 'Paid By / Spent By': 'Committee Treasury Fund', 'Paid To / Vendor': 'Balaji Kirana Stores', 'Date': '2026-09-14', 'Is Reusable Asset (Yes/No)': 'No' }
     ]
   },
   prasad_sponsors: {
@@ -673,6 +678,7 @@ export async function exportMasterFestivalWorkbook(portalData = {}, villageName 
     'Date': e.date || '',
     'Expense Category': e.category || 'General',
     'Amount Spent (₹)': Number(e.amount || 0),
+    'Paid By / Spent By': e.paid_by || 'Committee Fund',
     'Paid To / Vendor': e.paid_to || '',
     'Payment Mode': e.payment_mode || 'Cash',
     'Bill / Voucher Notes': e.note || ''

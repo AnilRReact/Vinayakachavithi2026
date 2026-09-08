@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { exportMasterFestivalWorkbook, exportTableToExcel } from '../../lib/excelParser'
 
-export function ReportsSection({ data = {}, admin = false }) {
+export function ReportsSection({ data = {}, admin = false, authorized = false, onOpenLogin }) {
   const [activeTab, setActiveTab] = useState('donations')
   const [searchTerm, setSearchTerm] = useState('')
   const [isExporting, setIsExporting] = useState(false)
@@ -200,6 +200,7 @@ export function ReportsSection({ data = {}, admin = false }) {
       (e) =>
         String(e.item || '').toLowerCase().includes(q) ||
         String(e.category || '').toLowerCase().includes(q) ||
+        String(e.paid_by || '').toLowerCase().includes(q) ||
         String(e.paid_to || '').toLowerCase().includes(q) ||
         String(e.amount || '').includes(q)
     )
@@ -831,8 +832,8 @@ export function ReportsSection({ data = {}, admin = false }) {
                         ₹ {Number(d.amount || 0).toLocaleString()}
                       </td>
                       <td>{d.date || '—'}</td>
-                      <td>{d.phone || '—'}</td>
-                      <td>{d.note || d.gotram || '—'}</td>
+                      <td>{(admin || authorized) ? (d.phone || '—') : <span className="lock-tag">🔒 Private</span>}</td>
+                      <td>{(admin || authorized) ? (d.note || d.gotram || '—') : <span className="lock-tag">🔒 Private</span>}</td>
                     </tr>
                   ))
                 )}
@@ -854,10 +855,10 @@ export function ReportsSection({ data = {}, admin = false }) {
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Item / Purpose</th>
+                  <th>Expense Category</th>
                   <th style={{ textAlign: 'right' }}>Amount Spent</th>
-                  <th>Category</th>
-                  <th>Paid To / Vendor</th>
+                  <th>Paid By (Spent By)</th>
+                  <th>Paid To (Vendor)</th>
                   <th>Date</th>
                 </tr>
               </thead>
@@ -870,11 +871,11 @@ export function ReportsSection({ data = {}, admin = false }) {
                   filteredExpenses.map((e, idx) => (
                     <tr key={e.id || idx}>
                       <td>{idx + 1}</td>
-                      <td><b>{e.item || '—'}</b></td>
+                      <td><b>{e.category || e.item || 'General'}</b></td>
                       <td style={{ textAlign: 'right', fontWeight: 'bold', color: '#b91c1c' }}>
                         ₹ {Number(e.amount || 0).toLocaleString()}
                       </td>
-                      <td><span className="table-cat-badge">{e.category || 'General'}</span></td>
+                      <td><span className="table-cat-badge">{e.paid_by || 'Committee Fund'}</span></td>
                       <td>{e.paid_to || '—'}</td>
                       <td>{e.date || '—'}</td>
                     </tr>

@@ -18,9 +18,19 @@ const EXPENSE_CATEGORIES = [
   'General & Miscellaneous'
 ]
 
+const COMMON_PAYERS = [
+  'Committee Treasury Fund',
+  'Sri Anil Kumar (Treasurer)',
+  'Sri President Garu',
+  'Sri Secretary Garu',
+  'Youth Seva Samithi'
+]
+
 export function ExpensesSection({
   expenses = [],
   admin = false,
+  authorized = false,
+  onOpenLogin,
   add,
   update,
   remove,
@@ -34,11 +44,14 @@ export function ExpensesSection({
   // Form states
   const [category, setCategory] = useState('')
   const [amount, setAmount] = useState('')
+  const [paidBy, setPaidBy] = useState('')
   const [paidTo, setPaidTo] = useState('')
   const [date, setDate] = useState(today())
   const [paymentMode, setPaymentMode] = useState('Cash')
   const [note, setNote] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+
+  const isUnlocked = admin || authorized
 
   // Group expenses by category
   const categories = useMemo(() => {
@@ -50,6 +63,7 @@ export function ExpensesSection({
     return expenses.filter((e) => {
       const matchSearch =
         (e.category || '').toLowerCase().includes(expenseSearch.toLowerCase()) ||
+        (e.paid_by || '').toLowerCase().includes(expenseSearch.toLowerCase()) ||
         (e.paid_to || '').toLowerCase().includes(expenseSearch.toLowerCase()) ||
         (e.note || '').toLowerCase().includes(expenseSearch.toLowerCase())
       if (!matchSearch) return false
@@ -58,9 +72,15 @@ export function ExpensesSection({
     })
   }, [expenses, expenseSearch, selectedCategory])
 
+  const totalSpent = useMemo(
+    () => expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0),
+    [expenses]
+  )
+
   const handleOpenAdd = () => {
     setCategory('')
     setAmount('')
+    setPaidBy('Committee Treasury Fund')
     setPaidTo('')
     setDate(today())
     setPaymentMode('Cash')
@@ -72,6 +92,7 @@ export function ExpensesSection({
     if (e) e.preventDefault()
     const cleanCat = (category || '').trim()
     const numAmount = Number(amount)
+    const cleanPaidBy = (paidBy || 'Committee Treasury Fund').trim()
     const cleanPaidTo = (paidTo || '').trim()
 
     if (!cleanCat || !numAmount || numAmount <= 0 || !cleanPaidTo) {
@@ -84,6 +105,7 @@ export function ExpensesSection({
       const payload = {
         category: cleanCat,
         amount: numAmount,
+        paid_by: cleanPaidBy,
         paid_to: cleanPaidTo,
         date: date || today(),
         payment_mode: paymentMode,
@@ -93,7 +115,7 @@ export function ExpensesSection({
       const err = await add('expenses', payload)
       if (err) throw err
 
-      toast.success(`Recorded expense of ₹${numAmount} for ${cleanCat}`)
+      toast.success(`Recorded expense of ₹${numAmount.toLocaleString()} for ${cleanCat}`)
       syncNewExpense(payload)
       setIsAddModalOpen(false)
     } catch (err) {
@@ -106,18 +128,52 @@ export function ExpensesSection({
   const expenseFields = [
     { name: 'category', label: 'Expense Category', required: true, placeholder: 'e.g. Tent & Lighting, Flowers, Prasadam, Sound' },
     { name: 'amount', label: 'Amount Spent (₹)', type: 'number', min: '1', required: true, placeholder: '5000' },
+    { name: 'paid_by', label: 'Paid By / Spent By (Person / Fund)', required: true, placeholder: 'e.g. Sri Anil Kumar (Treasurer) / Committee Fund' },
+    { name: 'paid_to', label: 'Paid To (Vendor / Shop / Receiver)', required: true, placeholder: 'e.g. Sri Balaji Sound System' },
     { name: 'date', label: 'Payment Date', type: 'date', default: today(), required: true },
-    { name: 'paid_to', label: 'Paid To (Vendor / Person)', required: true, placeholder: 'e.g. Sri Balaji Sound System' },
     { name: 'payment_mode', label: 'Payment Method', type: 'select', options: ['Cash', 'UPI', 'PhonePe', 'GPay', 'Bank Transfer'], default: 'Cash' },
     { name: 'note', label: 'Bill / Voucher / Notes', placeholder: 'Optional bill or receipt notes' }
   ]
 
+  // If Lock Mode (Guest Devotee View) -> Display Confidential Lock Guard
+  if (!isUnlocked) {
+    return (
+      <Card title="Expenditure & Expenses (ఖర్చులు)">
+        <div className="locked-expenses-banner">
+          <div className="locked-shield-icon">🔒</div>
+          <div className="locked-content">
+            <h3>Expense Transactions & Vouchers are Confidential</h3>
+            <p>
+              To maintain financial security and vendor privacy, granular expense transactions and bills are restricted to <b>Authorized Committee Members and Auditors</b>.
+            </p>
+            <div className="locked-public-stat">
+              <span>Audited Total Expenditure:</span>
+              <b>₹ {totalSpent.toLocaleString()}</b>
+              <small>({expenses.length} official vouchers recorded)</small>
+            </div>
+            <div className="locked-actions">
+              <button
+                type="button"
+                className="unlock-portal-btn"
+                onClick={onOpenLogin}
+              >
+                <span className="btn-icon">🔓</span>
+                <span>Committee Member Sign In to View Vouchers</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
+  // Authorized / Admin Unlocked View
   return (
     <>
       <Card
-        title="Expenditure & Expenses"
+        title="Expenditure & Expenses (ఖర్చులు)"
         action={
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <Button onClick={handleOpenAdd}>
               ➕ Record Expense
             </Button>
@@ -134,7 +190,7 @@ export function ExpensesSection({
         <div className="filter-bar">
           <input
             value={expenseSearch}
-            placeholder="Search expense by vendor or category..."
+            placeholder="Search by payer, vendor, or category..."
             onChange={(e) => setExpenseSearch(e.target.value)}
           />
           {categories.length > 2 && (
@@ -153,36 +209,46 @@ export function ExpensesSection({
 
         <div className="records-list">
           {filteredExpenses.map((exp) => (
-            <article className="record-item" key={exp.id}>
+            <article className="record-item expense-record-item" key={exp.id}>
               <div className="record-main">
                 <div className="record-title-row">
                   <b>{exp.category}</b>
                   <strong className="record-amount spent">
-                    {currency.format(exp.amount)}
+                    ₹ {Number(exp.amount || 0).toLocaleString()}
                   </strong>
                 </div>
+
+                <div className="expense-payer-vendor-row">
+                  <span className="payer-badge">
+                    <span className="badge-lbl">👤 Paid By:</span> <b>{exp.paid_by || 'Committee Fund'}</b>
+                  </span>
+                  <span className="vendor-badge">
+                    <span className="badge-lbl">🏪 Paid To:</span> <b>{exp.paid_to || 'Vendor'}</b>
+                  </span>
+                </div>
+
                 <small className="record-meta">
-                  📅 {fmtDate(exp.date)} · Paid to: <b>{exp.paid_to}</b>
+                  📅 {fmtDate(exp.date)}
                   {exp.payment_mode && ` · 💳 ${exp.payment_mode}`}
                   {exp.note && ` · 📝 ${exp.note}`}
                 </small>
               </div>
 
-              <RecordActions
-                record={exp}
-                fields={expenseFields}
-                onSave={(values) =>
-                  update('expenses', exp.id, {
-                    ...values,
-                    amount: Number(values.amount)
-                  })
-                }
-                onDelete={() => remove('expenses', exp.id)}
-                deleteTitle="Delete Expense Record"
-                deleteMessage={`Delete expense of ${currency.format(
-                  exp.amount
-                )} for ${exp.category}?`}
-              />
+              {admin && (
+                <RecordActions
+                  record={exp}
+                  fields={expenseFields}
+                  onSave={(values) =>
+                    update('expenses', exp.id, {
+                      ...values,
+                      amount: Number(values.amount)
+                    })
+                  }
+                  onDelete={() => remove('expenses', exp.id)}
+                  deleteTitle="Delete Expense Record"
+                  deleteMessage={`Delete expense of ₹${Number(exp.amount || 0).toLocaleString()} for ${exp.category}?`}
+                />
+              )}
             </article>
           ))}
         </div>
@@ -244,12 +310,40 @@ export function ExpensesSection({
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="e.g. 5000"
                   required
+                  inputMode="numeric"
                 />
               </div>
 
               <div className="form-group">
                 <label className="form-label">
-                  <span>🏪 Paid To (Vendor / Person)</span>
+                  <span>👤 Paid By / Spent By (Who paid the money)</span>
+                  <span className="req-star">*</span>
+                </label>
+                <input
+                  value={paidBy}
+                  onChange={(e) => setPaidBy(e.target.value)}
+                  placeholder="e.g. Sri Anil Kumar / Committee Fund"
+                  required
+                />
+                <div className="role-preset-chips mini" style={{ marginTop: '4px' }}>
+                  {COMMON_PAYERS.map((payer) => (
+                    <button
+                      key={payer}
+                      type="button"
+                      className={`role-chip mini ${paidBy === payer ? 'selected' : ''}`}
+                      onClick={() => setPaidBy(payer)}
+                    >
+                      {payer}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="form-row-grid">
+              <div className="form-group">
+                <label className="form-label">
+                  <span>🏪 Paid To (Vendor / Shop / Receiver)</span>
                   <span className="req-star">*</span>
                 </label>
                 <input
@@ -259,12 +353,10 @@ export function ExpensesSection({
                   required
                 />
               </div>
-            </div>
 
-            <div className="form-row-grid">
               <div className="form-group">
                 <label className="form-label">
-                  <span>📅 Date</span>
+                  <span>📅 Payment Date</span>
                   <span className="req-star">*</span>
                 </label>
                 <input
@@ -274,7 +366,9 @@ export function ExpensesSection({
                   required
                 />
               </div>
+            </div>
 
+            <div className="form-row-grid">
               <div className="form-group">
                 <label className="form-label">
                   <span>💳 Payment Mode</span>
@@ -287,17 +381,17 @@ export function ExpensesSection({
                   <option value="Bank Transfer">Bank Transfer</option>
                 </select>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">
-                <span>🧾 Bill / Voucher / Notes (Optional)</span>
-              </label>
-              <input
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. Bill #104, Stage carpet advance"
-              />
+              <div className="form-group">
+                <label className="form-label">
+                  <span>🧾 Bill / Voucher / Notes (Optional)</span>
+                </label>
+                <input
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="e.g. Bill #104, Stage carpet advance"
+                />
+              </div>
             </div>
 
             <div className="modal-actions">

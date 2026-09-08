@@ -7,7 +7,7 @@ import { InventorySection } from './InventorySection'
 import { Bidding } from './Bidding'
 import { ExcelImportModal } from '../../components/ExcelImportModal'
 
-export function Money({ data, admin, add, update, remove, recordBid, closeBid }) {
+export function Money({ data, admin, authorized = false, onOpenLogin, add, update, remove, recordBid, closeBid }) {
   const [activeSubTab, setActiveSubTab] = useState('donations')
   const [excelModalOpen, setExcelModalOpen] = useState(false)
   const [importSegment, setImportSegment] = useState('donations')
@@ -98,6 +98,7 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
           donations={donations}
           settings={settings}
           admin={admin}
+          authorized={authorized}
           add={add}
           update={update}
           remove={remove}
@@ -109,6 +110,8 @@ export function Money({ data, admin, add, update, remove, recordBid, closeBid })
         <ExpensesSection
           expenses={expenses}
           admin={admin}
+          authorized={authorized}
+          onOpenLogin={onOpenLogin}
           add={add}
           update={update}
           remove={remove}
